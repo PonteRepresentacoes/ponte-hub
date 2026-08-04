@@ -1,0 +1,3277 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ponte Hub</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+body { margin: 0; }
+*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.mx-auto{margin-left:auto;margin-right:auto}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.h-1\.5{height:.375rem}.h-16{height:4rem}.h-2{height:.5rem}.h-8{height:2rem}.min-h-full{min-height:100%}.w-1\.5{width:.375rem}.w-16{width:4rem}.w-2{width:.5rem}.w-20{width:5rem}.w-24{width:6rem}.w-8{width:2rem}.w-full{width:100%}.max-w-5xl{max-width:64rem}.max-w-sm{max-width:24rem}.flex-1{flex:1 1 0%}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.25rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-6>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem*var(--tw-space-y-reverse))}.whitespace-nowrap{white-space:nowrap}.rounded{border-radius:.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-md{border-radius:.375rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-l-4{border-left-width:4px}.border-t{border-top-width:1px}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138/var(--tw-border-opacity,1))}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77/var(--tw-border-opacity,1))}.border-amber-400{--tw-border-opacity:1;border-color:rgb(251 191 36/var(--tw-border-opacity,1))}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254/var(--tw-border-opacity,1))}.border-blue-300{--tw-border-opacity:1;border-color:rgb(147 197 253/var(--tw-border-opacity,1))}.border-blue-400{--tw-border-opacity:1;border-color:rgb(96 165 250/var(--tw-border-opacity,1))}.border-cyan-400{--tw-border-opacity:1;border-color:rgb(34 211 238/var(--tw-border-opacity,1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208/var(--tw-border-opacity,1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183/var(--tw-border-opacity,1))}.border-emerald-400{--tw-border-opacity:1;border-color:rgb(52 211 153/var(--tw-border-opacity,1))}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202/var(--tw-border-opacity,1))}.border-red-300{--tw-border-opacity:1;border-color:rgb(252 165 165/var(--tw-border-opacity,1))}.border-red-400{--tw-border-opacity:1;border-color:rgb(248 113 113/var(--tw-border-opacity,1))}.border-rose-400{--tw-border-opacity:1;border-color:rgb(251 113 133/var(--tw-border-opacity,1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity,1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225/var(--tw-border-opacity,1))}.border-violet-300{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.border-violet-400{--tw-border-opacity:1;border-color:rgb(167 139 250/var(--tw-border-opacity,1))}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235/var(--tw-bg-opacity,1))}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11/var(--tw-bg-opacity,1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255/var(--tw-bg-opacity,1))}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246/var(--tw-bg-opacity,1))}.bg-cyan-50{--tw-bg-opacity:1;background-color:rgb(236 254 255/var(--tw-bg-opacity,1))}.bg-cyan-500{--tw-bg-opacity:1;background-color:rgb(6 182 212/var(--tw-bg-opacity,1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245/var(--tw-bg-opacity,1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226/var(--tw-bg-opacity,1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242/var(--tw-bg-opacity,1))}.bg-rose-50{--tw-bg-opacity:1;background-color:rgb(255 241 242/var(--tw-bg-opacity,1))}.bg-rose-500{--tw-bg-opacity:1;background-color:rgb(244 63 94/var(--tw-bg-opacity,1))}.bg-violet-50{--tw-bg-opacity:1;background-color:rgb(245 243 255/var(--tw-bg-opacity,1))}.bg-violet-500{--tw-bg-opacity:1;background-color:rgb(139 92 246/var(--tw-bg-opacity,1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.object-cover{-o-object-fit:cover;object-fit:cover}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-3{padding-bottom:.75rem}.pt-4{padding-top:1rem}.pt-5{padding-top:1.25rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-.025em}.tracking-wide{letter-spacing:.025em}.tracking-widest{letter-spacing:.1em}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14/var(--tw-text-opacity,1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216/var(--tw-text-opacity,1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175/var(--tw-text-opacity,1))}.text-cyan-800{--tw-text-opacity:1;color:rgb(21 94 117/var(--tw-text-opacity,1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87/var(--tw-text-opacity,1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70/var(--tw-text-opacity,1))}.text-red-700{--tw-text-opacity:1;color:rgb(185 28 28/var(--tw-text-opacity,1))}.text-rose-800{--tw-text-opacity:1;color:rgb(159 18 57/var(--tw-text-opacity,1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105/var(--tw-text-opacity,1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}.text-violet-800{--tw-text-opacity:1;color:rgb(91 33 182/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.underline{text-decoration-line:underline}.opacity-70{opacity:.7}.outline-none{outline:2px solid transparent;outline-offset:2px}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.hover\:text-red-600:hover{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}@media (min-width:768px){.md\:col-span-2{grid-column:span 2/span 2}.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.md\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.md\:flex-row{flex-direction:row}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+
+  if (!window.storage) {
+    window.storage = {
+      async get(key, shared) {
+        const raw = localStorage.getItem("ponte-hub:" + key);
+        if (raw === null) throw new Error("not found");
+        return { key, value: raw, shared: !!shared };
+      },
+      async set(key, value, shared) {
+        localStorage.setItem("ponte-hub:" + key, value);
+        return { key, value, shared: !!shared };
+      },
+      async delete(key, shared) {
+        localStorage.removeItem("ponte-hub:" + key);
+        return { key, deleted: true, shared: !!shared };
+      },
+      async list(prefix, shared) {
+        const keys = Object.keys(localStorage)
+          .filter((k) => k.startsWith("ponte-hub:" + (prefix || "")))
+          .map((k) => k.replace("ponte-hub:", ""));
+        return { keys, prefix, shared: !!shared };
+      },
+    };
+  }
+
+</script>
+<script>
+const {
+  useState,
+  useEffect,
+  useRef
+} = React;
+
+// ---------- Brand tokens ----------
+const NAVY = "#0B1220";
+const NAVY_SOFT = "#111C34";
+const ROYAL = "#1D4ED8";
+const ROYAL_DEEP = "#1E3A8A";
+const PAPER = "#F4F6FA";
+const LINE = "#E2E8F0";
+const VENDOR_COLORS = [{
+  key: "blue",
+  label: "Azul",
+  chip: "bg-blue-50 text-blue-800 border-blue-400",
+  dot: "bg-blue-500"
+}, {
+  key: "emerald",
+  label: "Verde",
+  chip: "bg-emerald-50 text-emerald-800 border-emerald-400",
+  dot: "bg-emerald-500"
+}, {
+  key: "amber",
+  label: "Âmbar",
+  chip: "bg-amber-50 text-amber-800 border-amber-400",
+  dot: "bg-amber-500"
+}, {
+  key: "violet",
+  label: "Violeta",
+  chip: "bg-violet-50 text-violet-800 border-violet-400",
+  dot: "bg-violet-500"
+}, {
+  key: "rose",
+  label: "Rosa",
+  chip: "bg-rose-50 text-rose-800 border-rose-400",
+  dot: "bg-rose-500"
+}, {
+  key: "cyan",
+  label: "Ciano",
+  chip: "bg-cyan-50 text-cyan-800 border-cyan-400",
+  dot: "bg-cyan-500"
+}];
+const colorMeta = key => VENDOR_COLORS.find(c => c.key === key) || VENDOR_COLORS[0];
+const brl = n => (isFinite(n) ? n : 0).toLocaleString("pt-BR", {
+  style: "currency",
+  currency: "BRL"
+});
+const norm = s => (s || "").toString().trim().toLowerCase();
+const pickField = (row, keys) => {
+  const rowKeys = Object.keys(row);
+  for (const wanted of keys) {
+    const found = rowKeys.find(k => norm(k) === norm(wanted));
+    if (found) return row[found];
+  }
+  return undefined;
+};
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+// Depois de publicar o backend na Vercel (ver /backend/README-deploy-sintegra.md),
+// troque pela URL real, ex: "https://seu-projeto.vercel.app/api/sintegra"
+// Deixe em branco para pular essa busca (IE/regime ficam manuais até então).
+const SINTEGRA_ENDPOINT = "/api/sintegra"; // caminho relativo — mesmo projeto Vercel
+const STORAGE_KEY = "ponte-hub-data";
+function PonteHub() {
+  const [area, setArea] = useState("adm"); // "adm" | "vendas"
+  const [tab, setTab] = useState("dashboard");
+  const changeArea = a => {
+    setArea(a);
+    setTab(a === "adm" ? "dashboard" : "vendas-home");
+  };
+  const [vendedores, setVendedores] = useState([]);
+  const [clientes, setClientes] = useState([]);
+  const [lancamentos, setLancamentos] = useState([]);
+  const [fluxoCaixa, setFluxoCaixa] = useState([]);
+  const [oportunidades, setOportunidades] = useState([]);
+  const [produtosGiro, setProdutosGiro] = useState([]);
+  const [analisesPreditivas, setAnalisesPreditivas] = useState([]);
+  const [chamadosLRA, setChamadosLRA] = useState([]);
+  const [pedidosEspelho, setPedidosEspelho] = useState([]);
+  const [tabelaICMS, setTabelaICMS] = useState([]);
+  const [taxaImposto, setTaxaImposto] = useState(15.5);
+  const [loaded, setLoaded] = useState(false);
+  const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
+
+  // ---------- Load once ----------
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await window.storage.get(STORAGE_KEY, false);
+        if (res && res.value) {
+          const data = JSON.parse(res.value);
+          setVendedores(data.vendedores || []);
+          setClientes(data.clientes || []);
+          setLancamentos(data.lancamentos || []);
+          setFluxoCaixa(data.fluxoCaixa || []);
+          setOportunidades(data.oportunidades || []);
+          setProdutosGiro(data.produtosGiro || []);
+          setAnalisesPreditivas(data.analisesPreditivas || []);
+          setChamadosLRA(data.chamadosLRA || []);
+          setPedidosEspelho(data.pedidosEspelho || []);
+          setTabelaICMS(data.tabelaICMS || []);
+          setTaxaImposto(typeof data.taxaImposto === "number" ? data.taxaImposto : 15.5);
+        }
+      } catch (e) {
+        // no data yet — fine, start empty
+      } finally {
+        setLoaded(true);
+      }
+    })();
+  }, []);
+
+  // ---------- Persist on change ----------
+  useEffect(() => {
+    if (!loaded) return;
+    const t = setTimeout(async () => {
+      setSaveState("saving");
+      try {
+        const payload = JSON.stringify({
+          vendedores,
+          clientes,
+          lancamentos,
+          fluxoCaixa,
+          oportunidades,
+          produtosGiro,
+          analisesPreditivas,
+          chamadosLRA,
+          pedidosEspelho,
+          tabelaICMS,
+          taxaImposto
+        });
+        const ok = await window.storage.set(STORAGE_KEY, payload, false);
+        setSaveState(ok ? "saved" : "error");
+      } catch (e) {
+        setSaveState("error");
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, taxaImposto, loaded]);
+
+  // ---------- Derived totals ----------
+  const totalBruto = lancamentos.reduce((a, l) => a + l.valorBruto, 0);
+  const totalImposto = lancamentos.reduce((a, l) => a + l.imposto, 0);
+  const totalRepasse = lancamentos.reduce((a, l) => a + l.repasse, 0);
+  const totalPonte = lancamentos.reduce((a, l) => a + l.ficaComPonte, 0);
+  const saldoEmpresa = fluxoCaixa.reduce((a, f) => {
+    if (f.tag === "empresa") return a + f.valor;
+    if (f.tag === "misto") return a + f.valor * ((f.percentualEmpresa ?? 50) / 100);
+    return a;
+  }, 0);
+  const saldoPessoal = fluxoCaixa.reduce((a, f) => {
+    if (f.tag === "pessoal") return a + f.valor;
+    if (f.tag === "misto") return a + f.valor * (1 - (f.percentualEmpresa ?? 50) / 100);
+    return a;
+  }, 0);
+  const findVendedorByCliente = nomeCliente => {
+    const c = clientes.find(c => norm(c.nome) === norm(nomeCliente));
+    if (!c || !c.vendedorId) return null;
+    return vendedores.find(v => v.id === c.vendedorId) || null;
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-full min-h-full",
+    style: {
+      background: PAPER,
+      fontFamily: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    }
+  }, /*#__PURE__*/React.createElement(TopBar, {
+    area: area,
+    changeArea: changeArea,
+    tab: tab,
+    setTab: setTab,
+    saveState: saveState
+  }), /*#__PURE__*/React.createElement("main", {
+    className: "max-w-5xl mx-auto px-4 py-6"
+  }, area === "adm" && tab === "dashboard" && /*#__PURE__*/React.createElement(Dashboard, {
+    vendedores: vendedores,
+    clientes: clientes,
+    lancamentos: lancamentos,
+    totals: {
+      totalBruto,
+      totalImposto,
+      totalRepasse,
+      totalPonte,
+      saldoEmpresa,
+      saldoPessoal
+    }
+  }), area === "adm" && tab === "equipe" && /*#__PURE__*/React.createElement(Equipe, {
+    vendedores: vendedores,
+    setVendedores: setVendedores
+  }), area === "adm" && tab === "clientes" && /*#__PURE__*/React.createElement(Clientes, {
+    clientes: clientes,
+    setClientes: setClientes,
+    vendedores: vendedores
+  }), area === "adm" && tab === "financeiro" && /*#__PURE__*/React.createElement(Financeiro, {
+    clientes: clientes,
+    vendedores: vendedores,
+    lancamentos: lancamentos,
+    setLancamentos: setLancamentos,
+    fluxoCaixa: fluxoCaixa,
+    setFluxoCaixa: setFluxoCaixa,
+    taxaImposto: taxaImposto,
+    setTaxaImposto: setTaxaImposto,
+    findVendedorByCliente: findVendedorByCliente,
+    totals: {
+      totalBruto,
+      totalImposto,
+      totalRepasse,
+      totalPonte,
+      saldoEmpresa,
+      saldoPessoal
+    }
+  }), area === "vendas" && tab === "vendas-home" && /*#__PURE__*/React.createElement(VendasHome, {
+    onOpenFicha: () => setTab("vendas-ficha"),
+    onOpenScanner: () => setTab("vendas-scanner"),
+    onOpenPreditiva: () => setTab("vendas-preditiva"),
+    onOpenLRA: () => setTab("vendas-lra"),
+    onOpenPedidos: () => setTab("vendas-pedidos")
+  }), area === "vendas" && tab === "vendas-ficha" && /*#__PURE__*/React.createElement(FichaRapida, {
+    clientes: clientes,
+    setClientes: setClientes,
+    vendedores: vendedores
+  }), area === "vendas" && tab === "vendas-scanner" && /*#__PURE__*/React.createElement(ScannerOportunidades, {
+    clientes: clientes,
+    oportunidades: oportunidades,
+    setOportunidades: setOportunidades
+  }), area === "vendas" && tab === "vendas-preditiva" && /*#__PURE__*/React.createElement(VendaPreditiva, {
+    clientes: clientes,
+    produtosGiro: produtosGiro,
+    setProdutosGiro: setProdutosGiro,
+    analisesPreditivas: analisesPreditivas,
+    setAnalisesPreditivas: setAnalisesPreditivas
+  }), area === "vendas" && tab === "vendas-lra" && /*#__PURE__*/React.createElement(ModuloLRA, {
+    clientes: clientes,
+    chamadosLRA: chamadosLRA,
+    setChamadosLRA: setChamadosLRA
+  }), area === "vendas" && tab === "vendas-pedidos" && /*#__PURE__*/React.createElement(CentralPedidos, {
+    clientes: clientes,
+    pedidosEspelho: pedidosEspelho,
+    setPedidosEspelho: setPedidosEspelho,
+    tabelaICMS: tabelaICMS,
+    setTabelaICMS: setTabelaICMS
+  })));
+}
+
+// ============================================================
+// TOP BAR / NAV
+// ============================================================
+function TopBar({
+  area,
+  changeArea,
+  tab,
+  setTab,
+  saveState
+}) {
+  const admItems = [{
+    id: "dashboard",
+    label: "Painel"
+  }, {
+    id: "equipe",
+    label: "Equipe"
+  }, {
+    id: "clientes",
+    label: "Clientes"
+  }, {
+    id: "financeiro",
+    label: "Financeiro"
+  }];
+  const vendasItems = [{
+    id: "vendas-home",
+    label: "Ferramentas"
+  }, {
+    id: "vendas-ficha",
+    label: "Ficha Rápida"
+  }, {
+    id: "vendas-scanner",
+    label: "Scanner"
+  }, {
+    id: "vendas-preditiva",
+    label: "Preditiva"
+  }, {
+    id: "vendas-lra",
+    label: "L.R.A"
+  }, {
+    id: "vendas-pedidos",
+    label: "Pedidos"
+  }];
+  const items = area === "adm" ? admItems : vendasItems;
+  return /*#__PURE__*/React.createElement("header", {
+    style: {
+      background: NAVY
+    },
+    className: "text-white"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-5xl mx-auto px-4 pt-5 pb-3 flex items-end justify-between gap-4 flex-wrap"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "inline-flex items-center justify-center w-8 h-8 rounded-md text-sm font-black",
+    style: {
+      background: ROYAL
+    }
+  }, "P"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-bold tracking-tight leading-none"
+  }, "Ponte Hub"), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] uppercase tracking-widest",
+    style: {
+      color: "#93A5C9"
+    }
+  }, "Ponte Representações"))), /*#__PURE__*/React.createElement(SaveIndicator, {
+    state: saveState
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "max-w-5xl mx-auto px-4 pb-3 flex gap-2"
+  }, /*#__PURE__*/React.createElement(AreaButton, {
+    active: area === "adm",
+    onClick: () => changeArea("adm"),
+    label: "Painel ADM",
+    hint: "Gestão · Financeiro"
+  }), /*#__PURE__*/React.createElement(AreaButton, {
+    active: area === "vendas",
+    onClick: () => changeArea("vendas"),
+    label: "App de Vendas",
+    hint: "Campo · Oportunidades"
+  })), /*#__PURE__*/React.createElement("nav", {
+    className: "max-w-5xl mx-auto px-4 flex gap-1 border-t",
+    style: {
+      borderColor: "#1E2A47"
+    }
+  }, items.map(it => /*#__PURE__*/React.createElement("button", {
+    key: it.id,
+    onClick: () => setTab(it.id),
+    className: "px-4 py-3 text-xs font-bold uppercase tracking-wide transition-colors",
+    style: {
+      color: tab === it.id ? "#fff" : "#8AA0C8",
+      borderBottom: tab === it.id ? `2px solid ${ROYAL}` : "2px solid transparent"
+    }
+  }, it.label))));
+}
+function AreaButton({
+  active,
+  onClick,
+  label,
+  hint
+}) {
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: onClick,
+    className: "text-left px-3 py-2 rounded-md transition-colors",
+    style: {
+      background: active ? ROYAL : "rgba(255,255,255,0.04)",
+      border: `1px solid ${active ? ROYAL : "#1E2A47"}`
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-bold text-white leading-none"
+  }, label), /*#__PURE__*/React.createElement("p", {
+    className: "text-[10px] mt-0.5",
+    style: {
+      color: active ? "#DCE6FB" : "#5B6B8C"
+    }
+  }, hint));
+}
+function SaveIndicator({
+  state
+}) {
+  const map = {
+    idle: {
+      text: "—",
+      color: "#5B6B8C"
+    },
+    saving: {
+      text: "Salvando…",
+      color: "#93A5C9"
+    },
+    saved: {
+      text: "Salvo",
+      color: "#34D399"
+    },
+    error: {
+      text: "Falha ao salvar",
+      color: "#F87171"
+    }
+  };
+  const m = map[state] || map.idle;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 text-[11px] font-semibold",
+    style: {
+      color: m.color
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1.5 h-1.5 rounded-full",
+    style: {
+      background: m.color
+    }
+  }), m.text);
+}
+
+// ============================================================
+// CARD PRIMITIVE
+// ============================================================
+function Card({
+  title,
+  subtitle,
+  children,
+  className = ""
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: `bg-white rounded-lg border ${className}`,
+    style: {
+      borderColor: LINE
+    }
+  }, (title || subtitle) && /*#__PURE__*/React.createElement("div", {
+    className: "px-5 pt-4 pb-3 border-b",
+    style: {
+      borderColor: LINE
+    }
+  }, title && /*#__PURE__*/React.createElement("h2", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, title), subtitle && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-500 mt-0.5"
+  }, subtitle)), /*#__PURE__*/React.createElement("div", {
+    className: "p-5"
+  }, children));
+}
+function Stat({
+  label,
+  value,
+  tone = "navy"
+}) {
+  const toneColor = {
+    navy: NAVY,
+    royal: ROYAL,
+    emerald: "#047857",
+    amber: "#B45309"
+  }[tone];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-lg border p-4",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-[10px] font-bold uppercase tracking-widest text-slate-400"
+  }, label), /*#__PURE__*/React.createElement("p", {
+    className: "text-xl font-black mt-1",
+    style: {
+      color: toneColor
+    }
+  }, value));
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function Dashboard({
+  vendedores,
+  clientes,
+  lancamentos,
+  totals
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Bem-vindo de volta"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Visão geral da operação da Ponte Representações.")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 md:grid-cols-4 gap-3"
+  }, /*#__PURE__*/React.createElement(Stat, {
+    label: "Vendedores",
+    value: vendedores.length
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Clientes",
+    value: clientes.length
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Saldo Empresa",
+    value: brl(totals.saldoEmpresa),
+    tone: "royal"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Saldo Pessoal",
+    value: brl(totals.saldoPessoal),
+    tone: "amber"
+  })), /*#__PURE__*/React.createElement(Card, {
+    title: "Último processamento",
+    subtitle: "Resumo dos últimos lançamentos financeiros"
+  }, lancamentos.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum lançamento ainda.",
+    hint: "Cadastre vendedores e clientes, depois processe o relatório de comissão da fábrica na aba Financeiro."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, lancamentos.slice(-5).reverse().map(l => /*#__PURE__*/React.createElement(LancamentoRow, {
+    key: l.id,
+    l: l
+  })))));
+}
+function EmptyState({
+  text,
+  hint
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "text-center py-8"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-semibold text-slate-600"
+  }, text), hint && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 mt-1 max-w-sm mx-auto"
+  }, hint));
+}
+
+// ============================================================
+// APP DE VENDAS (placeholder — próximos módulos)
+// ============================================================
+function VendasHome({
+  onOpenFicha,
+  onOpenScanner,
+  onOpenPreditiva,
+  onOpenLRA,
+  onOpenPedidos
+}) {
+  const modulos = [{
+    id: "ficha",
+    title: "Ficha Rápida",
+    desc: "Consulta de CNPJ, termômetro de cadastro e alerta SUFRAMA.",
+    ready: true,
+    onClick: onOpenFicha
+  }, {
+    id: "scanner",
+    title: "Scanner de Oportunidades",
+    desc: "Compara preço do concorrente e gera orçamento pro WhatsApp.",
+    ready: true,
+    onClick: onOpenScanner
+  }, {
+    id: "preditiva",
+    title: "Venda Preditiva",
+    desc: "Autonomia de estoque do cliente e sugestão de reposição.",
+    ready: true,
+    onClick: onOpenPreditiva
+  }, {
+    id: "pedidos",
+    title: "Central de Pedidos",
+    desc: "Espelho do pedido com trava de preço e auditoria da NF.",
+    ready: true,
+    onClick: onOpenPedidos
+  }, {
+    id: "lra",
+    title: "L.R.A",
+    desc: "Abertura de chamado de avaria, fotos, áudio e protocolo.",
+    ready: true,
+    onClick: onOpenLRA
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "App de Vendas"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Ferramentas de campo para o vendedor — sem acesso ao financeiro do escritório.")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  }, modulos.map(m => /*#__PURE__*/React.createElement("button", {
+    key: m.id,
+    onClick: m.ready ? m.onClick : undefined,
+    disabled: !m.ready,
+    className: "text-left bg-white rounded-lg border p-4 flex items-start justify-between gap-3 transition-colors",
+    style: {
+      borderColor: LINE,
+      cursor: m.ready ? "pointer" : "default"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, m.title), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 mt-1"
+  }, m.desc)), m.ready ? /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap"
+  }, "Abrir →") : /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap"
+  }, "Em breve")))));
+}
+
+// ============================================================
+// FICHA RÁPIDA — CONSULTA CNPJ + TERMÔMETRO + SUFRAMA
+// ============================================================
+const MUNICIPIOS_SUFRAMA = ["boa vista", "bonfim", "pacaraima"];
+function blankFicha(cnpj = "") {
+  return {
+    id: uid(),
+    nome: "",
+    cnpj,
+    razaoSocial: "",
+    municipio: "",
+    estado: "",
+    dataAbertura: "",
+    situacao: "",
+    ie: "",
+    regimeTributario: "",
+    referenciasComerciais: "",
+    referenciasBancarias: "",
+    vendedorId: null
+  };
+}
+function fichaCompletude(f) {
+  const campos = [f.ie, f.regimeTributario, f.referenciasComerciais, f.referenciasBancarias];
+  const preenchidos = campos.filter(v => v && String(v).trim()).length;
+  return {
+    preenchidos,
+    total: campos.length
+  };
+}
+function FichaRapida({
+  clientes,
+  setClientes,
+  vendedores
+}) {
+  const [modo, setModo] = useState("novo"); // "novo" | "existente"
+  const [selecionadoId, setSelecionadoId] = useState("");
+  const [ficha, setFicha] = useState(blankFicha());
+  const [cnpjInput, setCnpjInput] = useState("");
+  const [buscando, setBuscando] = useState(false);
+  const [buscaMsg, setBuscaMsg] = useState("");
+  const [salvo, setSalvo] = useState(false);
+  const carregarExistente = id => {
+    setSelecionadoId(id);
+    const c = clientes.find(c => c.id === id);
+    if (c) {
+      setFicha({
+        ...blankFicha(),
+        ...c
+      });
+      setCnpjInput(c.cnpj || "");
+    }
+  };
+  const buscarCNPJ = async () => {
+    const digits = cnpjInput.replace(/\D/g, "");
+    if (digits.length !== 14) {
+      setBuscaMsg("Digite os 14 números do CNPJ.");
+      return;
+    }
+    setBuscando(true);
+    setBuscaMsg("");
+    try {
+      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+      if (!resp.ok) throw new Error("not-ok");
+      const data = await resp.json();
+      setFicha(f => ({
+        ...f,
+        cnpj: digits,
+        nome: data.nome_fantasia || data.razao_social || f.nome,
+        razaoSocial: data.razao_social || "",
+        municipio: data.municipio || "",
+        estado: data.uf || "",
+        dataAbertura: data.data_inicio_atividade || "",
+        situacao: data.descricao_situacao_cadastral || "",
+        regimeTributario: data.opcao_pelo_simples ? "Simples Nacional" : f.regimeTributario
+      }));
+      setBuscaMsg("Dados encontrados na Receita Federal.");
+
+      // Busca complementar via Sintegra WS (IE / regime estadual / SUFRAMA) — só roda
+      // se o backend já estiver publicado (ver SINTEGRA_ENDPOINT no topo do arquivo).
+      if (SINTEGRA_ENDPOINT) {
+        try {
+          const respS = await fetch(`${SINTEGRA_ENDPOINT}?cnpj=${digits}&uf=${data.uf || ""}`);
+          if (respS.ok) {
+            const s = await respS.json();
+            setFicha(f => ({
+              ...f,
+              ie: s.ie || f.ie,
+              regimeTributario: s.regimeTributario || f.regimeTributario
+            }));
+            setBuscaMsg(m => m + " IE/regime complementados via Sintegra WS.");
+          }
+        } catch (e) {
+          // backend ainda não publicado ou fora do ar — segue com o que já temos
+        }
+      }
+    } catch (e) {
+      setBuscaMsg("Não consegui buscar automaticamente agora — preencha os campos manualmente abaixo.");
+    } finally {
+      setBuscando(false);
+    }
+  };
+  const set = field => e => setFicha(f => ({
+    ...f,
+    [field]: e.target.value
+  }));
+  const {
+    preenchidos,
+    total
+  } = fichaCompletude(ficha);
+  const termometro = preenchidos === total ? {
+    label: "🟢 Pronto para vendas",
+    color: "#047857",
+    bg: "bg-emerald-50 border-emerald-300"
+  } : preenchidos === 0 ? {
+    label: "🔴 Incompleto",
+    color: "#B91C1C",
+    bg: "bg-red-50 border-red-300"
+  } : {
+    label: "🟡 Em preenchimento",
+    color: "#B45309",
+    bg: "bg-amber-50 border-amber-300"
+  };
+  const isSuframa = MUNICIPIOS_SUFRAMA.includes(norm(ficha.municipio));
+  const salvar = () => {
+    if (!ficha.nome.trim()) {
+      setBuscaMsg("Preencha ao menos o nome do cliente antes de salvar.");
+      return;
+    }
+    const existe = clientes.some(c => c.id === ficha.id);
+    if (existe) {
+      setClientes(clientes.map(c => c.id === ficha.id ? ficha : c));
+    } else {
+      setClientes([...clientes, ficha]);
+    }
+    setSalvo(true);
+    setTimeout(() => setSalvo(false), 2000);
+  };
+  const baixarFicha = () => {
+    const v = vendedores.find(v => v.id === ficha.vendedorId);
+    const html = `<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Ficha - ${ficha.nome}</title>
+      <style>
+        body{font-family:Arial,sans-serif;padding:32px;color:#0B1220}
+        h1{font-size:18px;border-bottom:3px solid #1D4ED8;padding-bottom:8px}
+        .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #E2E8F0;font-size:13px}
+        .label{color:#64748B;font-weight:bold}
+        .tag{display:inline-block;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:bold;margin-top:12px}
+      </style></head><body>
+      <h1>Ficha Cadastral — ${ficha.nome}</h1>
+      <div class="row"><span class="label">Razão Social</span><span>${ficha.razaoSocial || "—"}</span></div>
+      <div class="row"><span class="label">CNPJ</span><span>${ficha.cnpj || "—"}</span></div>
+      <div class="row"><span class="label">Município/UF</span><span>${ficha.municipio || "—"} / ${ficha.estado || "—"}</span></div>
+      <div class="row"><span class="label">Situação cadastral</span><span>${ficha.situacao || "—"}</span></div>
+      <div class="row"><span class="label">Inscrição Estadual</span><span>${ficha.ie || "—"}</span></div>
+      <div class="row"><span class="label">Regime tributário</span><span>${ficha.regimeTributario || "—"}</span></div>
+      <div class="row"><span class="label">Referências comerciais</span><span>${ficha.referenciasComerciais || "—"}</span></div>
+      <div class="row"><span class="label">Referências bancárias</span><span>${ficha.referenciasBancarias || "—"}</span></div>
+      <div class="row"><span class="label">Vendedor</span><span>${v ? v.nome : "Venda direta (Ponte)"}</span></div>
+      <span class="tag" style="background:${isSuframa ? "#EFF6FF" : "#F1F5F9"};color:${isSuframa ? "#1D4ED8" : "#475569"}">
+        ${isSuframa ? "💡 Oportunidade SUFRAMA — verificar inscrição ativa" : "Faturamento padrão (fora da área SUFRAMA)"}
+      </span>
+      </body></html>`;
+    const blob = new Blob([html], {
+      type: "text/html;charset=utf-8;"
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ficha-${(ficha.nome || "cliente").replace(/\s+/g, "-").toLowerCase()}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Ficha Rápida"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Consulta CNPJ, termômetro de cadastro e alerta de SUFRAMA — direto na visita.")), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 mb-4"
+  }, /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: modo === "novo",
+    onClick: () => {
+      setModo("novo");
+      setFicha(blankFicha());
+      setCnpjInput("");
+    }
+  }, "Novo cliente"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: modo === "existente",
+    onClick: () => setModo("existente")
+  }, "Cliente já cadastrado")), modo === "existente" && /*#__PURE__*/React.createElement("select", {
+    value: selecionadoId,
+    onChange: e => carregarExistente(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm mb-4",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione um cliente..."), clientes.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: cnpjInput,
+    onChange: e => setCnpjInput(e.target.value),
+    placeholder: "CNPJ (somente números)",
+    className: "flex-1 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: buscarCNPJ,
+    disabled: buscando,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md whitespace-nowrap",
+    style: {
+      background: ROYAL,
+      opacity: buscando ? 0.6 : 1
+    }
+  }, buscando ? "Buscando…" : "Buscar Receita")), buscaMsg && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold mt-2 text-slate-500"
+  }, buscaMsg)), /*#__PURE__*/React.createElement("div", {
+    className: `rounded-lg border px-4 py-3 flex items-center justify-between ${termometro.bg}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-bold",
+    style: {
+      color: termometro.color
+    }
+  }, termometro.label), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-semibold",
+    style: {
+      color: termometro.color
+    }
+  }, preenchidos, "/", total, " campos de crédito")), isSuframa && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-blue-200 bg-blue-50 px-4 py-3"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold text-blue-800"
+  }, "💡 Oportunidade SUFRAMA"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-blue-700 mt-1"
+  }, "Cliente em área incentivada (", ficha.municipio || "Boa Vista/Bonfim/Pacaraima", "). Verifique se a inscrição SUFRAMA está ativa — mas o pedido pode seguir normalmente pela tributação padrão se ele não tiver.")), /*#__PURE__*/React.createElement(Card, {
+    title: "Dados do cliente"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Nome / fantasia"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.nome,
+    onChange: set("nome"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Razão social"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.razaoSocial,
+    onChange: set("razaoSocial"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Município"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.municipio,
+    onChange: set("municipio"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "UF"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.estado,
+    onChange: set("estado"),
+    maxLength: 2,
+    className: "w-full border rounded-md px-3 py-2 text-sm uppercase",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Situação cadastral"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.situacao,
+    onChange: set("situacao"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Vendedor"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: ficha.vendedorId || "",
+    onChange: e => setFicha(f => ({
+      ...f,
+      vendedorId: e.target.value || null
+    })),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Venda direta (Ponte)"), vendedores.map(v => /*#__PURE__*/React.createElement("option", {
+    key: v.id,
+    value: v.id
+  }, v.nome)))))), /*#__PURE__*/React.createElement(Card, {
+    title: "Dados para análise de crédito",
+    subtitle: "Usados no termômetro de completude da ficha"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Inscrição Estadual"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.ie,
+    onChange: set("ie"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Regime tributário"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: ficha.regimeTributario,
+    onChange: set("regimeTributario"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), /*#__PURE__*/React.createElement("option", null, "Simples Nacional"), /*#__PURE__*/React.createElement("option", null, "Lucro Presumido"), /*#__PURE__*/React.createElement("option", null, "Lucro Real"))), /*#__PURE__*/React.createElement(Field, {
+    label: "Referências comerciais"
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: ficha.referenciasComerciais,
+    onChange: set("referenciasComerciais"),
+    rows: 2,
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Referências bancárias"
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: ficha.referenciasBancarias,
+    onChange: set("referenciasBancarias"),
+    rows: 2,
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: salvar,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#047857"
+    }
+  }, salvo ? "Salvo ✓" : "Salvar cliente"), /*#__PURE__*/React.createElement("button", {
+    onClick: baixarFicha,
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: ROYAL,
+      color: ROYAL
+    }
+  }, "Baixar ficha (imprimir como PDF)")));
+}
+
+// ============================================================
+// SCANNER DE OPORTUNIDADES — RÉGUA DE PREÇO + PRÉ-ORÇAMENTO
+// ============================================================
+function ScannerOportunidades({
+  clientes,
+  oportunidades,
+  setOportunidades
+}) {
+  const [clienteId, setClienteId] = useState("");
+  const [produtoConcorrente, setProdutoConcorrente] = useState("");
+  const [precoConcorrente, setPrecoConcorrente] = useState("");
+  const [meuProduto, setMeuProduto] = useState("");
+  const [meuPreco, setMeuPreco] = useState("");
+  const [quantidade, setQuantidade] = useState(1);
+  const [resultado, setResultado] = useState(null);
+  const [mensagem, setMensagem] = useState("");
+  const [salvo, setSalvo] = useState(false);
+  const analisar = () => {
+    const pc = Number(precoConcorrente);
+    const pm = Number(meuPreco);
+    const qtd = Number(quantidade) || 1;
+    if (!produtoConcorrente.trim() || !meuProduto.trim() || !pc || !pm) {
+      setMensagem("");
+      setResultado({
+        erro: "Preencha os dois produtos e os dois preços."
+      });
+      return;
+    }
+    const diffPercent = (pm - pc) / pc * 100;
+    const cliente = clientes.find(c => c.id === clienteId);
+    const totalMeu = pm * qtd;
+    const totalConcorrente = pc * qtd;
+    const economiaOuGanho = totalConcorrente - totalMeu;
+    let argumento;
+    if (pm > pc) {
+      argumento = "margem";
+    } else {
+      argumento = "giro";
+    }
+    const nomeCliente = cliente ? cliente.nome : null;
+    const saudacao = nomeCliente ? `Olá, ${nomeCliente}!` : "Olá!";
+    let texto;
+    if (argumento === "margem") {
+      texto = `${saudacao} Vi o ${produtoConcorrente} na gôndola por ${brl(pc)}. Nosso ${meuProduto} custa ${brl(pm)}, mas oferece mais qualidade/giro e ainda garante uma margem melhor pra você no fechamento. Em ${qtd} unidade(s), o total fica em ${brl(totalMeu)}. Bora fechar?`;
+    } else {
+      texto = `${saudacao} Notei o ${produtoConcorrente} custando ${brl(pc)} na concorrência. Nosso ${meuProduto} sai por ${brl(pm)} — mais competitivo e com giro melhor pra sua loja. Em ${qtd} unidade(s), o total é ${brl(totalMeu)}, uma economia de ${brl(Math.abs(economiaOuGanho))} em relação ao concorrente. Posso já deixar reservado?`;
+    }
+    setResultado({
+      diffPercent,
+      argumento,
+      totalMeu,
+      totalConcorrente,
+      economiaOuGanho,
+      nomeCliente
+    });
+    setMensagem(texto);
+    setSalvo(false);
+  };
+  const salvarOportunidade = () => {
+    if (!resultado || resultado.erro) return;
+    setOportunidades([...oportunidades, {
+      id: uid(),
+      criadoEm: new Date().toISOString(),
+      clienteId: clienteId || null,
+      clienteNome: resultado.nomeCliente,
+      produtoConcorrente,
+      precoConcorrente: Number(precoConcorrente),
+      meuProduto,
+      meuPreco: Number(meuPreco),
+      quantidade: Number(quantidade) || 1,
+      diffPercent: resultado.diffPercent,
+      totalMeu: resultado.totalMeu
+    }]);
+    setSalvo(true);
+    setTimeout(() => setSalvo(false), 2000);
+  };
+  const copiarMensagem = async () => {
+    try {
+      await navigator.clipboard.writeText(mensagem);
+      setMensagem(m => m); // no-op, just to trigger nothing; feedback via button label below
+    } catch (e) {
+      // clipboard indisponível — o texto já está selecionável na caixa
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Scanner de Oportunidades"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Compare o preço do concorrente com o seu e gere o argumento de venda na hora.")), /*#__PURE__*/React.createElement(Card, {
+    title: "Captura na gôndola",
+    subtitle: "Por enquanto os valores são digitados — a leitura por foto (OCR) entra numa fase futura"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: clienteId,
+    onChange: e => setClienteId(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Sem cliente vinculado (genérico)"), clientes.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Produto do concorrente"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: produtoConcorrente,
+    onChange: e => setProdutoConcorrente(e.target.value),
+    placeholder: "Ex: Detergente marca X",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Preço do concorrente (R$)"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: precoConcorrente,
+    onChange: e => setPrecoConcorrente(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Meu produto"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: meuProduto,
+    onChange: e => setMeuProduto(e.target.value),
+    placeholder: "Ex: Detergente Ponte",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Meu preço (R$)"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: meuPreco,
+    onChange: e => setMeuPreco(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Quantidade"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: 1,
+    value: quantidade,
+    onChange: e => setQuantidade(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }))), /*#__PURE__*/React.createElement("button", {
+    onClick: analisar,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "Analisar margem"))), resultado && resultado.erro && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+  }, resultado.erro), resultado && !resultado.erro && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: `rounded-lg border px-4 py-3 ${resultado.argumento === "margem" ? "bg-blue-50 border-blue-200" : "bg-emerald-50 border-emerald-200"}`
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: resultado.argumento === "margem" ? "#1D4ED8" : "#047857"
+    }
+  }, resultado.argumento === "margem" ? `💡 Seu produto é ${Math.abs(resultado.diffPercent).toFixed(1)}% mais caro — venda pelo argumento de qualidade/margem` : `🎯 Seu produto é ${Math.abs(resultado.diffPercent).toFixed(1)}% mais competitivo — venda pelo argumento de giro/preço`), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs mt-1",
+    style: {
+      color: resultado.argumento === "margem" ? "#1E40AF" : "#065F46"
+    }
+  }, "Total nesta quantidade: ", brl(resultado.totalMeu), " (concorrente: ", brl(resultado.totalConcorrente), ")")), /*#__PURE__*/React.createElement(Card, {
+    title: "Pré-orçamento relâmpago",
+    subtitle: "Copie e envie no WhatsApp do comprador"
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: mensagem,
+    onChange: e => setMensagem(e.target.value),
+    rows: 4,
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-3 mt-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: copiarMensagem,
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: ROYAL,
+      color: ROYAL
+    }
+  }, "Copiar mensagem"), /*#__PURE__*/React.createElement("a", {
+    href: `https://wa.me/?text=${encodeURIComponent(mensagem)}`,
+    target: "_blank",
+    rel: "noreferrer",
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#25D366"
+    }
+  }, "Abrir no WhatsApp"), /*#__PURE__*/React.createElement("button", {
+    onClick: salvarOportunidade,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#047857"
+    }
+  }, salvo ? "Salvo ✓" : "Salvar oportunidade")))), /*#__PURE__*/React.createElement(Card, {
+    title: `Histórico de oportunidades (${oportunidades.length})`
+  }, oportunidades.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhuma oportunidade registrada ainda."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, oportunidades.slice().reverse().map(o => /*#__PURE__*/React.createElement("div", {
+    key: o.id,
+    className: "border rounded-md px-3 py-2 flex items-center justify-between",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, o.meuProduto, " vs ", o.produtoConcorrente), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400"
+  }, o.clienteNome || "Sem cliente", " · ", o.quantidade, "x")), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-bold",
+    style: {
+      color: o.diffPercent > 0 ? "#1D4ED8" : "#047857"
+    }
+  }, o.diffPercent > 0 ? "+" : "", o.diffPercent.toFixed(1), "%"))))));
+}
+
+// ============================================================
+// VENDA PREDITIVA — AUTONOMIA DE ESTOQUE + SUGESTÃO DE REPOSIÇÃO
+// ============================================================
+function VendaPreditiva({
+  clientes,
+  produtosGiro,
+  setProdutosGiro,
+  analisesPreditivas,
+  setAnalisesPreditivas
+}) {
+  const [sub, setSub] = useState("analise"); // "analise" | "produtos" | "importar"
+
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Venda Preditiva"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Estoque do cliente + giro médio = quando ele vai precisar repor.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 flex-wrap"
+  }, /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "analise",
+    onClick: () => setSub("analise")
+  }, "Analisar cliente"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "produtos",
+    onClick: () => setSub("produtos")
+  }, "Produtos e giro médio"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "importar",
+    onClick: () => setSub("importar")
+  }, "Importar estoque (repositor)")), sub === "produtos" && /*#__PURE__*/React.createElement(ProdutosGiro, {
+    produtosGiro: produtosGiro,
+    setProdutosGiro: setProdutosGiro
+  }), sub === "analise" && /*#__PURE__*/React.createElement(AnalisePreditiva, {
+    clientes: clientes,
+    produtosGiro: produtosGiro,
+    analisesPreditivas: analisesPreditivas,
+    setAnalisesPreditivas: setAnalisesPreditivas,
+    onIrProdutos: () => setSub("produtos")
+  }), sub === "importar" && /*#__PURE__*/React.createElement(ImportarEstoque, {
+    clientes: clientes,
+    produtosGiro: produtosGiro,
+    analisesPreditivas: analisesPreditivas,
+    setAnalisesPreditivas: setAnalisesPreditivas
+  }));
+}
+function ImportarEstoque({
+  clientes,
+  produtosGiro,
+  analisesPreditivas,
+  setAnalisesPreditivas
+}) {
+  const [preview, setPreview] = useState([]);
+  const [naoIdentificados, setNaoIdentificados] = useState([]);
+  const [msg, setMsg] = useState("");
+  const [diasAlerta, setDiasAlerta] = useState(7);
+  const [diasCobertura, setDiasCobertura] = useState(30);
+  const processFile = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), {
+          type: "array"
+        });
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const ok = [];
+        const semMatch = [];
+        rows.forEach(row => {
+          const clienteNome = String(pickField(row, ["cliente", "loja", "fantasia"]) || "").trim();
+          const produtoNome = String(pickField(row, ["produto", "item", "descricao", "descrição"]) || "").trim();
+          const estoque = Number(pickField(row, ["estoque", "estoque atual", "qtd", "quantidade"]));
+          const produto = produtosGiro.find(p => norm(p.nome) === norm(produtoNome));
+          const cliente = clientes.find(c => norm(c.nome) === norm(clienteNome));
+          if (!produto || isNaN(estoque)) {
+            semMatch.push({
+              clienteNome,
+              produtoNome,
+              estoque,
+              motivo: !produto ? "Produto não cadastrado no giro médio" : "Estoque inválido"
+            });
+            return;
+          }
+          const dias = produto.giroMedioDiario > 0 ? estoque / produto.giroMedioDiario : Infinity;
+          const critico = dias <= diasAlerta;
+          const sugestaoQtd = Math.max(0, Math.ceil(produto.giroMedioDiario * diasCobertura - estoque));
+          ok.push({
+            id: uid(),
+            criadoEm: new Date().toISOString(),
+            clienteId: cliente ? cliente.id : null,
+            clienteNome: cliente ? cliente.nome : clienteNome || null,
+            produtoNome: produto.nome,
+            estoqueAtual: estoque,
+            giroMedioDiario: produto.giroMedioDiario,
+            dias,
+            critico,
+            sugestaoQtd
+          });
+        });
+        setPreview(ok);
+        setNaoIdentificados(semMatch);
+        setMsg(`${ok.length} linha(s) prontas · ${semMatch.length} sem correspondência.`);
+      } catch (err) {
+        setMsg("Não consegui ler o arquivo. Confira se é um .xlsx/.csv válido.");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = "";
+  };
+  const confirmar = () => {
+    if (preview.length === 0) return;
+    setAnalisesPreditivas([...analisesPreditivas, ...preview]);
+    setPreview([]);
+    setMsg("Importado e salvo no histórico com sucesso.");
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Importar relatório do app do repositor",
+    subtitle: "Colunas esperadas: Cliente, Produto, Estoque"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2 mb-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Alerta crítico (dias)"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: diasAlerta,
+    onChange: e => setDiasAlerta(Number(e.target.value)),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Cobertura sugerida (dias)"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: diasCobertura,
+    onChange: e => setDiasCobertura(Number(e.target.value)),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }))), /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".xlsx,.xls,.csv",
+    onChange: processFile,
+    className: "text-xs"
+  }), msg && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold mt-2",
+    style: {
+      color: ROYAL
+    }
+  }, msg), preview.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 space-y-2"
+  }, preview.map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.id,
+    className: `border-l-4 rounded-md px-3 py-2 flex items-center justify-between ${a.critico ? "bg-red-50 border-red-400" : "bg-emerald-50 border-emerald-400"}`
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, a.produtoNome), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500"
+  }, a.clienteNome || "Sem cliente", " · estoque ", a.estoqueAtual, " un")), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-bold",
+    style: {
+      color: a.critico ? "#B91C1C" : "#047857"
+    }
+  }, a.dias.toFixed(1), "d ", a.critico ? `· repor ${a.sugestaoQtd}` : ""))), /*#__PURE__*/React.createElement("button", {
+    onClick: confirmar,
+    className: "mt-2 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#047857"
+    }
+  }, "Confirmar importação (", preview.length, ")")), naoIdentificados.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-bold text-amber-800 mb-2"
+  }, "Não identificados (", naoIdentificados.length, ")"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1"
+  }, naoIdentificados.map((n, i) => /*#__PURE__*/React.createElement("p", {
+    key: i,
+    className: "text-[11px] text-amber-700"
+  }, n.produtoNome || "(produto vazio)", " — ", n.clienteNome || "sem cliente", " — ", n.motivo))), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-amber-600 mt-2"
+  }, "Cadastre esses produtos em \"Produtos e giro médio\" e importe de novo."))));
+}
+function ProdutosGiro({
+  produtosGiro,
+  setProdutosGiro
+}) {
+  const [nome, setNome] = useState("");
+  const [giro, setGiro] = useState("");
+  const add = () => {
+    if (!nome.trim() || !Number(giro)) return;
+    setProdutosGiro([...produtosGiro, {
+      id: uid(),
+      nome: nome.trim(),
+      giroMedioDiario: Number(giro)
+    }]);
+    setNome("");
+    setGiro("");
+  };
+  const remove = id => setProdutosGiro(produtosGiro.filter(p => p.id !== id));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Cadastrar produto e giro médio",
+    subtitle: "Quantas unidades esse produto costuma vender por dia, em média"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: nome,
+    onChange: e => setNome(e.target.value),
+    placeholder: "Nome do produto",
+    className: "md:col-span-2 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 border rounded-md px-3 py-2",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: giro,
+    onChange: e => setGiro(e.target.value),
+    className: "w-full text-sm outline-none"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400 font-semibold whitespace-nowrap"
+  }, "un/dia"))), /*#__PURE__*/React.createElement("button", {
+    onClick: add,
+    className: "mt-3 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "Adicionar produto")), /*#__PURE__*/React.createElement(Card, {
+    title: `Produtos monitorados (${produtosGiro.length})`
+  }, produtosGiro.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum produto cadastrado ainda.",
+    hint: "Cadastre os produtos que você quer acompanhar o giro nos seus clientes."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, produtosGiro.map(p => /*#__PURE__*/React.createElement("div", {
+    key: p.id,
+    className: "flex items-center justify-between border rounded-md px-3 py-2",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, p.nome), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-bold text-slate-500"
+  }, p.giroMedioDiario, " un/dia"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => remove(p.id),
+    className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+  }, "Remover")))))));
+}
+function AnalisePreditiva({
+  clientes,
+  produtosGiro,
+  analisesPreditivas,
+  setAnalisesPreditivas,
+  onIrProdutos
+}) {
+  const [clienteId, setClienteId] = useState("");
+  const [produtoId, setProdutoId] = useState("");
+  const [estoqueAtual, setEstoqueAtual] = useState("");
+  const [diasAlerta, setDiasAlerta] = useState(7);
+  const [diasCobertura, setDiasCobertura] = useState(30);
+  const [resultado, setResultado] = useState(null);
+  const [mensagem, setMensagem] = useState("");
+  const [salvo, setSalvo] = useState(false);
+  const produto = produtosGiro.find(p => p.id === produtoId);
+  const cliente = clientes.find(c => c.id === clienteId);
+  const analisar = () => {
+    const est = Number(estoqueAtual);
+    if (!produto || !est && est !== 0) {
+      setResultado({
+        erro: "Selecione um produto e informe o estoque atual."
+      });
+      return;
+    }
+    const dias = produto.giroMedioDiario > 0 ? est / produto.giroMedioDiario : Infinity;
+    const critico = dias <= Number(diasAlerta);
+    const sugestaoQtd = Math.max(0, Math.ceil(produto.giroMedioDiario * Number(diasCobertura) - est));
+    setResultado({
+      dias,
+      critico,
+      sugestaoQtd
+    });
+    const nomeCliente = cliente ? cliente.nome : "o cliente";
+    const saudacao = cliente ? `Olá, ${cliente.nome}!` : "Olá!";
+    if (critico) {
+      setMensagem(`${saudacao} Analisando seu estoque, o ${produto.nome} tem autonomia de só ${dias.toFixed(1)} dia(s) no ritmo atual de vendas. Pra você não ficar com a prateleira vazia, já deixo sugerido um pedido de ${sugestaoQtd} unidade(s) pra cobrir ${diasCobertura} dias. Posso fechar?`);
+    } else {
+      setMensagem(`${saudacao} O estoque do ${produto.nome} está saudável — autonomia de ${dias.toFixed(1)} dia(s), sem necessidade de reposição urgente.`);
+    }
+    setSalvo(false);
+  };
+  const salvarAnalise = () => {
+    if (!resultado || resultado.erro) return;
+    setAnalisesPreditivas([...analisesPreditivas, {
+      id: uid(),
+      criadoEm: new Date().toISOString(),
+      clienteId: clienteId || null,
+      clienteNome: cliente ? cliente.nome : null,
+      produtoNome: produto.nome,
+      estoqueAtual: Number(estoqueAtual),
+      giroMedioDiario: produto.giroMedioDiario,
+      dias: resultado.dias,
+      critico: resultado.critico,
+      sugestaoQtd: resultado.sugestaoQtd
+    }]);
+    setSalvo(true);
+    setTimeout(() => setSalvo(false), 2000);
+  };
+  if (produtosGiro.length === 0) {
+    return /*#__PURE__*/React.createElement(Card, {
+      title: "Nenhum produto cadastrado ainda"
+    }, /*#__PURE__*/React.createElement(EmptyState, {
+      text: "Cadastre ao menos um produto com o giro médio para começar a analisar."
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: onIrProdutos,
+      className: "mt-3 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+      style: {
+        background: ROYAL
+      }
+    }, "Cadastrar produto agora"));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Analisar estoque do cliente"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: clienteId,
+    onChange: e => setClienteId(e.target.value),
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Sem cliente vinculado"), clientes.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome))), /*#__PURE__*/React.createElement("select", {
+    value: produtoId,
+    onChange: e => setProdutoId(e.target.value),
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione o produto..."), produtosGiro.map(p => /*#__PURE__*/React.createElement("option", {
+    key: p.id,
+    value: p.id
+  }, p.nome, " (", p.giroMedioDiario, " un/dia)"))), /*#__PURE__*/React.createElement(Field, {
+    label: "Estoque atual na loja (un)"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: estoqueAtual,
+    onChange: e => setEstoqueAtual(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Alerta crítico (dias)"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: diasAlerta,
+    onChange: e => setDiasAlerta(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Cobertura sugerida (dias)"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: diasCobertura,
+    onChange: e => setDiasCobertura(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })))), /*#__PURE__*/React.createElement("button", {
+    onClick: analisar,
+    className: "mt-3 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "Analisar autonomia")), resultado && resultado.erro && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+  }, resultado.erro), resultado && !resultado.erro && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: `rounded-lg border px-4 py-3 ${resultado.critico ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: resultado.critico ? "#B91C1C" : "#047857"
+    }
+  }, resultado.critico ? "⚠️ Estoque crítico" : "✅ Estoque saudável", " — autonomia de ", resultado.dias.toFixed(1), " dia(s)"), resultado.critico && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs mt-1 text-red-700"
+  }, "Sugestão de reposição: ", resultado.sugestaoQtd, " unidade(s) para cobrir ", diasCobertura, " dias.")), /*#__PURE__*/React.createElement(Card, {
+    title: "Mensagem sugerida",
+    subtitle: "Copie e envie no WhatsApp do comprador"
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: mensagem,
+    onChange: e => setMensagem(e.target.value),
+    rows: 3,
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-3 mt-3"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: `https://wa.me/?text=${encodeURIComponent(mensagem)}`,
+    target: "_blank",
+    rel: "noreferrer",
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#25D366"
+    }
+  }, "Abrir no WhatsApp"), /*#__PURE__*/React.createElement("button", {
+    onClick: salvarAnalise,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#047857"
+    }
+  }, salvo ? "Salvo ✓" : "Salvar análise")))), /*#__PURE__*/React.createElement(Card, {
+    title: `Histórico de análises (${analisesPreditivas.length})`
+  }, analisesPreditivas.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhuma análise registrada ainda."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, analisesPreditivas.slice().reverse().map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.id,
+    className: `border-l-4 rounded-md px-3 py-2 flex items-center justify-between ${a.critico ? "bg-red-50 border-red-400" : "bg-emerald-50 border-emerald-400"}`
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, a.produtoNome), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500"
+  }, a.clienteNome || "Sem cliente", " · estoque ", a.estoqueAtual, " un")), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-bold",
+    style: {
+      color: a.critico ? "#B91C1C" : "#047857"
+    }
+  }, a.dias.toFixed(1), "d ", a.critico ? `· repor ${a.sugestaoQtd}` : ""))))));
+}
+
+// ============================================================
+// MÓDULO L.R.A — LAUDO E RASTREIO DE AVARIA
+// ============================================================
+const TIPOS_OCORRENCIA = ["Vício Aparente", "Vício Oculto", "Avaria Logística (CTE)", "Assistência Técnica de Fábrica"];
+const SOLUCOES = ["Nota de Crédito", "Reposição Física", "Substituição por Bonificação"];
+const STATUS_LRA = ["Aberto", "Em Tratativa", "Resolvido", "Não Resolvido"];
+function calcularPrazoCDC(tipoOcorrencia, dataBase, diasLimite) {
+  if (!dataBase) return null;
+  const base = new Date(dataBase);
+  const hoje = new Date();
+  const diasDecorridos = Math.floor((hoje - base) / (1000 * 60 * 60 * 24));
+  const restante = diasLimite - diasDecorridos;
+  let nivel = "verde";
+  if (restante <= 0) nivel = "estourado";else if (restante <= 5) nivel = "vermelho";else if (restante <= 10) nivel = "amarelo";
+  return {
+    diasDecorridos,
+    restante,
+    nivel
+  };
+}
+const NIVEL_META = {
+  verde: {
+    label: "Dentro do prazo",
+    cor: "#047857",
+    bg: "bg-emerald-50 border-emerald-300"
+  },
+  amarelo: {
+    label: "Atenção — prazo se aproximando",
+    cor: "#B45309",
+    bg: "bg-amber-50 border-amber-300"
+  },
+  vermelho: {
+    label: "Crítico — cobrar solução imediata",
+    cor: "#B91C1C",
+    bg: "bg-red-50 border-red-300"
+  },
+  estourado: {
+    label: "Prazo legal estourado",
+    cor: "#7F1D1D",
+    bg: "bg-red-100 border-red-400"
+  }
+};
+function ModuloLRA({
+  clientes,
+  chamadosLRA,
+  setChamadosLRA
+}) {
+  const [sub, setSub] = useState("novo"); // "novo" | "historico"
+
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Módulo L.R.A"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Laudo e Rastreio de Avaria — protocolo, evidências e prazos do CDC.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "novo",
+    onClick: () => setSub("novo")
+  }, "Novo chamado"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "historico",
+    onClick: () => setSub("historico")
+  }, "Histórico (", chamadosLRA.length, ")")), sub === "novo" && /*#__PURE__*/React.createElement(NovoChamadoLRA, {
+    clientes: clientes,
+    chamadosLRA: chamadosLRA,
+    setChamadosLRA: setChamadosLRA,
+    onSalvo: () => setSub("historico")
+  }), sub === "historico" && /*#__PURE__*/React.createElement(HistoricoLRA, {
+    chamadosLRA: chamadosLRA,
+    setChamadosLRA: setChamadosLRA
+  }));
+}
+function NovoChamadoLRA({
+  clientes,
+  chamadosLRA,
+  setChamadosLRA,
+  onSalvo
+}) {
+  const [tipoOcorrencia, setTipoOcorrencia] = useState(TIPOS_OCORRENCIA[0]);
+  const [clienteId, setClienteId] = useState("");
+  const [numeroNF, setNumeroNF] = useState("");
+  const [tipoProduto, setTipoProduto] = useState("nao_duravel"); // nao_duravel (30d) | duravel (90d)
+  const [dataBase, setDataBase] = useState("");
+  const [relato, setRelato] = useState("");
+  const [chkCTE, setChkCTE] = useState(false);
+  const [fotos, setFotos] = useState([]); // { nome, url } — só nesta sessão
+  const [solucao, setSolucao] = useState(SOLUCOES[0]);
+  const [erro, setErro] = useState("");
+
+  // ---- gravação de áudio real (Web API), reprodução só nesta sessão ----
+  const [gravando, setGravando] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const toggleGravacao = async () => {
+    if (gravando) {
+      mediaRecorderRef.current?.stop();
+      setGravando(false);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true
+      });
+      const rec = new MediaRecorder(stream);
+      chunksRef.current = [];
+      rec.ondataavailable = e => chunksRef.current.push(e.data);
+      rec.onstop = () => {
+        const blob = new Blob(chunksRef.current, {
+          type: "audio/webm"
+        });
+        setAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach(t => t.stop());
+      };
+      rec.start();
+      mediaRecorderRef.current = rec;
+      setGravando(true);
+    } catch (e) {
+      setErro("Não consegui acessar o microfone (permissão negada ou indisponível).");
+    }
+  };
+  const handleFotos = e => {
+    const files = Array.from(e.target.files || []);
+    setFotos(f => [...f, ...files.map(file => ({
+      nome: file.name,
+      url: URL.createObjectURL(file)
+    }))]);
+    e.target.value = "";
+  };
+  const diasLimite = tipoProduto === "duravel" ? 90 : 30;
+  const prazo = calcularPrazoCDC(tipoOcorrencia, dataBase, diasLimite);
+  const salvar = () => {
+    if (!clienteId || !relato.trim()) {
+      setErro("Selecione o cliente e escreva ao menos um relato do que aconteceu.");
+      return;
+    }
+    const cliente = clientes.find(c => c.id === clienteId);
+    const protocolo = `AV-${new Date().getFullYear()}-${String(chamadosLRA.length + 1).padStart(4, "0")}`;
+    setChamadosLRA([...chamadosLRA, {
+      id: uid(),
+      protocolo,
+      criadoEm: new Date().toISOString(),
+      tipoOcorrencia,
+      clienteId,
+      clienteNome: cliente ? cliente.nome : "",
+      numeroNF,
+      tipoProduto,
+      diasLimite,
+      dataBase,
+      relato,
+      temAudio: !!audioUrl,
+      temCTE: chkCTE,
+      qtdFotos: fotos.length,
+      solucao,
+      status: "Aberto"
+    }]);
+    onSalvo();
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-700"
+  }, "Ainda não temos o cadastro de NF automático (isso chega com a Central de Pedidos). Por enquanto, digite o número da NF manualmente e preencha os itens no relato — assim que a NF entrar no Radar Logístico, essa busca vira automática."), /*#__PURE__*/React.createElement(Card, {
+    title: "Dados da ocorrência"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Tipo de ocorrência"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: tipoOcorrencia,
+    onChange: e => setTipoOcorrencia(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, TIPOS_OCORRENCIA.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t
+  }, t)))), /*#__PURE__*/React.createElement(Field, {
+    label: "Cliente"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: clienteId,
+    onChange: e => setClienteId(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), clientes.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome)))), /*#__PURE__*/React.createElement(Field, {
+    label: "Número da NF (manual por enquanto)"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: numeroNF,
+    onChange: e => setNumeroNF(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Tipo de produto (prazo legal)"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: tipoProduto,
+    onChange: e => setTipoProduto(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "nao_duravel"
+  }, "Não durável (30 dias)"), /*#__PURE__*/React.createElement("option", {
+    value: "duravel"
+  }, "Durável (90 dias)"))), /*#__PURE__*/React.createElement(Field, {
+    label: tipoOcorrencia === "Vício Oculto" ? "Data da descoberta" : "Data da NF"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataBase,
+    onChange: e => setDataBase(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })))), prazo && /*#__PURE__*/React.createElement("div", {
+    className: `rounded-lg border px-4 py-3 ${NIVEL_META[prazo.nivel].bg}`
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NIVEL_META[prazo.nivel].cor
+    }
+  }, NIVEL_META[prazo.nivel].label, " — ", prazo.diasDecorridos, " dia(s) decorridos de ", diasLimite, " permitidos", prazo.restante > 0 ? ` (faltam ${prazo.restante})` : ` (estourou há ${Math.abs(prazo.restante)} dia(s))`)), /*#__PURE__*/React.createElement(Card, {
+    title: "Relato / diário de bordo"
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: relato,
+    onChange: e => setRelato(e.target.value),
+    rows: 4,
+    placeholder: "O que aconteceu, quem foi acionado, o que já foi combinado...",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: toggleGravacao,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: gravando ? "#DC2626" : NAVY
+    }
+  }, gravando ? "⏹ Parar gravação" : "🎙️ Gravar áudio"), audioUrl && /*#__PURE__*/React.createElement("audio", {
+    controls: true,
+    src: audioUrl,
+    className: "h-8"
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-1"
+  }, "O áudio fica disponível só nesta sessão do navegador (não é salvo permanentemente ainda).")), /*#__PURE__*/React.createElement(Card, {
+    title: "Evidências"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: chkCTE,
+    onChange: e => setChkCTE(e.target.checked)
+  }), "Possui ressalva manuscrita no verso do CTE/NF"), /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "image/*",
+    multiple: true,
+    onChange: handleFotos,
+    className: "text-xs"
+  }), fotos.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-2 mt-3"
+  }, fotos.map((f, i) => /*#__PURE__*/React.createElement("img", {
+    key: i,
+    src: f.url,
+    alt: f.nome,
+    className: "w-16 h-16 object-cover rounded-md border",
+    style: {
+      borderColor: LINE
+    }
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-2"
+  }, "As fotos ficam visíveis só nesta sessão (upload permanente entra numa fase futura).")), /*#__PURE__*/React.createElement(Card, {
+    title: "Solução pretendida"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-2"
+  }, SOLUCOES.map(s => /*#__PURE__*/React.createElement("button", {
+    key: s,
+    onClick: () => setSolucao(s),
+    className: "text-xs font-bold px-3 py-2 rounded-md border",
+    style: {
+      background: solucao === s ? NAVY : "#fff",
+      color: solucao === s ? "#fff" : NAVY,
+      borderColor: solucao === s ? NAVY : LINE
+    }
+  }, s)))), erro && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+  }, erro), /*#__PURE__*/React.createElement("button", {
+    onClick: salvar,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-3 rounded-md w-full",
+    style: {
+      background: "#047857"
+    }
+  }, "Gerar protocolo e salvar chamado"));
+}
+function HistoricoLRA({
+  chamadosLRA,
+  setChamadosLRA
+}) {
+  const setStatus = (id, status) => setChamadosLRA(chamadosLRA.map(c => c.id === id ? {
+    ...c,
+    status
+  } : c));
+  const mailtoFor = c => {
+    const assunto = encodeURIComponent(`Chamado L.R.A ${c.protocolo} — ${c.clienteNome}`);
+    const corpo = encodeURIComponent(`Protocolo: ${c.protocolo}\nCliente: ${c.clienteNome}\nNF: ${c.numeroNF || "—"}\nTipo: ${c.tipoOcorrencia}\nSolução pretendida: ${c.solucao}\nStatus: ${c.status}\n\nRelato:\n${c.relato}\n\n(Anexe manualmente as fotos/áudio deste chamado — o mailto não permite anexo automático)`);
+    return `mailto:sac@ponterepresentacoes.com.br?subject=${assunto}&body=${corpo}`;
+  };
+  if (chamadosLRA.length === 0) {
+    return /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(EmptyState, {
+      text: "Nenhum chamado registrado ainda."
+    }));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, chamadosLRA.slice().reverse().map(c => {
+    const diasLimite = c.diasLimite;
+    const prazo = calcularPrazoCDC(c.tipoOcorrencia, c.dataBase, diasLimite);
+    return /*#__PURE__*/React.createElement(Card, {
+      key: c.id
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-start justify-between gap-3"
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      className: "text-sm font-black",
+      style: {
+        color: NAVY
+      }
+    }, c.protocolo, " — ", c.clienteNome), /*#__PURE__*/React.createElement("p", {
+      className: "text-[11px] text-slate-500"
+    }, c.tipoOcorrencia, " · NF ", c.numeroNF || "—", " · ", c.solucao)), /*#__PURE__*/React.createElement("select", {
+      value: c.status,
+      onChange: e => setStatus(c.id, e.target.value),
+      className: "text-xs font-bold border rounded-md px-2 py-1",
+      style: {
+        borderColor: LINE
+      }
+    }, STATUS_LRA.map(s => /*#__PURE__*/React.createElement("option", {
+      key: s
+    }, s)))), prazo && /*#__PURE__*/React.createElement("div", {
+      className: `mt-3 rounded-md border px-3 py-2 text-xs font-semibold ${NIVEL_META[prazo.nivel].bg}`,
+      style: {
+        color: NIVEL_META[prazo.nivel].cor
+      }
+    }, NIVEL_META[prazo.nivel].label, " — ", prazo.restante > 0 ? `faltam ${prazo.restante} dia(s)` : `estourou há ${Math.abs(prazo.restante)} dia(s)`), /*#__PURE__*/React.createElement("p", {
+      className: "text-xs text-slate-600 mt-3"
+    }, c.relato), /*#__PURE__*/React.createElement("p", {
+      className: "text-[11px] text-slate-400 mt-1"
+    }, c.temCTE ? "✓ CTE ressalvado" : "✗ sem CTE", " · ", c.qtdFotos, " foto(s) · ", c.temAudio ? "com áudio" : "sem áudio"), /*#__PURE__*/React.createElement("a", {
+      href: mailtoFor(c),
+      className: "inline-block mt-3 text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+      style: {
+        borderColor: ROYAL,
+        color: ROYAL
+      }
+    }, "Enviar por e-mail ao SAC"));
+  }));
+}
+
+// ============================================================
+// CENTRAL DE PEDIDOS "ESPELHO" — TRAVA DE PREÇO + AUDITORIA
+// ============================================================
+function CentralPedidos({
+  clientes,
+  pedidosEspelho,
+  setPedidosEspelho,
+  tabelaICMS,
+  setTabelaICMS
+}) {
+  const [sub, setSub] = useState("novo"); // "novo" | "lista" | "icms"
+
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Central de Pedidos"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Espelho do pedido com trava de preço e auditoria contra a NF faturada.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 flex-wrap"
+  }, /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "novo",
+    onClick: () => setSub("novo")
+  }, "Novo pedido"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "lista",
+    onClick: () => setSub("lista")
+  }, "Pedidos & Auditoria (", pedidosEspelho.length, ")"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "icms",
+    onClick: () => setSub("icms")
+  }, "Tabela de ICMS")), sub === "icms" && /*#__PURE__*/React.createElement(TabelaICMS, {
+    tabelaICMS: tabelaICMS,
+    setTabelaICMS: setTabelaICMS
+  }), sub === "novo" && /*#__PURE__*/React.createElement(NovoPedidoEspelho, {
+    clientes: clientes,
+    tabelaICMS: tabelaICMS,
+    pedidosEspelho: pedidosEspelho,
+    setPedidosEspelho: setPedidosEspelho,
+    onSalvo: () => setSub("lista"),
+    onIrICMS: () => setSub("icms")
+  }), sub === "lista" && /*#__PURE__*/React.createElement(ListaPedidosEspelho, {
+    pedidosEspelho: pedidosEspelho,
+    setPedidosEspelho: setPedidosEspelho
+  }));
+}
+function TabelaICMS({
+  tabelaICMS,
+  setTabelaICMS
+}) {
+  const [uf, setUf] = useState("");
+  const [aliquota, setAliquota] = useState("");
+  const add = () => {
+    if (!uf.trim() || !aliquota) return;
+    const ufUpper = uf.trim().toUpperCase().slice(0, 2);
+    setTabelaICMS([...tabelaICMS.filter(t => t.uf !== ufUpper), {
+      uf: ufUpper,
+      aliquota: Number(aliquota)
+    }]);
+    setUf("");
+    setAliquota("");
+  };
+  const remove = uf => setTabelaICMS(tabelaICMS.filter(t => t.uf !== uf));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Cadastrar alíquota de ICMS por estado",
+    subtitle: "Você define e mantém essa tabela — as alíquotas mudam e variam por operação"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: uf,
+    onChange: e => setUf(e.target.value),
+    placeholder: "UF (ex: RR)",
+    maxLength: 2,
+    className: "w-24 border rounded-md px-3 py-2 text-sm uppercase",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    step: "0.01",
+    value: aliquota,
+    onChange: e => setAliquota(e.target.value),
+    placeholder: "% ICMS",
+    className: "flex-1 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: add,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "Salvar"))), /*#__PURE__*/React.createElement(Card, {
+    title: `Alíquotas cadastradas (${tabelaICMS.length})`
+  }, tabelaICMS.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhuma alíquota cadastrada ainda.",
+    hint: "Cadastre a alíquota do estado do cliente antes de calcular o pedido."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, tabelaICMS.map(t => /*#__PURE__*/React.createElement("div", {
+    key: t.uf,
+    className: "flex items-center justify-between border rounded-md px-3 py-2",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, t.uf), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-bold text-slate-500"
+  }, t.aliquota, "%"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => remove(t.uf),
+    className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+  }, "Remover")))))));
+}
+function NovoPedidoEspelho({
+  clientes,
+  tabelaICMS,
+  pedidosEspelho,
+  setPedidosEspelho,
+  onSalvo,
+  onIrICMS
+}) {
+  const [clienteId, setClienteId] = useState("");
+  const [produto, setProduto] = useState("");
+  const [quantidade, setQuantidade] = useState(1);
+  const [precoBruto, setPrecoBruto] = useState("");
+  const [descComercial, setDescComercial] = useState(0);
+  const [descPromocional, setDescPromocional] = useState(0);
+  const [caixaMaster, setCaixaMaster] = useState(0);
+  const [aplicarSuframa, setAplicarSuframa] = useState(false);
+  const [mostrarLiquido, setMostrarLiquido] = useState(false);
+  const [erro, setErro] = useState("");
+  const [resultado, setResultado] = useState(null);
+  const cliente = clientes.find(c => c.id === clienteId);
+  const municipioCliente = cliente ? cliente.municipio || cliente.cidade || "" : "";
+  const elegibilSuframa = MUNICIPIOS_SUFRAMA.includes(norm(municipioCliente));
+  const icmsInfo = cliente ? tabelaICMS.find(t => t.uf === (cliente.estado || "").toUpperCase()) : null;
+  useEffect(() => {
+    setAplicarSuframa(elegibilSuframa);
+  }, [clienteId]);
+  const calcular = () => {
+    const bruto = Number(precoBruto);
+    if (!clienteId || !produto.trim() || !bruto) {
+      setErro("Selecione o cliente, o produto e o preço bruto.");
+      setResultado(null);
+      return;
+    }
+    setErro("");
+    const v1 = bruto * (1 - Number(descComercial) / 100);
+    const v2 = v1 * (1 - Number(descPromocional) / 100);
+    const v3 = v2 * (1 - Number(caixaMaster) / 100);
+    const icmsAliq = icmsInfo ? icmsInfo.aliquota : 0;
+    const precoLiquido = aplicarSuframa ? v3 : v3 * (1 - icmsAliq / 100);
+    setResultado({
+      v1,
+      v2,
+      v3,
+      icmsAliq,
+      precoLiquido,
+      total: precoLiquido * Number(quantidade)
+    });
+  };
+  const travarPedido = () => {
+    if (!resultado) return;
+    const protocolo = `PED-${new Date().getFullYear()}-${String(pedidosEspelho.length + 1).padStart(4, "0")}`;
+    setPedidosEspelho([...pedidosEspelho, {
+      id: uid(),
+      protocolo,
+      criadoEm: new Date().toISOString(),
+      clienteId,
+      clienteNome: cliente.nome,
+      produto,
+      quantidade: Number(quantidade),
+      precoBruto: Number(precoBruto),
+      descComercial: Number(descComercial),
+      descPromocional: Number(descPromocional),
+      caixaMaster: Number(caixaMaster),
+      aplicarSuframa,
+      icmsAliq: resultado.icmsAliq,
+      precoLiquido: resultado.precoLiquido,
+      total: resultado.total,
+      mostrarLiquido,
+      status: "Aguardando Faturamento",
+      valorFaturado: null,
+      divergencia: null
+    }]);
+    onSalvo();
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Dados do pedido"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Cliente"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: clienteId,
+    onChange: e => setClienteId(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), clientes.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome)))), /*#__PURE__*/React.createElement(Field, {
+    label: "Produto"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: produto,
+    onChange: e => setProduto(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Quantidade"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: 1,
+    value: quantidade,
+    onChange: e => setQuantidade(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Preço bruto (R$)"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: precoBruto,
+    onChange: e => setPrecoBruto(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "% Desconto comercial"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: descComercial,
+    onChange: e => setDescComercial(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "% Desconto promocional"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: descPromocional,
+    onChange: e => setDescPromocional(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "% Caixa master"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: caixaMaster,
+    onChange: e => setCaixaMaster(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }))), cliente && !aplicarSuframa && !icmsInfo && /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700"
+  }, "Nenhum ICMS cadastrado para ", cliente.estado || "esse estado", ".", " ", /*#__PURE__*/React.createElement("button", {
+    onClick: onIrICMS,
+    className: "font-bold underline"
+  }, "Cadastrar agora")), cliente && elegibilSuframa && /*#__PURE__*/React.createElement("label", {
+    className: "mt-3 flex items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: aplicarSuframa,
+    onChange: e => setAplicarSuframa(e.target.checked)
+  }), "💡 Cliente em área SUFRAMA (", municipioCliente, ") — aplicar isenção de ICMS neste pedido (desmarque se a inscrição não estiver ativa)"), /*#__PURE__*/React.createElement("label", {
+    className: "mt-3 flex items-center gap-2 text-xs font-semibold text-slate-600"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: mostrarLiquido,
+    onChange: e => setMostrarLiquido(e.target.checked)
+  }), "Mostrar preço líquido para o cliente (senão fica só de controle interno)"), /*#__PURE__*/React.createElement("button", {
+    onClick: calcular,
+    className: "mt-4 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "Calcular")), erro && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+  }, erro), resultado && /*#__PURE__*/React.createElement(Card, {
+    title: "Resultado (espelho do pedido)"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap items-center gap-4 text-xs mb-3"
+  }, /*#__PURE__*/React.createElement(Formula, {
+    label: "Bruto",
+    value: brl(Number(precoBruto))
+  }), /*#__PURE__*/React.createElement(Arrow, null), /*#__PURE__*/React.createElement(Formula, {
+    label: "Comercial",
+    value: `−${descComercial}%`,
+    tone: "amber"
+  }), /*#__PURE__*/React.createElement(Arrow, null), /*#__PURE__*/React.createElement(Formula, {
+    label: "Promocional",
+    value: `−${descPromocional}%`,
+    tone: "amber"
+  }), /*#__PURE__*/React.createElement(Arrow, null), /*#__PURE__*/React.createElement(Formula, {
+    label: "Caixa Master",
+    value: `−${caixaMaster}%`,
+    tone: "amber"
+  }), /*#__PURE__*/React.createElement(Arrow, null), /*#__PURE__*/React.createElement(Formula, {
+    label: aplicarSuframa ? "SUFRAMA (isento)" : `ICMS ${resultado.icmsAliq}%`,
+    value: aplicarSuframa ? "✓" : "−",
+    tone: "royal"
+  }), /*#__PURE__*/React.createElement(Arrow, null), /*#__PURE__*/React.createElement(Formula, {
+    label: "Líquido",
+    value: brl(resultado.precoLiquido),
+    tone: "emerald"
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, "Total (", quantidade, "x): ", brl(resultado.total)), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-1"
+  }, "Visibilidade ao cliente: ", mostrarLiquido ? "líquido aberto" : "apenas bruto — líquido fica interno"), /*#__PURE__*/React.createElement("button", {
+    onClick: travarPedido,
+    className: "mt-4 text-white text-xs font-bold uppercase tracking-wide px-4 py-3 rounded-md w-full",
+    style: {
+      background: "#047857"
+    }
+  }, "Travar pedido (gerar espelho)")));
+}
+function ListaPedidosEspelho({
+  pedidosEspelho,
+  setPedidosEspelho
+}) {
+  const [faturamentoInput, setFaturamentoInput] = useState({});
+  const registrarFaturamento = id => {
+    const valor = Number(faturamentoInput[id]);
+    if (!valor) return;
+    setPedidosEspelho(pedidosEspelho.map(p => {
+      if (p.id !== id) return p;
+      const divergencia = valor - p.precoLiquido * p.quantidade;
+      return {
+        ...p,
+        status: "Faturado",
+        valorFaturado: valor,
+        divergencia
+      };
+    }));
+  };
+  if (pedidosEspelho.length === 0) {
+    return /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(EmptyState, {
+      text: "Nenhum pedido travado ainda."
+    }));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, pedidosEspelho.slice().reverse().map(p => /*#__PURE__*/React.createElement(Card, {
+    key: p.id
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start justify-between gap-3"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: NAVY
+    }
+  }, p.protocolo, " — ", p.clienteNome), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500"
+  }, p.produto, " · ", p.quantidade, "x · Total travado: ", brl(p.precoLiquido * p.quantidade))), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border whitespace-nowrap",
+    style: {
+      color: p.status === "Faturado" ? "#047857" : "#B45309",
+      background: p.status === "Faturado" ? "#ECFDF5" : "#FFFBEB",
+      borderColor: p.status === "Faturado" ? "#A7F3D0" : "#FDE68A"
+    }
+  }, p.status)), p.status === "Aguardando Faturamento" ? /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 flex gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    placeholder: "Valor faturado pela indústria (R$)",
+    value: faturamentoInput[p.id] || "",
+    onChange: e => setFaturamentoInput({
+      ...faturamentoInput,
+      [p.id]: e.target.value
+    }),
+    className: "flex-1 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => registrarFaturamento(p.id),
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: NAVY
+    }
+  }, "Registrar NF e Auditar")) : /*#__PURE__*/React.createElement("div", {
+    className: `mt-3 rounded-md border px-3 py-2 text-xs font-bold ${Math.abs(p.divergencia) < 0.01 ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-red-50 border-red-300 text-red-700"}`
+  }, Math.abs(p.divergencia) < 0.01 ? "✅ Auditoria OK — valores conferem" : `⚠️ Divergência de ${brl(Math.abs(p.divergencia))} (faturado: ${brl(p.valorFaturado)}, travado: ${brl(p.precoLiquido * p.quantidade)})`))));
+}
+function ToggleBtn({
+  active,
+  onClick,
+  children
+}) {
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: onClick,
+    className: "text-xs font-bold uppercase tracking-wide px-3 py-2 rounded-md border",
+    style: {
+      background: active ? NAVY : "#fff",
+      color: active ? "#fff" : NAVY,
+      borderColor: active ? NAVY : LINE
+    }
+  }, children);
+}
+function Field({
+  label,
+  children
+}) {
+  return /*#__PURE__*/React.createElement("label", {
+    className: "block"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-bold uppercase tracking-wide text-slate-400"
+  }, label), /*#__PURE__*/React.createElement("div", {
+    className: "mt-1"
+  }, children));
+}
+
+// ============================================================
+// EQUIPE (VENDEDORES)
+// ============================================================
+function Equipe({
+  vendedores,
+  setVendedores
+}) {
+  const [nome, setNome] = useState("");
+  const [percentual, setPercentual] = useState(60);
+  const [cor, setCor] = useState("blue");
+  const add = () => {
+    if (!nome.trim()) return;
+    setVendedores([...vendedores, {
+      id: uid(),
+      nome: nome.trim(),
+      percentual: Number(percentual),
+      cor
+    }]);
+    setNome("");
+    setPercentual(60);
+    setCor(VENDOR_COLORS[(vendedores.length + 1) % VENDOR_COLORS.length].key);
+  };
+  const remove = id => setVendedores(vendedores.filter(v => v.id !== id));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Cadastrar vendedor / preposto",
+    subtitle: "Defina o percentual de repasse individual dele"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-4 gap-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: nome,
+    onChange: e => setNome(e.target.value),
+    placeholder: "Nome do vendedor",
+    className: "md:col-span-2 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 border rounded-md px-3 py-2",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: 0,
+    max: 100,
+    value: percentual,
+    onChange: e => setPercentual(e.target.value),
+    className: "w-full text-sm outline-none"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400 font-semibold"
+  }, "% repasse")), /*#__PURE__*/React.createElement("select", {
+    value: cor,
+    onChange: e => setCor(e.target.value),
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, VENDOR_COLORS.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.key,
+    value: c.key
+  }, c.label)))), /*#__PURE__*/React.createElement("button", {
+    onClick: add,
+    className: "mt-3 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "Adicionar vendedor")), /*#__PURE__*/React.createElement(Card, {
+    title: `Equipe cadastrada (${vendedores.length})`
+  }, vendedores.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum vendedor cadastrado ainda."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, vendedores.map(v => {
+    const meta = colorMeta(v.cor);
+    return /*#__PURE__*/React.createElement("div", {
+      key: v.id,
+      className: `flex items-center justify-between border-l-4 rounded-md px-3 py-2 ${meta.chip}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `w-2 h-2 rounded-full ${meta.dot}`
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "text-sm font-bold"
+    }, v.nome)), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-3"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-xs font-bold"
+    }, v.percentual, "% repasse"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => remove(v.id),
+      className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+    }, "Remover")));
+  }))));
+}
+
+// ============================================================
+// CLIENTES
+// ============================================================
+function Clientes({
+  clientes,
+  setClientes,
+  vendedores
+}) {
+  const [nome, setNome] = useState("");
+  const [cnpj, setCnpj] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [vendedorId, setVendedorId] = useState("");
+  const fileRef = useRef(null);
+  const [importMsg, setImportMsg] = useState("");
+  const [buscando, setBuscando] = useState(false);
+  const [buscaMsg, setBuscaMsg] = useState("");
+  const buscarCNPJ = async () => {
+    const digits = cnpj.replace(/\D/g, "");
+    if (digits.length !== 14) {
+      setBuscaMsg("Digite os 14 números do CNPJ.");
+      return;
+    }
+    setBuscando(true);
+    setBuscaMsg("");
+    try {
+      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+      if (!resp.ok) throw new Error("not-ok");
+      const data = await resp.json();
+      setNome(data.nome_fantasia || data.razao_social || "");
+      setCidade(data.municipio || "");
+      setEstado(data.uf || "");
+      setBuscaMsg("Dados encontrados na Receita Federal.");
+    } catch (e) {
+      setBuscaMsg("Não consegui buscar automaticamente agora — preencha manualmente.");
+    } finally {
+      setBuscando(false);
+    }
+  };
+  const addManual = () => {
+    if (!nome.trim()) return;
+    setClientes([...clientes, {
+      id: uid(),
+      nome: nome.trim(),
+      cnpj,
+      cidade,
+      estado,
+      vendedorId: vendedorId || null
+    }]);
+    setNome("");
+    setCnpj("");
+    setCidade("");
+    setEstado("");
+    setVendedorId("");
+    setBuscaMsg("");
+  };
+  const remove = id => setClientes(clientes.filter(c => c.id !== id));
+  const handleFile = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), {
+          type: "array"
+        });
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const novos = rows.map(row => {
+          const nomeCliente = pickField(row, ["fantasia", "nome", "cliente"]) || "";
+          const vendedorNome = pickField(row, ["vendedores associados", "vendedor", "vendedor associado"]);
+          const match = vendedores.find(v => norm(v.nome) === norm(vendedorNome));
+          return {
+            id: uid(),
+            nome: String(nomeCliente).trim(),
+            cnpj: pickField(row, ["cnpj", "cpf", "cnpj ou cpf"]) || "",
+            cidade: pickField(row, ["cidade"]) || "",
+            estado: pickField(row, ["estado", "uf"]) || "",
+            vendedorId: match ? match.id : null
+          };
+        }).filter(c => c.nome);
+        setClientes([...clientes, ...novos]);
+        setImportMsg(`${novos.length} cliente(s) importado(s).`);
+      } catch (err) {
+        setImportMsg("Não consegui ler o arquivo. Confira se é um .xlsx válido.");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = "";
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Adicionar cliente manualmente",
+    subtitle: "Digite o CNPJ e busque na Receita antes de completar os outros campos"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-5 gap-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: nome,
+    onChange: e => setNome(e.target.value),
+    placeholder: "Nome / fantasia",
+    className: "md:col-span-2 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: cnpj,
+    onChange: e => setCnpj(e.target.value),
+    placeholder: "CNPJ",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: buscarCNPJ,
+    disabled: buscando,
+    className: "text-white text-[10px] font-bold uppercase px-2 rounded-md whitespace-nowrap",
+    style: {
+      background: ROYAL,
+      opacity: buscando ? 0.6 : 1
+    }
+  }, buscando ? "…" : "Buscar")), /*#__PURE__*/React.createElement("input", {
+    value: cidade,
+    onChange: e => setCidade(e.target.value),
+    placeholder: "Cidade",
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    value: estado,
+    onChange: e => setEstado(e.target.value),
+    placeholder: "UF",
+    maxLength: 2,
+    className: "border rounded-md px-3 py-2 text-sm uppercase",
+    style: {
+      borderColor: LINE
+    }
+  })), buscaMsg && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold mt-2",
+    style: {
+      color: ROYAL
+    }
+  }, buscaMsg), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 flex flex-col md:flex-row gap-3"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: vendedorId,
+    onChange: e => setVendedorId(e.target.value),
+    className: "border rounded-md px-3 py-2 text-sm flex-1",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Sem vendedor (venda direta — 100% Ponte)"), vendedores.map(v => /*#__PURE__*/React.createElement("option", {
+    key: v.id,
+    value: v.id
+  }, v.nome, " (", v.percentual, "%)"))), /*#__PURE__*/React.createElement("button", {
+    onClick: addManual,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md whitespace-nowrap",
+    style: {
+      background: ROYAL
+    }
+  }, "Salvar cliente"))), /*#__PURE__*/React.createElement(Card, {
+    title: "Importar planilha de clientes",
+    subtitle: "Colunas esperadas: fantasia, cnpj, cidade, estado, vendedores associados"
+  }, /*#__PURE__*/React.createElement("input", {
+    ref: fileRef,
+    type: "file",
+    accept: ".xlsx,.xls",
+    onChange: handleFile,
+    className: "text-xs"
+  }), importMsg && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold mt-2",
+    style: {
+      color: ROYAL
+    }
+  }, importMsg)), /*#__PURE__*/React.createElement(Card, {
+    title: `Clientes cadastrados (${clientes.length})`
+  }, clientes.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum cliente cadastrado ainda."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, clientes.map(c => {
+    const v = vendedores.find(v => v.id === c.vendedorId);
+    const meta = v ? colorMeta(v.cor) : null;
+    return /*#__PURE__*/React.createElement("div", {
+      key: c.id,
+      className: "flex items-center justify-between border rounded-md px-3 py-2",
+      style: {
+        borderColor: LINE
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      className: "text-sm font-bold",
+      style: {
+        color: NAVY
+      }
+    }, c.nome), /*#__PURE__*/React.createElement("p", {
+      className: "text-[11px] text-slate-400"
+    }, [c.cidade, c.estado].filter(Boolean).join(" · ") || "—")), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-3"
+    }, v ? /*#__PURE__*/React.createElement("span", {
+      className: `text-[11px] font-bold px-2 py-1 rounded border ${meta.chip}`
+    }, v.nome) : /*#__PURE__*/React.createElement("span", {
+      className: "text-[11px] font-bold px-2 py-1 rounded border border-slate-300 text-slate-500"
+    }, "Direto (100% Ponte)"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => remove(c.id),
+      className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+    }, "Remover")));
+  }))));
+}
+
+// ============================================================
+// FINANCEIRO — PROCESSAMENTO DE COMISSÃO + SPLIT
+// ============================================================
+function Financeiro({
+  clientes,
+  vendedores,
+  lancamentos,
+  setLancamentos,
+  fluxoCaixa,
+  setFluxoCaixa,
+  taxaImposto,
+  setTaxaImposto,
+  findVendedorByCliente,
+  totals
+}) {
+  const [sub, setSub] = useState("fluxo"); // "fluxo" | "comissoes"
+
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Financeiro"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Fluxo de caixa da Ponte e o split de comissão com os vendedores.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "fluxo",
+    onClick: () => setSub("fluxo")
+  }, "Fluxo de Caixa"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "comissoes",
+    onClick: () => setSub("comissoes")
+  }, "Comissões (Split)")), sub === "fluxo" && /*#__PURE__*/React.createElement(FluxoCaixa, {
+    fluxoCaixa: fluxoCaixa,
+    setFluxoCaixa: setFluxoCaixa,
+    totals: totals
+  }), sub === "comissoes" && /*#__PURE__*/React.createElement(Comissoes, {
+    clientes: clientes,
+    vendedores: vendedores,
+    lancamentos: lancamentos,
+    setLancamentos: setLancamentos,
+    fluxoCaixa: fluxoCaixa,
+    setFluxoCaixa: setFluxoCaixa,
+    taxaImposto: taxaImposto,
+    setTaxaImposto: setTaxaImposto,
+    findVendedorByCliente: findVendedorByCliente,
+    totals: totals
+  }));
+}
+
+// ------------------------------------------------------------
+// FLUXO DE CAIXA (Empresa / Pessoal / Misto)
+// ------------------------------------------------------------
+function FluxoCaixa({
+  fluxoCaixa,
+  setFluxoCaixa,
+  totals
+}) {
+  const [descricao, setDescricao] = useState("");
+  const [valor, setValor] = useState("");
+  const [tipo, setTipo] = useState("entrada"); // "entrada" | "saida"
+  const [tag, setTag] = useState("empresa");
+  const [percentualEmpresa, setPercentualEmpresa] = useState(70);
+  const add = () => {
+    const v = Number(valor);
+    if (!descricao.trim() || !v) return;
+    setFluxoCaixa([...fluxoCaixa, {
+      id: uid(),
+      descricao: descricao.trim(),
+      valor: tipo === "saida" ? -Math.abs(v) : Math.abs(v),
+      tag,
+      percentualEmpresa: tag === "misto" ? Number(percentualEmpresa) : null,
+      origem: "manual",
+      criadoEm: new Date().toISOString()
+    }]);
+    setDescricao("");
+    setValor("");
+  };
+  const remove = id => setFluxoCaixa(fluxoCaixa.filter(f => f.id !== id));
+  const tagMeta = {
+    empresa: {
+      label: "🏢 Empresa",
+      chip: "bg-blue-50 text-blue-800 border-blue-300"
+    },
+    pessoal: {
+      label: "🏠 Pessoal",
+      chip: "bg-amber-50 text-amber-800 border-amber-300"
+    },
+    misto: {
+      label: "🔄 Misto",
+      chip: "bg-violet-50 text-violet-800 border-violet-300"
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Novo lançamento",
+    subtitle: "Caixa único, com etiqueta de destino (Empresa, Pessoal ou Misto)"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-4 gap-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: descricao,
+    onChange: e => setDescricao(e.target.value),
+    placeholder: "Descrição (ex: combustível, comissão, aluguel)",
+    className: "md:col-span-2 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: valor,
+    onChange: e => setValor(e.target.value),
+    placeholder: "Valor (R$)",
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("select", {
+    value: tipo,
+    onChange: e => setTipo(e.target.value),
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "entrada"
+  }, "Entrada"), /*#__PURE__*/React.createElement("option", {
+    value: "saida"
+  }, "Saída"))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 flex flex-wrap items-center gap-2"
+  }, Object.entries(tagMeta).map(([key, m]) => /*#__PURE__*/React.createElement("button", {
+    key: key,
+    onClick: () => setTag(key),
+    className: `text-xs font-bold uppercase tracking-wide px-3 py-2 rounded-md border ${tag === key ? m.chip : "border-slate-200 text-slate-400"}`
+  }, m.label)), tag === "misto" && /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 text-xs"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: 0,
+    max: 100,
+    value: percentualEmpresa,
+    onChange: e => setPercentualEmpresa(e.target.value),
+    className: "w-16 border rounded-md px-2 py-1 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 font-semibold"
+  }, "% Empresa (resto vai pro Pessoal)"))), /*#__PURE__*/React.createElement("button", {
+    onClick: add,
+    className: "mt-3 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "Registrar lançamento")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-3"
+  }, /*#__PURE__*/React.createElement(Stat, {
+    label: "Saldo Empresa",
+    value: brl(totals.saldoEmpresa),
+    tone: "royal"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Saldo Pessoal",
+    value: brl(totals.saldoPessoal),
+    tone: "amber"
+  })), /*#__PURE__*/React.createElement(Card, {
+    title: `Lançamentos (${fluxoCaixa.length})`
+  }, fluxoCaixa.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum lançamento no fluxo de caixa ainda."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, fluxoCaixa.slice().reverse().map(f => {
+    const m = tagMeta[f.tag];
+    return /*#__PURE__*/React.createElement("div", {
+      key: f.id,
+      className: `flex items-center justify-between border-l-4 rounded-md px-3 py-2 ${m.chip}`
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      className: "text-sm font-bold"
+    }, f.descricao), /*#__PURE__*/React.createElement("p", {
+      className: "text-[11px] opacity-70"
+    }, m.label, f.tag === "misto" ? ` · ${f.percentualEmpresa}% empresa` : "", f.origem === "comissao" ? " · auto (comissão)" : "")), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-3"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-sm font-bold"
+    }, brl(f.valor)), f.origem !== "comissao" && /*#__PURE__*/React.createElement("button", {
+      onClick: () => remove(f.id),
+      className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+    }, "Remover")));
+  }))));
+}
+
+// ------------------------------------------------------------
+// COMISSÕES (SPLIT) — PROCESSAMENTO DE COMISSÃO DA FÁBRICA
+// ------------------------------------------------------------
+function Comissoes({
+  clientes,
+  vendedores,
+  lancamentos,
+  setLancamentos,
+  fluxoCaixa,
+  setFluxoCaixa,
+  taxaImposto,
+  setTaxaImposto,
+  findVendedorByCliente,
+  totals
+}) {
+  const [preview, setPreview] = useState([]);
+  const [msg, setMsg] = useState("");
+  const processFile = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), {
+          type: "array"
+        });
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const calc = rows.map(row => {
+          const clienteNome = String(pickField(row, ["cliente", "fantasia", "nome"]) || "").trim();
+          const valorBruto = Number(pickField(row, ["valor", "comissão", "comissao"])) || 0;
+          const representada = pickField(row, ["representada", "fabrica", "fábrica"]) || "";
+          const vendedor = findVendedorByCliente(clienteNome);
+          const imposto = valorBruto * (taxaImposto / 100);
+          const base = valorBruto - imposto;
+          const percentual = vendedor ? vendedor.percentual : 0;
+          const repasse = vendedor ? base * (percentual / 100) : 0;
+          const ficaComPonte = base - repasse;
+          return {
+            id: uid(),
+            cliente: clienteNome,
+            representada,
+            valorBruto,
+            imposto,
+            base,
+            vendedorId: vendedor ? vendedor.id : null,
+            vendedorNome: vendedor ? vendedor.nome : "Sem vínculo (100% Ponte)",
+            percentual: vendedor ? percentual : 0,
+            repasse,
+            ficaComPonte
+          };
+        });
+        setPreview(calc);
+        setMsg(`${calc.length} lançamento(s) prontos para confirmar.`);
+      } catch (err) {
+        setMsg("Não consegui ler o arquivo. Confira se é um .xlsx válido.");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = "";
+  };
+  const confirmar = () => {
+    if (preview.length === 0) return;
+    setLancamentos([...lancamentos, ...preview]);
+    // auto-lança no fluxo de caixa o que fica com a Ponte (receita da Empresa)
+    const novasEntradas = preview.filter(l => l.ficaComPonte > 0).map(l => ({
+      id: uid(),
+      descricao: `Comissão – ${l.cliente}${l.representada ? ` (${l.representada})` : ""}`,
+      valor: l.ficaComPonte,
+      tag: "empresa",
+      percentualEmpresa: null,
+      origem: "comissao",
+      criadoEm: new Date().toISOString()
+    }));
+    setFluxoCaixa([...fluxoCaixa, ...novasEntradas]);
+    setPreview([]);
+    setMsg("Lançado no financeiro e no fluxo de caixa com sucesso.");
+  };
+  const exportCSV = () => {
+    const header = "Cliente,Vendedor,Representada,Bruto,Imposto,Base,Percentual,Repasse,FicaComPonte\n";
+    const body = lancamentos.map(l => [l.cliente, l.vendedorNome, l.representada, l.valorBruto, l.imposto, l.base, l.percentual, l.repasse, l.ficaComPonte].map(v => `"${v}"`).join(",")).join("\n");
+    const blob = new Blob([header + body], {
+      type: "text/csv;charset=utf-8;"
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ponte-hub-comissoes.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Regra de cálculo",
+    subtitle: "Bruto → imposto NF de serviço → base → % do vendedor → repasse"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap items-center gap-4 text-xs"
+  }, /*#__PURE__*/React.createElement(Formula, {
+    label: "Bruto",
+    value: "100%"
+  }), /*#__PURE__*/React.createElement(Arrow, null), /*#__PURE__*/React.createElement(Formula, {
+    label: `Imposto NF (${taxaImposto}%)`,
+    value: "−",
+    tone: "amber"
+  }), /*#__PURE__*/React.createElement(Arrow, null), /*#__PURE__*/React.createElement(Formula, {
+    label: "Base",
+    value: "="
+  }), /*#__PURE__*/React.createElement(Arrow, null), /*#__PURE__*/React.createElement(Formula, {
+    label: "% vendedor",
+    value: "×",
+    tone: "royal"
+  }), /*#__PURE__*/React.createElement(Arrow, null), /*#__PURE__*/React.createElement(Formula, {
+    label: "Repasse",
+    value: "=",
+    tone: "emerald"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-xs font-semibold text-slate-500"
+  }, "Alíquota da NF de serviço:"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    step: "0.1",
+    value: taxaImposto,
+    onChange: e => setTaxaImposto(Number(e.target.value)),
+    className: "w-20 border rounded-md px-2 py-1 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400"
+  }, "% (fixo em 15,5% — Anexo V, ajustável a qualquer momento)"))), /*#__PURE__*/React.createElement(Card, {
+    title: "Processar relatório de comissão da fábrica",
+    subtitle: "Colunas esperadas: Cliente, Valor, Representada (opcional)"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".xlsx,.xls",
+    onChange: processFile,
+    className: "text-xs"
+  }), msg && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold mt-2",
+    style: {
+      color: ROYAL
+    }
+  }, msg), preview.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 space-y-2"
+  }, preview.map(l => /*#__PURE__*/React.createElement(LancamentoRow, {
+    key: l.id,
+    l: l
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: confirmar,
+    className: "mt-2 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#047857"
+    }
+  }, "Confirmar e lançar no financeiro"))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 md:grid-cols-4 gap-3"
+  }, /*#__PURE__*/React.createElement(Stat, {
+    label: "Total bruto",
+    value: brl(totals.totalBruto)
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Imposto NF",
+    value: brl(totals.totalImposto),
+    tone: "amber"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Repassado",
+    value: brl(totals.totalRepasse)
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Fica com a Ponte",
+    value: brl(totals.totalPonte),
+    tone: "royal"
+  })), /*#__PURE__*/React.createElement(Card, {
+    title: `Histórico de comissões (${lancamentos.length})`
+  }, lancamentos.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: exportCSV,
+    className: "text-[11px] font-bold uppercase tracking-wide mb-3",
+    style: {
+      color: ROYAL
+    }
+  }, "Exportar CSV ↓"), lancamentos.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum lançamento confirmado ainda."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, lancamentos.slice().reverse().map(l => /*#__PURE__*/React.createElement(LancamentoRow, {
+    key: l.id,
+    l: l
+  })))));
+}
+function Formula({
+  label,
+  value,
+  tone
+}) {
+  const color = {
+    amber: "#B45309",
+    royal: ROYAL,
+    emerald: "#047857"
+  }[tone] || NAVY;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-black",
+    style: {
+      color
+    }
+  }, value), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-slate-400 font-semibold whitespace-nowrap"
+  }, label));
+}
+function Arrow() {
+  return /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-300 font-bold"
+  }, "→");
+}
+function LancamentoRow({
+  l
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "border rounded-md px-3 py-2 flex items-center justify-between",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, l.cliente), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400"
+  }, l.vendedorNome, l.representada ? ` · ${l.representada}` : "")), /*#__PURE__*/React.createElement("div", {
+    className: "text-right text-[11px] leading-tight"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-400"
+  }, "Bruto ", brl(l.valorBruto), " · Imposto ", brl(l.imposto)), /*#__PURE__*/React.createElement("p", {
+    className: "font-bold",
+    style: {
+      color: "#047857"
+    }
+  }, "Repasse ", brl(l.repasse)), /*#__PURE__*/React.createElement("p", {
+    className: "font-bold",
+    style: {
+      color: ROYAL
+    }
+  }, "Ponte ", brl(l.ficaComPonte))));
+}
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(/*#__PURE__*/React.createElement(PonteHub, null));
+</script>
+</body>
+</html>

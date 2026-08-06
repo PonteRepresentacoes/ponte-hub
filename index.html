@@ -105,7 +105,7 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 // Depois de publicar o backend na Vercel (ver /backend/README-deploy-sintegra.md),
 // troque pela URL real, ex: "https://seu-projeto.vercel.app/api/sintegra"
 // Deixe em branco para pular essa busca (IE/regime ficam manuais até então).
-const SINTEGRA_ENDPOINT = "/api/sintegra"; // caminho relativo — mesmo projeto Vercel
+const SINTEGRA_ENDPOINT = "/api/sintegra";
 const STORAGE_KEY = "ponte-hub-data";
 function PonteHub() {
   const [area, setArea] = useState("adm"); // "adm" | "vendas"
@@ -646,6 +646,8 @@ function blankFicha(cnpj = "") {
     regimeTributario: "",
     referenciasComerciais: "",
     referenciasBancarias: "",
+    suframaNumero: "",
+    suframaSituacao: "",
     vendedorId: null
   };
 }
@@ -705,7 +707,30 @@ function FichaRapida({
       }));
       setBuscaMsg("Dados encontrados na Receita Federal.");
 
-      // Busca complementar via Sintegra WS (IE / regime estadual / SUFRAMA) — só roda
+      // Busca gratuita complementar via CNPJá (Open API, sem chave) — traz IE, SUFRAMA e regime
+      // https://cnpja.com/api/open — 5 consultas/minuto, sem cadastro.
+      try {
+        const respC = await fetch(`https://open.cnpja.com/office/${digits}`);
+        if (respC.ok) {
+          const c = await respC.json();
+          const registros = c.registrations || c.cadastro_contribuintes || [];
+          const meuRegistro = Array.isArray(registros) ? registros.find(r => (r.state || r.uf) === (data.uf || "")) || registros[0] : null;
+          const suframaLista = c.suframa || [];
+          const meuSuframa = Array.isArray(suframaLista) ? suframaLista[0] : suframaLista;
+          setFicha(f => ({
+            ...f,
+            ie: meuRegistro && (meuRegistro.number || meuRegistro.numero) || f.ie,
+            regimeTributario: c.simples?.optant || c.simei?.optant ? "Simples Nacional" : f.regimeTributario,
+            suframaNumero: meuSuframa && (meuSuframa.number || meuSuframa.numero) || f.suframaNumero,
+            suframaSituacao: meuSuframa ? (meuSuframa.status?.text || meuSuframa.status || "").toLowerCase().includes("ativ") ? "ativa" : "inativa" : f.suframaSituacao
+          }));
+          setBuscaMsg(m => m + " IE/SUFRAMA/regime complementados via CNPJá (gratuito).");
+        }
+      } catch (e) {
+        // fonte gratuita indisponível no momento — segue com o que já temos
+      }
+
+      // Busca complementar via Sintegra WS (se você tiver créditos de API contratados) — só roda
       // se o backend já estiver publicado (ver SINTEGRA_ENDPOINT no topo do arquivo).
       if (SINTEGRA_ENDPOINT) {
         try {
@@ -715,9 +740,11 @@ function FichaRapida({
             setFicha(f => ({
               ...f,
               ie: s.ie || f.ie,
-              regimeTributario: s.regimeTributario || f.regimeTributario
+              regimeTributario: s.regimeTributario || f.regimeTributario,
+              suframaNumero: s.inscricaoSuframa || f.suframaNumero,
+              suframaSituacao: s.suframaAtivo ? "ativa" : f.suframaSituacao
             }));
-            setBuscaMsg(m => m + " IE/regime complementados via Sintegra WS.");
+            setBuscaMsg(m => m + " (Sintegra WS também respondeu.)");
           }
         } catch (e) {
           // backend ainda não publicado ou fora do ar — segue com o que já temos
@@ -782,6 +809,7 @@ function FichaRapida({
       <div class="row"><span class="label">Situação cadastral</span><span>${ficha.situacao || "—"}</span></div>
       <div class="row"><span class="label">Inscrição Estadual</span><span>${ficha.ie || "—"}</span></div>
       <div class="row"><span class="label">Regime tributário</span><span>${ficha.regimeTributario || "—"}</span></div>
+      <div class="row"><span class="label">Inscrição SUFRAMA</span><span>${ficha.suframaNumero || "—"} (${ficha.suframaSituacao || "não verificado"})</span></div>
       <div class="row"><span class="label">Referências comerciais</span><span>${ficha.referenciasComerciais || "—"}</span></div>
       <div class="row"><span class="label">Referências bancárias</span><span>${ficha.referenciasBancarias || "—"}</span></div>
       <div class="row"><span class="label">Vendedor</span><span>${v ? v.nome : "Venda direta (Ponte)"}</span></div>
@@ -870,7 +898,35 @@ function FichaRapida({
     className: "text-sm font-bold text-blue-800"
   }, "💡 Oportunidade SUFRAMA"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-blue-700 mt-1"
-  }, "Cliente em área incentivada (", ficha.municipio || "Boa Vista/Bonfim/Pacaraima", "). Verifique se a inscrição SUFRAMA está ativa — mas o pedido pode seguir normalmente pela tributação padrão se ele não tiver.")), /*#__PURE__*/React.createElement(Card, {
+  }, "Cliente em área incentivada (", ficha.municipio || "Boa Vista/Bonfim/Pacaraima", "). Verifique se a inscrição SUFRAMA está ativa — mas o pedido pode seguir normalmente pela tributação padrão se ele não tiver."), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3 mt-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Número da inscrição SUFRAMA"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.suframaNumero,
+    onChange: set("suframaNumero"),
+    className: "w-full border rounded-md px-3 py-2 text-sm bg-white",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Situação"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: ficha.suframaSituacao,
+    onChange: set("suframaSituacao"),
+    className: "w-full border rounded-md px-3 py-2 text-sm bg-white",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Não verificado"), /*#__PURE__*/React.createElement("option", {
+    value: "ativa"
+  }, "Ativa"), /*#__PURE__*/React.createElement("option", {
+    value: "inativa"
+  }, "Inativa / vencida"), /*#__PURE__*/React.createElement("option", {
+    value: "nao_possui"
+  }, "Não possui"))))), /*#__PURE__*/React.createElement(Card, {
     title: "Dados do cliente"
   }, /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-2 gap-3"

@@ -710,7 +710,7 @@ function FichaRapida({
       // Busca gratuita complementar via CNPJá (Open API, sem chave) — traz IE, SUFRAMA e regime
       // https://cnpja.com/api/open — 5 consultas/minuto, sem cadastro.
       try {
-        const respC = await fetch(`https://open.cnpja.com/office/${digits}`);
+        const respC = await fetch(`https://open.cnpja.com/office/${digits}?registrations=ORIGIN`);
         if (respC.ok) {
           const c = await respC.json();
           const registros = c.registrations || c.cadastro_contribuintes || [];

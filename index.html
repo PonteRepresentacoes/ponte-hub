@@ -707,24 +707,23 @@ function FichaRapida({
       }));
       setBuscaMsg("Dados encontrados na Receita Federal.");
 
-      // Busca gratuita complementar via CNPJá (Open API, sem chave) — traz IE, SUFRAMA e regime
+      // Busca gratuita complementar via CNPJá (Open API, sem chave) — traz SUFRAMA e regime.
+      // Confirmado por teste real: a versão gratuita NÃO retorna Inscrição Estadual
+      // (esse dado só existe na API paga da CNPJá ou via créditos da Sintegra WS).
       // https://cnpja.com/api/open — 5 consultas/minuto, sem cadastro.
       try {
-        const respC = await fetch(`https://open.cnpja.com/office/${digits}?registrations=ORIGIN`);
+        const respC = await fetch(`https://open.cnpja.com/office/${digits}`);
         if (respC.ok) {
           const c = await respC.json();
-          const registros = c.registrations || c.cadastro_contribuintes || [];
-          const meuRegistro = Array.isArray(registros) ? registros.find(r => (r.state || r.uf) === (data.uf || "")) || registros[0] : null;
           const suframaLista = c.suframa || [];
           const meuSuframa = Array.isArray(suframaLista) ? suframaLista[0] : suframaLista;
           setFicha(f => ({
             ...f,
-            ie: meuRegistro && (meuRegistro.number || meuRegistro.numero) || f.ie,
-            regimeTributario: c.simples?.optant || c.simei?.optant ? "Simples Nacional" : f.regimeTributario,
-            suframaNumero: meuSuframa && (meuSuframa.number || meuSuframa.numero) || f.suframaNumero,
-            suframaSituacao: meuSuframa ? (meuSuframa.status?.text || meuSuframa.status || "").toLowerCase().includes("ativ") ? "ativa" : "inativa" : f.suframaSituacao
+            regimeTributario: c.simples?.optant ? "Simples Nacional" : f.regimeTributario,
+            suframaNumero: meuSuframa && meuSuframa.number || f.suframaNumero,
+            suframaSituacao: meuSuframa ? (meuSuframa.status?.text || "").toLowerCase().includes("ativ") ? "ativa" : "inativa" : f.suframaSituacao
           }));
-          setBuscaMsg(m => m + " IE/SUFRAMA/regime complementados via CNPJá (gratuito).");
+          if (meuSuframa) setBuscaMsg(m => m + " SUFRAMA/regime complementados via CNPJá (gratuito). IE precisa ser preenchida manualmente.");
         }
       } catch (e) {
         // fonte gratuita indisponível no momento — segue com o que já temos

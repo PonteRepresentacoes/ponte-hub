@@ -186,6 +186,7 @@ function PonteHub() {
   }, [tema]);
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
+  const [saveError, setSaveError] = useState("");
 
   // ---------- Load once ----------
   useEffect(() => {
@@ -222,6 +223,7 @@ function PonteHub() {
         }
       } catch (e) {
         // no data yet — fine, start empty
+        console.error("Ponte Hub — erro ao carregar dados:", e);
       } finally {
         setLoaded(true);
       }
@@ -260,8 +262,12 @@ function PonteHub() {
         });
         const ok = await window.storage.set(STORAGE_KEY, payload, false);
         setSaveState(ok ? "saved" : "error");
+        if (ok) setSaveError("");
+        else setSaveError("Falha desconhecida (sem exceção lançada)");
       } catch (e) {
+        console.error("Ponte Hub — erro ao salvar dados:", e);
         setSaveState("error");
+        setSaveError((e && (e.message || e.code)) ? `${e.code || ""} ${e.message || ""}`.trim() : String(e));
       }
     }, 400);
     return () => clearTimeout(t);
@@ -301,6 +307,7 @@ function PonteHub() {
     tab: tab,
     setTab: setTab,
     saveState: saveState,
+    saveError: saveError,
     tema: tema,
     setTema: setTema
   }), /*#__PURE__*/React.createElement("main", {
@@ -449,6 +456,7 @@ function TopBar({
   tab,
   setTab,
   saveState,
+  saveError,
   tema,
   setTema
 }) {
@@ -543,7 +551,8 @@ function TopBar({
       color: "#93A5C9"
     }
   }, tema === "escuro" ? "☀️ Tela clara" : "🌙 Tela escura"), /*#__PURE__*/React.createElement(SaveIndicator, {
-    state: saveState
+    state: saveState,
+    error: saveError
   }))), /*#__PURE__*/React.createElement("div", {
     className: "max-w-5xl mx-auto px-4 pb-3 flex gap-2"
   }, /*#__PURE__*/React.createElement(AreaButton, {
@@ -594,7 +603,8 @@ function AreaButton({
   }, hint));
 }
 function SaveIndicator({
-  state
+  state,
+  error
 }) {
   const map = {
     idle: {
@@ -619,13 +629,14 @@ function SaveIndicator({
     className: "flex items-center gap-1.5 text-[11px] font-semibold",
     style: {
       color: m.color
-    }
+    },
+    title: state === "error" && error ? error : undefined
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-1.5 h-1.5 rounded-full",
     style: {
       background: m.color
     }
-  }), m.text);
+  }), state === "error" && error ? `${m.text}: ${error}` : m.text);
 }
 
 // ============================================================

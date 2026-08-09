@@ -32,6 +32,46 @@ body { margin: 0; }
   const db = firebase.firestore();
   const storageRef = firebase.storage();
 
+  const PONTE_HUB_SENHA_MESTRE = "17022506";
+  const PONTE_HUB_SESSAO_KEY = "ponte-hub-sessao";
+  const PONTE_HUB_STORAGE_DOC = "ponte-hub-data"; // precisa bater com STORAGE_KEY no script abaixo
+
+  window.ponteAuth = {
+    async login(codigo) {
+      const codigoLimpo = (codigo || "").trim();
+      if (codigoLimpo === PONTE_HUB_SENHA_MESTRE) {
+        const sessao = { tipo: "master", area: "adm", nome: "Administrador" };
+        localStorage.setItem(PONTE_HUB_SESSAO_KEY, JSON.stringify(sessao));
+        return sessao;
+      }
+      try {
+        const snap = await db.collection("storage").doc(PONTE_HUB_STORAGE_DOC).get();
+        const data = snap.exists ? JSON.parse(snap.data().value) : {};
+        const vendedores = data.vendedores || [];
+        const v = vendedores.find(v => (v.codigoAcesso || "").toUpperCase() === codigoLimpo.toUpperCase() && codigoLimpo !== "");
+        if (v) {
+          const sessao = { tipo: "vendedor", area: "vendas", nome: v.nome, vendedorId: v.id };
+          localStorage.setItem(PONTE_HUB_SESSAO_KEY, JSON.stringify(sessao));
+          return sessao;
+        }
+      } catch (e) {
+        console.error("Ponte Hub — erro ao validar código de acesso:", e);
+      }
+      return null;
+    },
+    logout() {
+      localStorage.removeItem(PONTE_HUB_SESSAO_KEY);
+    },
+    getSessao() {
+      try {
+        const raw = localStorage.getItem(PONTE_HUB_SESSAO_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    },
+  };
+
   window.storage = {
     async get(key, shared) {
       const snap = await db.collection("storage").doc(key).get();
@@ -148,10 +188,12 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 // Deixe em branco para pular essa busca (IE/regime ficam manuais até então).
 const SINTEGRA_ENDPOINT = "/api/sintegra";
 const STORAGE_KEY = "ponte-hub-data";
-function PonteHub() {
-  const [area, setArea] = useState("adm"); // "adm" | "vendas"
-  const [tab, setTab] = useState("dashboard");
+function PonteHub({ sessao, onLogout }) {
+  const restritoAVendas = sessao && sessao.tipo === "vendedor";
+  const [area, setArea] = useState(restritoAVendas ? "vendas" : "adm"); // "adm" | "vendas"
+  const [tab, setTab] = useState(restritoAVendas ? "vendas-home" : "dashboard");
   const changeArea = a => {
+    if (restritoAVendas && a === "adm") return; // vendedor não acessa o ADM
     setArea(a);
     setTab(a === "adm" ? "dashboard" : "vendas-home");
   };
@@ -304,10 +346,13 @@ function PonteHub() {
   }, /*#__PURE__*/React.createElement(TopBar, {
     area: area,
     changeArea: changeArea,
+    restritoAVendas: restritoAVendas,
+    nomeSessao: sessao && sessao.nome,
     tab: tab,
     setTab: setTab,
     saveState: saveState,
     saveError: saveError,
+    onLogout: onLogout,
     tema: tema,
     setTema: setTema
   }), /*#__PURE__*/React.createElement("main", {
@@ -453,10 +498,13 @@ function PonteHub() {
 function TopBar({
   area,
   changeArea,
+  restritoAVendas,
+  nomeSessao,
   tab,
   setTab,
   saveState,
   saveError,
+  onLogout,
   tema,
   setTema
 }) {
@@ -553,9 +601,16 @@ function TopBar({
   }, tema === "escuro" ? "☀️ Tela clara" : "🌙 Tela escura"), /*#__PURE__*/React.createElement(SaveIndicator, {
     state: saveState,
     error: saveError
-  }))), /*#__PURE__*/React.createElement("div", {
-    className: "max-w-5xl mx-auto px-4 pb-3 flex gap-2"
-  }, /*#__PURE__*/React.createElement(AreaButton, {
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: onLogout,
+    className: "flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-md border",
+    style: {
+      borderColor: "#2A3A5C",
+      color: "#93A5C9"
+    }
+  }, "🚪 Sair"))), /*#__PURE__*/React.createElement("div", {
+    className: "max-w-5xl mx-auto px-4 pb-3 flex gap-2 items-center"
+  }, !restritoAVendas && /*#__PURE__*/React.createElement(AreaButton, {
     active: area === "adm",
     onClick: () => changeArea("adm"),
     label: "Painel ADM",
@@ -565,7 +620,10 @@ function TopBar({
     onClick: () => changeArea("vendas"),
     label: "App de Vendas",
     hint: "Campo · Oportunidades"
-  })), /*#__PURE__*/React.createElement("nav", {
+  }), restritoAVendas && nomeSessao && /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] ml-auto",
+    style: { color: "#5B6B8C" }
+  }, "Vendedor: ", nomeSessao)), /*#__PURE__*/React.createElement("nav", {
     className: "max-w-5xl mx-auto px-4 flex gap-1 border-t",
     style: {
       borderColor: "#1E2A47"
@@ -6378,6 +6436,12 @@ function Field({
 // ============================================================
 // EQUIPE (VENDEDORES)
 // ============================================================
+function gerarCodigoAcesso() {
+  const alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem 0/O/1/I pra evitar confusão
+  let codigo = "";
+  for (let i = 0; i < 6; i++) codigo += alfabeto[Math.floor(Math.random() * alfabeto.length)];
+  return codigo;
+}
 function blankVendedor() {
   return {
     id: uid(),
@@ -6385,6 +6449,7 @@ function blankVendedor() {
     email: "",
     percentual: 60,
     cor: "blue",
+    codigoAcesso: "",
     representadasComissao: [],
     limiteDescontoItem: "",
     limiteAcrescimoItem: "",
@@ -6556,7 +6621,27 @@ function Equipe({
   }, VENDOR_COLORS.map(c => /*#__PURE__*/React.createElement("option", {
     key: c.key,
     value: c.key
-  }, c.label))))), aba === "representadas" && /*#__PURE__*/React.createElement("div", {
+  }, c.label)))), /*#__PURE__*/React.createElement(Field, {
+    label: "Código de acesso ao Ponte Hub"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: form.codigoAcesso || "",
+    readOnly: true,
+    placeholder: "Ainda não gerado",
+    className: "flex-1 border rounded-md px-3 py-2 text-sm font-mono",
+    style: {
+      borderColor: LINE,
+      background: "#F8FAFC"
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setForm(f => ({ ...f, codigoAcesso: gerarCodigoAcesso() })),
+    className: "text-xs font-semibold px-3 py-2 rounded-md text-white whitespace-nowrap",
+    style: { background: ROYAL }
+  }, form.codigoAcesso ? "Gerar novo" : "Gerar código")), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500 mt-1"
+  }, "É esse código que o vendedor digita pra entrar no Ponte Hub (só acessa o painel de Vendas). Gerar um novo invalida o anterior automaticamente ao salvar."))), aba === "representadas" && /*#__PURE__*/React.createElement("div", {
     className: "space-y-4"
   }, /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-500"
@@ -6738,7 +6823,10 @@ function Equipe({
       className: "text-[10px] font-bold text-slate-400"
     }, "· ", v.representadasComissao.length, " comissão(ões) específica(s)")), /*#__PURE__*/React.createElement("div", {
       className: "flex items-center gap-3"
-    }, /*#__PURE__*/React.createElement("span", {
+    }, v.codigoAcesso && /*#__PURE__*/React.createElement("span", {
+      className: "text-[11px] font-mono px-2 py-0.5 rounded bg-white border",
+      style: { borderColor: LINE }
+    }, v.codigoAcesso), /*#__PURE__*/React.createElement("span", {
       className: "text-xs font-bold"
     }, v.percentual, "% repasse"), /*#__PURE__*/React.createElement("button", {
       onClick: () => editar(v),
@@ -12031,8 +12119,95 @@ function LancamentoRow({
     }
   }, "Ponte ", brl(l.ficaComPonte))));
 }
+function LoginScreen({ onLogin }) {
+  const [codigo, setCodigo] = useState("");
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErro("");
+    setCarregando(true);
+    const sessao = await window.ponteAuth.login(codigo);
+    setCarregando(false);
+    if (sessao) {
+      onLogin(sessao);
+    } else {
+      setErro("Código de acesso incorreto.");
+    }
+  }
+
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-full min-h-full flex items-center justify-center",
+    style: { background: NAVY, minHeight: "100vh" }
+  }, /*#__PURE__*/React.createElement("form", {
+    onSubmit: handleSubmit,
+    className: "w-full max-w-sm rounded-lg shadow-lg p-6",
+    style: { background: "#111C34", border: "1px solid #2A3A5C" }
+  },
+    /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2 mb-1"
+    },
+      /*#__PURE__*/React.createElement("div", {
+        className: "w-8 h-8 rounded flex items-center justify-center font-black text-white",
+        style: { background: ROYAL }
+      }, "P"),
+      /*#__PURE__*/React.createElement("div", null,
+        /*#__PURE__*/React.createElement("p", { className: "font-bold text-white text-sm" }, "Ponte Hub"),
+        /*#__PURE__*/React.createElement("p", { className: "text-[10px] uppercase tracking-widest", style: { color: "#93A5C9" } }, "Ponte Representações")
+      )
+    ),
+    /*#__PURE__*/React.createElement("p", {
+      className: "text-xs mb-4",
+      style: { color: "#93A5C9" }
+    }, "Acesso restrito. Digite seu código de acesso."),
+    /*#__PURE__*/React.createElement("label", {
+      className: "block text-[11px] font-semibold mb-1",
+      style: { color: "#93A5C9" }
+    }, "Código de acesso"),
+    /*#__PURE__*/React.createElement("input", {
+      type: "password",
+      value: codigo,
+      onChange: e => setCodigo(e.target.value),
+      autoFocus: true,
+      required: true,
+      className: "w-full rounded-md px-3 py-2 text-sm mb-4 font-mono",
+      style: { background: "#0B1220", color: "#fff", border: "1px solid #2A3A5C" }
+    }),
+    erro && /*#__PURE__*/React.createElement("p", {
+      className: "text-xs mb-3 font-semibold",
+      style: { color: "#F87171" }
+    }, erro),
+    /*#__PURE__*/React.createElement("button", {
+      type: "submit",
+      disabled: carregando,
+      className: "w-full rounded-md py-2 text-sm font-bold text-white",
+      style: { background: ROYAL, opacity: carregando ? 0.7 : 1 }
+    }, carregando ? "Verificando…" : "Entrar"),
+    /*#__PURE__*/React.createElement("p", {
+      className: "text-[11px] text-center mt-3",
+      style: { color: "#5B6B8C" }
+    }, "Não sabe seu código? Peça ao seu gestor.")
+  ));
+}
+
+function AuthGate() {
+  const [sessao, setSessao] = useState(() => window.ponteAuth.getSessao());
+
+  if (!sessao) {
+    return /*#__PURE__*/React.createElement(LoginScreen, { onLogin: s => setSessao(s) });
+  }
+  return /*#__PURE__*/React.createElement(PonteHub, {
+    sessao: sessao,
+    onLogout: () => {
+      window.ponteAuth.logout();
+      setSessao(null);
+    }
+  });
+}
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(/*#__PURE__*/React.createElement(PonteHub, null));
+root.render(/*#__PURE__*/React.createElement(AuthGate, null));
 </script>
 </body>
 </html>

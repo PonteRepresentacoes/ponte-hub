@@ -32,7 +32,7 @@ body { margin: 0; }
 
   const PONTE_HUB_SENHA_MESTRE = "17022506";
   const PONTE_HUB_SESSAO_KEY = "ponte-hub-sessao";
-  const PONTE_HUB_STORAGE_DOC = "ponte-hub-data"; // precisa bater com STORAGE_KEY no script principal
+  const PONTE_HUB_STORAGE_DOC = "ponte-hub-data";
 
   window.ponteAuth = {
     async login(codigo) {
@@ -1971,6 +1971,8 @@ function FichaRapida({
     label: "Limite de crédito (R$)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: ficha.limiteCredito,
     onChange: set("limiteCredito"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -3701,6 +3703,7 @@ function FunilVendas({
   vendedores
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [editandoId, setEditandoId] = useState(null);
   const [form, setForm] = useState(blankNegocio());
   const [arrastando, setArrastando] = useState(null);
   const [mostrarPerdidos, setMostrarPerdidos] = useState(false);
@@ -3713,13 +3716,42 @@ function FunilVendas({
   const salvar = () => {
     if (!form.titulo.trim()) return;
     const cliente = clientes.find(c => c.id === form.clienteId);
-    setNegocios([...negocios, {
+    const registro = {
       ...form,
-      id: uid(),
-      clienteNome: cliente ? cliente.nome : form.clienteNome,
-      criadoEm: new Date().toISOString()
-    }]);
+      clienteNome: cliente ? cliente.nome : form.clienteNome
+    };
+    if (editandoId) {
+      setNegocios(negocios.map(n => n.id === editandoId ? {
+        ...registro,
+        id: editandoId
+      } : n));
+    } else {
+      setNegocios([...negocios, {
+        ...registro,
+        id: uid(),
+        criadoEm: new Date().toISOString()
+      }]);
+    }
     setForm(blankNegocio());
+    setEditandoId(null);
+    setMostrarForm(false);
+  };
+  const editar = n => {
+    setForm({
+      ...blankNegocio(),
+      ...n
+    });
+    setEditandoId(n.id);
+    setMostrarForm(true);
+  };
+  const novoNegocio = () => {
+    setForm(blankNegocio());
+    setEditandoId(null);
+    setMostrarForm(true);
+  };
+  const cancelar = () => {
+    setForm(blankNegocio());
+    setEditandoId(null);
     setMostrarForm(false);
   };
   const moverEtapa = (id, novaEtapa) => setNegocios(negocios.map(n => n.id === id ? {
@@ -3767,13 +3799,13 @@ function FunilVendas({
     checked: mostrarPerdidos,
     onChange: e => setMostrarPerdidos(e.target.checked)
   }), "Exibir perdidos"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setMostrarForm(true),
+    onClick: novoNegocio,
     className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
     style: {
       background: ROYAL
     }
   }, "+ Novo Negócio"))), mostrarForm && /*#__PURE__*/React.createElement(Card, {
-    title: "Novo negócio"
+    title: editandoId ? "Editar negócio" : "Novo negócio"
   }, /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-3 gap-3"
   }, /*#__PURE__*/React.createElement(Field, {
@@ -3789,6 +3821,8 @@ function FunilVendas({
     label: "Valor (R$)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: form.valor,
     onChange: set("valor"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -3878,7 +3912,7 @@ function FunilVendas({
       background: "#047857"
     }
   }, "Salvar"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setMostrarForm(false),
+    onClick: cancelar,
     className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
     style: {
       borderColor: LINE,
@@ -3997,7 +4031,10 @@ function FunilVendas({
         }
       }, ETAPAS_FUNIL.map(e => /*#__PURE__*/React.createElement("option", {
         key: e
-      }, e))), n.status === "Aberto" && etapa === "Fechamento" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+      }, e))), /*#__PURE__*/React.createElement("button", {
+        onClick: () => editar(n),
+        className: "text-[10px] font-semibold text-slate-400 hover:text-blue-600"
+      }, "Editar"), n.status === "Aberto" && etapa === "Fechamento" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
         onClick: () => marcarStatus(n.id, "Ganho"),
         className: "text-[10px] font-bold text-emerald-600"
       }, "✓ Ganho"), /*#__PURE__*/React.createElement("button", {
@@ -6262,6 +6299,8 @@ function NovoPedidoEspelho({
     className: "flex gap-1"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: itemPreco,
     onChange: e => setItemPreco(e.target.value),
     placeholder: "Preço unit. (R$)",
@@ -7003,6 +7042,8 @@ function Equipe({
     label: "Verba em valor (R$)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: form.flexVerba,
     onChange: set("flexVerba"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -9135,6 +9176,8 @@ function Produtos({
     label: "Preço de compra (R$)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: form.precoCompra,
     onChange: set("precoCompra"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -9145,6 +9188,8 @@ function Produtos({
     label: "Custo (R$)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: form.custo,
     onChange: set("custo"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -9165,6 +9210,8 @@ function Produtos({
     label: "Venda (R$)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: form.vendaPreco,
     onChange: set("vendaPreco"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -9175,6 +9222,8 @@ function Produtos({
     label: "% Comissão"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: form.percentualComissao,
     onChange: set("percentualComissao"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -9962,6 +10011,8 @@ function CondicoesPagamentoCadastro({
     label: "Pedido mínimo (R$)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: form.pedidoMinimo,
     onChange: set("pedidoMinimo"),
     className: "w-full border rounded-md px-3 py-2 text-sm mt-1",
@@ -10317,6 +10368,8 @@ function RepresentadasCadastro({
     label: "% Comissão padrão"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: form.comissaoPadrao,
     onChange: set("comissaoPadrao"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -10467,6 +10520,8 @@ function RepresentadasCadastro({
     label: "Valor pedido mínimo (R$)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: form.valorPedidoMinimo,
     onChange: set("valorPedidoMinimo"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -11750,6 +11805,8 @@ function FluxoCaixa({
     }
   }), /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: valor,
     onChange: e => setValor(e.target.value),
     placeholder: "Valor (R$)",
@@ -11936,6 +11993,8 @@ function ContasPagar({
     }
   }), /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: valor,
     onChange: e => setValor(e.target.value),
     placeholder: "Valor (R$)",
@@ -12108,6 +12167,8 @@ function ContasReceber({
     }
   }), /*#__PURE__*/React.createElement("input", {
     type: "number",
+    step: "0.01",
+    min: "0",
     value: valor,
     onChange: e => setValor(e.target.value),
     placeholder: "Valor esperado (R$)",

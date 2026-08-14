@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
 body { margin: 0; }
-*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.absolute{position:absolute}.relative{position:relative}.right-0{right:0}.z-20{z-index:20}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.ml-2{margin-left:.5rem}.ml-3{margin-left:.75rem}.ml-auto{margin-left:auto}.mr-2{margin-right:.5rem}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.h-1\.5{height:.375rem}.h-10{height:2.5rem}.h-2{height:.5rem}.h-20{height:5rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-full{height:100%}.max-h-80{max-height:20rem}.max-h-96{max-height:24rem}.min-h-\[120px\]{min-height:120px}.min-h-full{min-height:100%}.w-1\.5{width:.375rem}.w-10{width:2.5rem}.w-16{width:4rem}.w-2{width:.5rem}.w-20{width:5rem}.w-24{width:6rem}.w-28{width:7rem}.w-32{width:8rem}.w-40{width:10rem}.w-56{width:14rem}.w-7{width:1.75rem}.w-72{width:18rem}.w-8{width:2rem}.w-full{width:100%}.min-w-\[140px\]{min-width:140px}.min-w-\[180px\]{min-width:180px}.min-w-\[200px\]{min-width:200px}.min-w-\[220px\]{min-width:220px}.min-w-\[260px\]{min-width:260px}.min-w-max{min-width:-moz-max-content;min-width:max-content}.max-w-7xl{max-width:80rem}.max-w-\[160px\]{max-width:160px}.max-w-\[220px\]{max-width:220px}.max-w-sm{max-width:24rem}.flex-1{flex:1 1 0%}.flex-shrink-0{flex-shrink:0}.cursor-move{cursor:move}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.25rem*var(--tw-space-y-reverse))}.space-y-1\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.375rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.375rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem*var(--tw-space-y-reverse))}.space-y-5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem*var(--tw-space-y-reverse))}.space-y-6>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem*var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis}.truncate,.whitespace-nowrap{white-space:nowrap}.rounded{border-radius:.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-md{border-radius:.375rem}.rounded-b-lg{border-bottom-right-radius:.5rem;border-bottom-left-radius:.5rem}.rounded-t-lg{border-top-left-radius:.5rem;border-top-right-radius:.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-l-4{border-left-width:4px}.border-t{border-top-width:1px}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138/var(--tw-border-opacity,1))}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77/var(--tw-border-opacity,1))}.border-amber-400{--tw-border-opacity:1;border-color:rgb(251 191 36/var(--tw-border-opacity,1))}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254/var(--tw-border-opacity,1))}.border-blue-300{--tw-border-opacity:1;border-color:rgb(147 197 253/var(--tw-border-opacity,1))}.border-blue-400{--tw-border-opacity:1;border-color:rgb(96 165 250/var(--tw-border-opacity,1))}.border-cyan-400{--tw-border-opacity:1;border-color:rgb(34 211 238/var(--tw-border-opacity,1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208/var(--tw-border-opacity,1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183/var(--tw-border-opacity,1))}.border-emerald-400{--tw-border-opacity:1;border-color:rgb(52 211 153/var(--tw-border-opacity,1))}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202/var(--tw-border-opacity,1))}.border-red-300{--tw-border-opacity:1;border-color:rgb(252 165 165/var(--tw-border-opacity,1))}.border-red-400{--tw-border-opacity:1;border-color:rgb(248 113 113/var(--tw-border-opacity,1))}.border-rose-400{--tw-border-opacity:1;border-color:rgb(251 113 133/var(--tw-border-opacity,1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity,1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225/var(--tw-border-opacity,1))}.border-violet-300{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.border-violet-400{--tw-border-opacity:1;border-color:rgb(167 139 250/var(--tw-border-opacity,1))}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199/var(--tw-bg-opacity,1))}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235/var(--tw-bg-opacity,1))}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11/var(--tw-bg-opacity,1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255/var(--tw-bg-opacity,1))}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246/var(--tw-bg-opacity,1))}.bg-cyan-50{--tw-bg-opacity:1;background-color:rgb(236 254 255/var(--tw-bg-opacity,1))}.bg-cyan-500{--tw-bg-opacity:1;background-color:rgb(6 182 212/var(--tw-bg-opacity,1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245/var(--tw-bg-opacity,1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226/var(--tw-bg-opacity,1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242/var(--tw-bg-opacity,1))}.bg-rose-50{--tw-bg-opacity:1;background-color:rgb(255 241 242/var(--tw-bg-opacity,1))}.bg-rose-500{--tw-bg-opacity:1;background-color:rgb(244 63 94/var(--tw-bg-opacity,1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.bg-violet-50{--tw-bg-opacity:1;background-color:rgb(245 243 255/var(--tw-bg-opacity,1))}.bg-violet-500{--tw-bg-opacity:1;background-color:rgb(139 92 246/var(--tw-bg-opacity,1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.bg-white\/60{background-color:hsla(0,0%,100%,.6)}.object-cover{-o-object-fit:cover;object-fit:cover}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:.25rem;padding-right:.25rem}.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-2{padding-bottom:.5rem}.pb-3{padding-bottom:.75rem}.pb-4{padding-bottom:1rem}.pr-1{padding-right:.25rem}.pr-2{padding-right:.5rem}.pr-4{padding-right:1rem}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.pt-5{padding-top:1.25rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-.025em}.tracking-wide{letter-spacing:.025em}.tracking-widest{letter-spacing:.1em}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14/var(--tw-text-opacity,1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity,1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216/var(--tw-text-opacity,1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175/var(--tw-text-opacity,1))}.text-cyan-800{--tw-text-opacity:1;color:rgb(21 94 117/var(--tw-text-opacity,1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105/var(--tw-text-opacity,1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87/var(--tw-text-opacity,1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70/var(--tw-text-opacity,1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.text-red-700{--tw-text-opacity:1;color:rgb(185 28 28/var(--tw-text-opacity,1))}.text-rose-800{--tw-text-opacity:1;color:rgb(159 18 57/var(--tw-text-opacity,1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105/var(--tw-text-opacity,1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}.text-violet-800{--tw-text-opacity:1;color:rgb(91 33 182/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.text-white\/80{color:hsla(0,0%,100%,.8)}.underline{text-decoration-line:underline}.opacity-50{opacity:.5}.opacity-70{opacity:.7}.shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.shadow-lg,.shadow-sm{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}.outline-none{outline:2px solid transparent;outline-offset:2px}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.hover\:border-blue-300:hover{--tw-border-opacity:1;border-color:rgb(147 197 253/var(--tw-border-opacity,1))}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.hover\:text-amber-700:hover{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.hover\:text-blue-600:hover{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity,1))}.hover\:text-red-600:hover{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.hover\:underline:hover{text-decoration-line:underline}.hover\:opacity-80:hover{opacity:.8}@media (min-width:768px){.md\:col-span-1{grid-column:span 1/span 1}.md\:col-span-2{grid-column:span 2/span 2}.md\:col-span-3{grid-column:span 3/span 3}.md\:w-64{width:16rem}.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.md\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.md\:flex-row{flex-direction:row}}@media (min-width:1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.absolute{position:absolute}.relative{position:relative}.right-0{right:0}.z-20{z-index:20}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.ml-2{margin-left:.5rem}.ml-3{margin-left:.75rem}.ml-auto{margin-left:auto}.mr-2{margin-right:.5rem}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.h-1\.5{height:.375rem}.h-10{height:2.5rem}.h-2{height:.5rem}.h-20{height:5rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-full{height:100%}.max-h-80{max-height:20rem}.max-h-96{max-height:24rem}.min-h-\[120px\]{min-height:120px}.min-h-full{min-height:100%}.w-1\.5{width:.375rem}.w-10{width:2.5rem}.w-16{width:4rem}.w-2{width:.5rem}.w-20{width:5rem}.w-24{width:6rem}.w-28{width:7rem}.w-32{width:8rem}.w-40{width:10rem}.w-56{width:14rem}.w-7{width:1.75rem}.w-72{width:18rem}.w-8{width:2rem}.w-full{width:100%}.min-w-\[140px\]{min-width:140px}.min-w-\[180px\]{min-width:180px}.min-w-\[200px\]{min-width:200px}.min-w-\[220px\]{min-width:220px}.min-w-\[260px\]{min-width:260px}.min-w-max{min-width:-moz-max-content;min-width:max-content}.max-w-7xl{max-width:80rem}.max-w-\[160px\]{max-width:160px}.max-w-\[220px\]{max-width:220px}.max-w-sm{max-width:24rem}.flex-1{flex:1 1 0%}.flex-shrink-0{flex-shrink:0}.cursor-move{cursor:move}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.25rem*var(--tw-space-y-reverse))}.space-y-1\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.375rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.375rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem*var(--tw-space-y-reverse))}.space-y-5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem*var(--tw-space-y-reverse))}.space-y-6>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem*var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis}.truncate,.whitespace-nowrap{white-space:nowrap}.rounded{border-radius:.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-md{border-radius:.375rem}.rounded-b-lg{border-bottom-right-radius:.5rem;border-bottom-left-radius:.5rem}.rounded-t-lg{border-top-left-radius:.5rem;border-top-right-radius:.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-l-4{border-left-width:4px}.border-t{border-top-width:1px}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138/var(--tw-border-opacity,1))}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77/var(--tw-border-opacity,1))}.border-amber-400{--tw-border-opacity:1;border-color:rgb(251 191 36/var(--tw-border-opacity,1))}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254/var(--tw-border-opacity,1))}.border-blue-300{--tw-border-opacity:1;border-color:rgb(147 197 253/var(--tw-border-opacity,1))}.border-blue-400{--tw-border-opacity:1;border-color:rgb(96 165 250/var(--tw-border-opacity,1))}.border-cyan-400{--tw-border-opacity:1;border-color:rgb(34 211 238/var(--tw-border-opacity,1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208/var(--tw-border-opacity,1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183/var(--tw-border-opacity,1))}.border-emerald-400{--tw-border-opacity:1;border-color:rgb(52 211 153/var(--tw-border-opacity,1))}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202/var(--tw-border-opacity,1))}.border-red-300{--tw-border-opacity:1;border-color:rgb(252 165 165/var(--tw-border-opacity,1))}.border-red-400{--tw-border-opacity:1;border-color:rgb(248 113 113/var(--tw-border-opacity,1))}.border-rose-400{--tw-border-opacity:1;border-color:rgb(251 113 133/var(--tw-border-opacity,1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity,1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225/var(--tw-border-opacity,1))}.border-violet-300{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.border-violet-400{--tw-border-opacity:1;border-color:rgb(167 139 250/var(--tw-border-opacity,1))}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199/var(--tw-bg-opacity,1))}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235/var(--tw-bg-opacity,1))}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11/var(--tw-bg-opacity,1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255/var(--tw-bg-opacity,1))}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246/var(--tw-bg-opacity,1))}.bg-cyan-50{--tw-bg-opacity:1;background-color:rgb(236 254 255/var(--tw-bg-opacity,1))}.bg-cyan-500{--tw-bg-opacity:1;background-color:rgb(6 182 212/var(--tw-bg-opacity,1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245/var(--tw-bg-opacity,1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226/var(--tw-bg-opacity,1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242/var(--tw-bg-opacity,1))}.bg-rose-50{--tw-bg-opacity:1;background-color:rgb(255 241 242/var(--tw-bg-opacity,1))}.bg-rose-500{--tw-bg-opacity:1;background-color:rgb(244 63 94/var(--tw-bg-opacity,1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.bg-violet-50{--tw-bg-opacity:1;background-color:rgb(245 243 255/var(--tw-bg-opacity,1))}.bg-violet-500{--tw-bg-opacity:1;background-color:rgb(139 92 246/var(--tw-bg-opacity,1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.bg-white\/60{background-color:hsla(0,0%,100%,.6)}.object-cover{-o-object-fit:cover;object-fit:cover}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:.25rem;padding-right:.25rem}.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-2{padding-bottom:.5rem}.pb-3{padding-bottom:.75rem}.pb-4{padding-bottom:1rem}.pr-1{padding-right:.25rem}.pr-2{padding-right:.5rem}.pr-4{padding-right:1rem}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.pt-5{padding-top:1.25rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-.025em}.tracking-wide{letter-spacing:.025em}.tracking-widest{letter-spacing:.1em}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14/var(--tw-text-opacity,1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity,1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216/var(--tw-text-opacity,1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175/var(--tw-text-opacity,1))}.text-cyan-800{--tw-text-opacity:1;color:rgb(21 94 117/var(--tw-text-opacity,1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105/var(--tw-text-opacity,1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87/var(--tw-text-opacity,1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70/var(--tw-text-opacity,1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.text-red-700{--tw-text-opacity:1;color:rgb(185 28 28/var(--tw-text-opacity,1))}.text-rose-800{--tw-text-opacity:1;color:rgb(159 18 57/var(--tw-text-opacity,1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105/var(--tw-text-opacity,1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}.text-violet-800{--tw-text-opacity:1;color:rgb(91 33 182/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.text-white\/80{color:hsla(0,0%,100%,.8)}.underline{text-decoration-line:underline}.opacity-50{opacity:.5}.opacity-70{opacity:.7}.shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.shadow-lg,.shadow-sm{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}.outline-none{outline:2px solid transparent;outline-offset:2px}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.hover\:border-blue-300:hover{--tw-border-opacity:1;border-color:rgb(147 197 253/var(--tw-border-opacity,1))}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.hover\:text-amber-700:hover{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.hover\:text-blue-600:hover{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity,1))}.hover\:text-red-600:hover{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.hover\:underline:hover{text-decoration-line:underline}.hover\:opacity-80:hover{opacity:.8}@media (min-width:768px){.md\:col-span-1{grid-column:span 1/span 1}.md\:col-span-2{grid-column:span 2/span 2}.md\:col-span-3{grid-column:span 3/span 3}.md\:w-64{width:16rem}.md\:w-72{width:18rem}.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.md\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.md\:flex-row{flex-direction:row}}@media (min-width:1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -447,7 +447,8 @@ function PonteHub({
     produtos: produtos,
     setProdutos: setProdutos,
     pedidosEspelho: pedidosEspelho,
-    camposOcultosProduto: camposOcultos.produto
+    camposOcultosProduto: camposOcultos.produto,
+    representadasCadastro: representadasCadastro
   }), area === "adm" && tab === "condicoes" && /*#__PURE__*/React.createElement(CondicoesPagamentoCadastro, {
     condicoes: condicoesPagamentoCadastro,
     setCondicoes: setCondicoesPagamentoCadastro,
@@ -1343,7 +1344,8 @@ function blankFicha(cnpj = "") {
     estadoCivil: "",
     regiao: "",
     industriaPrincipal: "",
-    codigoNaIndustria: "",
+    codigosPorIndustria: [],
+    // [{ id, representada, codigo }] — um cliente pode ter código diferente em cada indústria
     transportadoraPreferida: "",
     idExterno: "",
     classificacao: "",
@@ -1587,6 +1589,28 @@ function FichaRapida({
       ...t,
       ecommerce: !t.ecommerce
     } : t)
+  }));
+  const [novoCodigoIndustria, setNovoCodigoIndustria] = useState({
+    representada: "",
+    codigo: ""
+  });
+  const associarCodigoIndustria = () => {
+    if (!novoCodigoIndustria.representada.trim() || !novoCodigoIndustria.codigo.trim()) return;
+    setFicha(f => ({
+      ...f,
+      codigosPorIndustria: [...(f.codigosPorIndustria || []), {
+        id: uid(),
+        ...novoCodigoIndustria
+      }]
+    }));
+    setNovoCodigoIndustria({
+      representada: "",
+      codigo: ""
+    });
+  };
+  const removerCodigoIndustria = id => setFicha(f => ({
+    ...f,
+    codigosPorIndustria: (f.codigosPorIndustria || []).filter(c => c.id !== id)
   }));
   const cadastroAtivo = (condicoesPagamentoCadastro || []).filter(c => !c.excluida);
   const CONDICOES_PAGAMENTO_OPCOES = cadastroAtivo.length > 0 ? cadastroAtivo.map(c => c.nome) : ["À vista", "7 dias", "14 dias", "28 dias", "30 dias", "30/60 dias", "30/60/90 dias", "45 dias"];
@@ -2814,15 +2838,6 @@ function FichaRapida({
     style: {
       borderColor: LINE
     }
-  })), visivel("codigoNaIndustria") && /*#__PURE__*/React.createElement(Field, {
-    label: "Código na indústria"
-  }, /*#__PURE__*/React.createElement("input", {
-    value: ficha.codigoNaIndustria,
-    onChange: set("codigoNaIndustria"),
-    className: "w-full border rounded-md px-3 py-2 text-sm",
-    style: {
-      borderColor: LINE
-    }
   })), visivel("transportadoraPreferida") && /*#__PURE__*/React.createElement(Field, {
     label: "Transportadora preferida"
   }, /*#__PURE__*/React.createElement("input", {
@@ -2877,7 +2892,62 @@ function FichaRapida({
     style: {
       borderColor: LINE
     }
-  }))), visivel("obsPedido") && /*#__PURE__*/React.createElement(Field, {
+  }))), visivel("codigoNaIndustria") && /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 pt-4 border-t",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2"
+  }, "Código do cliente em cada indústria"), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mb-2"
+  }, "Um mesmo cliente pode ter um código diferente cadastrado em cada representada."), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-2 mb-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: novoCodigoIndustria.representada,
+    onChange: e => setNovoCodigoIndustria(c => ({
+      ...c,
+      representada: e.target.value
+    })),
+    placeholder: "Representada",
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    value: novoCodigoIndustria.codigo,
+    onChange: e => setNovoCodigoIndustria(c => ({
+      ...c,
+      codigo: e.target.value
+    })),
+    placeholder: "Código nessa indústria",
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: associarCodigoIndustria,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "+ Associar")), (ficha.codigosPorIndustria || []).length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1"
+  }, ficha.codigosPorIndustria.map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.id,
+    className: "flex items-center justify-between border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold",
+    style: {
+      color: NAVY
+    }
+  }, c.representada), " — código ", c.codigo), /*#__PURE__*/React.createElement("button", {
+    onClick: () => removerCodigoIndustria(c.id),
+    className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+  }, "Remover"))))), visivel("obsPedido") && /*#__PURE__*/React.createElement(Field, {
     label: "Observação do pedido"
   }, /*#__PURE__*/React.createElement("textarea", {
     value: ficha.obsPedido,
@@ -7588,7 +7658,11 @@ function Clientes({
         regiao: row.regiao || "",
         vendedorId: match ? match.id : null,
         industriaPrincipal: row.industriaPrincipal || "",
-        codigoNaIndustria: row.codigoNaIndustria || "",
+        codigosPorIndustria: row.codigoNaIndustria ? [{
+          id: uid(),
+          representada: row.industriaPrincipal || "Indústria principal",
+          codigo: row.codigoNaIndustria
+        }] : [],
         transportadoraPreferida: row.transportadoraPreferida || "",
         limiteCredito: row.limiteCredito || "",
         idExterno: row.idExterno || "",
@@ -8189,13 +8263,22 @@ function ImportadorMapeavel({
   subtitle,
   campos,
   onConfirmar,
-  textoBotao = "Confirmar importação"
+  textoBotao = "Confirmar importação",
+  permitirBaixarModelo = false
 }) {
   const [etapa, setEtapa] = useState("selecionar"); // "selecionar" | "mapear"
   const [colunas, setColunas] = useState([]);
   const [linhasBrutas, setLinhasBrutas] = useState([]);
   const [mapeamento, setMapeamento] = useState({});
   const [msg, setMsg] = useState("");
+  const baixarModelo = () => {
+    const cabecalho = campos.map(c => c.label);
+    const ws = XLSX.utils.aoa_to_sheet([cabecalho]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo");
+    const nomeArquivo = `modelo-${norm(titulo).replace(/[^a-z0-9]+/g, "-")}.xlsx`;
+    XLSX.writeFile(wb, nomeArquivo);
+  };
   const selecionarArquivo = e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -8256,7 +8339,14 @@ function ImportadorMapeavel({
   return /*#__PURE__*/React.createElement(Card, {
     title: titulo,
     subtitle: subtitle
-  }, etapa === "selecionar" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("input", {
+  }, etapa === "selecionar" && /*#__PURE__*/React.createElement(React.Fragment, null, permitirBaixarModelo && /*#__PURE__*/React.createElement("button", {
+    onClick: baixarModelo,
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border mb-3",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, "📥 Baixar modelo de planilha"), /*#__PURE__*/React.createElement("input", {
     type: "file",
     accept: ".xlsx,.xls",
     onChange: selecionarArquivo,
@@ -8309,6 +8399,142 @@ function ImportadorMapeavel({
       color: NAVY
     }
   }, "Cancelar"))));
+}
+
+// ============================================================
+// IMPORTAR TABELA DE PREÇOS POR REPRESENTADA
+// ============================================================
+const CAMPOS_TABELA_PRECO_IMPORT = [{
+  id: "codigo",
+  label: "Código"
+}, {
+  id: "nome",
+  label: "Nome"
+}, {
+  id: "embalagem",
+  label: "Embalagem"
+}, {
+  id: "vendaPreco",
+  label: "Preço de venda R$",
+  sinonimos: ["preço de venda", "preco de venda"]
+}, {
+  id: "precoCompra",
+  label: "Preço unitário R$",
+  sinonimos: ["preço unitário", "preco unitario"]
+}, {
+  id: "estoqueAtual",
+  label: "Estoque"
+}, {
+  id: "marca",
+  label: "Marca"
+}, {
+  id: "categoria",
+  label: "Categoria"
+}, {
+  id: "gtinBarra",
+  label: "Código de barra",
+  sinonimos: ["código de barras", "codigo de barra"]
+}, {
+  id: "referenciaFabrica",
+  label: "Referência"
+}, {
+  id: "observacao",
+  label: "Observação"
+}, {
+  id: "ncm",
+  label: "NCM"
+}, {
+  id: "ipi",
+  label: "% IPI"
+}];
+function ImportarTabelaPrecoRepresentada({
+  produtos,
+  setProdutos,
+  representadasCadastro,
+  onFechar
+}) {
+  const [representadaId, setRepresentadaId] = useState("");
+  const representadasAtivas = (representadasCadastro || []).filter(r => !r.excluida);
+  const representadaSelecionada = representadasAtivas.find(r => r.id === representadaId);
+  const importarMapeado = linhas => {
+    if (!representadaSelecionada) return "Selecione uma representada antes de importar.";
+    let criados = 0;
+    let atualizados = 0;
+    const produtosAtualizados = [...produtos];
+    linhas.forEach(row => {
+      const codigo = String(row.codigo || "").trim();
+      const nome = String(row.nome || "").trim();
+      if (!codigo && !nome) return;
+      const idx = produtosAtualizados.findIndex(p => p.representada === representadaSelecionada.nome && (codigo && norm(p.codigo) === norm(codigo) || !codigo && norm(p.nome) === norm(nome)));
+      const campos = {
+        codigo: codigo || undefined,
+        nome: nome || undefined,
+        embalagem: row.embalagem || undefined,
+        vendaPreco: row.vendaPreco || undefined,
+        precoCompra: row.precoCompra || undefined,
+        estoqueAtual: row.estoqueAtual || undefined,
+        marca: row.marca || undefined,
+        categoria: row.categoria || undefined,
+        gtinBarra: row.gtinBarra || undefined,
+        referenciaFabrica: row.referenciaFabrica || undefined,
+        observacao: row.observacao || undefined,
+        ncm: row.ncm || undefined,
+        ipi: row.ipi || undefined
+      };
+      const camposLimpos = Object.fromEntries(Object.entries(campos).filter(([, v]) => v !== undefined));
+      if (idx >= 0) {
+        produtosAtualizados[idx] = {
+          ...produtosAtualizados[idx],
+          ...camposLimpos
+        };
+        atualizados++;
+      } else {
+        produtosAtualizados.push({
+          ...blankProduto(),
+          id: uid(),
+          representada: representadaSelecionada.nome,
+          ...camposLimpos,
+          nome: nome || codigo
+        });
+        criados++;
+      }
+    });
+    setProdutos(produtosAtualizados);
+    return `${criados} produto(s) novo(s) e ${atualizados} atualizado(s) na tabela de preços de ${representadaSelecionada.nome}.`;
+  };
+  return /*#__PURE__*/React.createElement(Card, {
+    title: "Importar Tabela de Preços por Representada",
+    subtitle: "Escolha a representada antes de importar — os produtos serão casados pelo código (ou nome) dentro dessa representada"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Representada"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: representadaId,
+    onChange: e => setRepresentadaId(e.target.value),
+    className: "w-full md:w-72 border rounded-md px-3 py-2 text-sm mb-4",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), representadasAtivas.map(r => /*#__PURE__*/React.createElement("option", {
+    key: r.id,
+    value: r.id
+  }, r.nome)))), representadaId ? /*#__PURE__*/React.createElement(ImportadorMapeavel, {
+    titulo: `Tabela de preços — ${representadaSelecionada?.nome || ""}`,
+    subtitle: "Escolha qual coluna da sua planilha vai em cada campo",
+    campos: CAMPOS_TABELA_PRECO_IMPORT,
+    onConfirmar: importarMapeado,
+    permitirBaixarModelo: true
+  }) : /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400"
+  }, "Selecione uma representada acima pra liberar a importação."), /*#__PURE__*/React.createElement("button", {
+    onClick: onFechar,
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border mt-4",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, "Fechar"));
 }
 function ImportacaoFotosLote({
   produtos,
@@ -8487,7 +8713,8 @@ function Produtos({
   produtos,
   setProdutos,
   pedidosEspelho,
-  camposOcultosProduto
+  camposOcultosProduto,
+  representadasCadastro
 }) {
   const visivel = id => !(camposOcultosProduto || []).includes(id);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -8508,6 +8735,7 @@ function Produtos({
   const [mostrarImportFotos, setMostrarImportFotos] = useState(false);
   const [importMsgProdutos, setImportMsgProdutos] = useState("");
   const [mostrarImportPlanilha, setMostrarImportPlanilha] = useState(false);
+  const [mostrarImportTabelaPreco, setMostrarImportTabelaPreco] = useState(false);
   const CAMPOS_PRODUTO_IMPORT = [{
     id: "nome",
     label: "Nome do produto",
@@ -9086,7 +9314,14 @@ function Produtos({
       borderColor: LINE,
       color: NAVY
     }
-  }, "📥 Importar planilha"), /*#__PURE__*/React.createElement("div", {
+  }, "📥 Importar planilha"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMostrarImportTabelaPreco(m => !m),
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border cursor-pointer",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, "💲 Importar Tabela de Preços"), /*#__PURE__*/React.createElement("div", {
     className: "relative"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setMenuRelatoriosAberto(m => !m),
@@ -9135,7 +9370,13 @@ function Produtos({
     titulo: "Importar planilha de produtos",
     subtitle: "Escolha qual coluna da sua planilha vai em cada campo — você pode usar todos ou só alguns",
     campos: CAMPOS_PRODUTO_IMPORT,
-    onConfirmar: importarProdutosMapeado
+    onConfirmar: importarProdutosMapeado,
+    permitirBaixarModelo: true
+  }), mostrarImportTabelaPreco && /*#__PURE__*/React.createElement(ImportarTabelaPrecoRepresentada, {
+    produtos: produtos,
+    setProdutos: setProdutos,
+    representadasCadastro: representadasCadastro,
+    onFechar: () => setMostrarImportTabelaPreco(false)
   }), mostrarImportFotos && /*#__PURE__*/React.createElement(ImportacaoFotosLote, {
     produtos: produtos,
     setProdutos: setProdutos,
@@ -10275,12 +10516,79 @@ function RepresentadasCadastro({
   const [form, setForm] = useState(blankRepresentada());
   const [exibirExcluidas, setExibirExcluidas] = useState(false);
   const [mostrarImport, setMostrarImport] = useState(false);
+  const [buscandoCnpj, setBuscandoCnpj] = useState(false);
+  const [buscandoCep, setBuscandoCep] = useState(false);
+  const [msgBusca, setMsgBusca] = useState("");
+  const buscarCNPJ = async () => {
+    const digits = (form.cnpj || "").replace(/\D/g, "");
+    if (digits.length !== 14) {
+      setMsgBusca("Digite os 14 números do CNPJ.");
+      return;
+    }
+    setBuscandoCnpj(true);
+    setMsgBusca("");
+    try {
+      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+      if (!resp.ok) throw new Error("not-ok");
+      const data = await resp.json();
+      setForm(f => ({
+        ...f,
+        razaoSocial: data.razao_social || f.razaoSocial,
+        nome: data.nome_fantasia || f.nome,
+        cep: data.cep || f.cep,
+        endereco: data.logradouro || f.endereco,
+        bairro: data.bairro || f.bairro,
+        estado: data.uf || f.estado,
+        cidade: data.municipio || f.cidade,
+        telefone: data.ddd_telefone_1 || f.telefone,
+        email: data.email || f.email
+      }));
+      setMsgBusca("Dados encontrados na Receita Federal.");
+    } catch (e) {
+      setMsgBusca("Não consegui buscar automaticamente — preencha manualmente.");
+    } finally {
+      setBuscandoCnpj(false);
+    }
+  };
+  const buscarCEP = async () => {
+    const digits = (form.cep || "").replace(/\D/g, "");
+    if (digits.length !== 8) {
+      setMsgBusca("Digite os 8 números do CEP.");
+      return;
+    }
+    setBuscandoCep(true);
+    setMsgBusca("");
+    try {
+      const resp = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await resp.json();
+      if (data.erro) throw new Error("cep-nao-encontrado");
+      setForm(f => ({
+        ...f,
+        endereco: data.logradouro || f.endereco,
+        bairro: data.bairro || f.bairro,
+        cidade: data.localidade || f.cidade,
+        estado: data.uf || f.estado
+      }));
+      setMsgBusca("Endereço encontrado.");
+    } catch (e) {
+      setMsgBusca("CEP não encontrado — preencha manualmente.");
+    } finally {
+      setBuscandoCep(false);
+    }
+  };
   const editar = r => {
     setForm({
       ...blankRepresentada(),
       ...r
     });
     setEditandoId(r.id);
+    setMsgBusca("");
+    setMostrarForm(true);
+  };
+  const novo = () => {
+    setForm(blankRepresentada());
+    setEditandoId(null);
+    setMsgBusca("");
     setMostrarForm(true);
   };
   const salvar = () => {
@@ -10419,7 +10727,8 @@ function RepresentadasCadastro({
     titulo: "Importar planilha de representadas",
     subtitle: "Escolha qual coluna da sua planilha vai em cada campo",
     campos: CAMPOS_REPRESENTADA_IMPORT,
-    onConfirmar: importarRepresentadasMapeado
+    onConfirmar: importarRepresentadasMapeado,
+    permitirBaixarModelo: true
   }), mostrarForm && /*#__PURE__*/React.createElement(Card, {
     title: editandoId ? "Editar representada" : "Nova representada"
   }, /*#__PURE__*/React.createElement("div", {
@@ -10451,7 +10760,9 @@ function RepresentadasCadastro({
     style: {
       borderColor: LINE
     }
-  })), /*#__PURE__*/React.createElement(Field, {
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 items-end"
+  }, /*#__PURE__*/React.createElement(Field, {
     label: "CNPJ"
   }, /*#__PURE__*/React.createElement("input", {
     value: form.cnpj,
@@ -10460,7 +10771,16 @@ function RepresentadasCadastro({
     style: {
       borderColor: LINE
     }
-  })), /*#__PURE__*/React.createElement(Field, {
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: buscarCNPJ,
+    disabled: buscandoCnpj,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md whitespace-nowrap",
+    style: {
+      background: ROYAL,
+      opacity: buscandoCnpj ? 0.6 : 1
+    }
+  }, buscandoCnpj ? "Buscando…" : "Buscar CNPJ")), /*#__PURE__*/React.createElement(Field, {
     label: "Inscrição estadual"
   }, /*#__PURE__*/React.createElement("input", {
     value: form.ie,
@@ -10527,7 +10847,27 @@ function RepresentadasCadastro({
     style: {
       borderColor: LINE
     }
-  })), /*#__PURE__*/React.createElement(Field, {
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 items-end"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "CEP"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: form.cep,
+    onChange: set("cep"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: buscarCEP,
+    disabled: buscandoCep,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md whitespace-nowrap",
+    style: {
+      background: ROYAL,
+      opacity: buscandoCep ? 0.6 : 1
+    }
+  }, buscandoCep ? "Buscando…" : "Buscar CEP")), /*#__PURE__*/React.createElement(Field, {
     label: "Endereço"
   }, /*#__PURE__*/React.createElement("input", {
     value: form.endereco,
@@ -10541,15 +10881,6 @@ function RepresentadasCadastro({
   }, /*#__PURE__*/React.createElement("input", {
     value: form.bairro,
     onChange: set("bairro"),
-    className: "w-full border rounded-md px-3 py-2 text-sm",
-    style: {
-      borderColor: LINE
-    }
-  })), /*#__PURE__*/React.createElement(Field, {
-    label: "CEP"
-  }, /*#__PURE__*/React.createElement("input", {
-    value: form.cep,
-    onChange: set("cep"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
     style: {
       borderColor: LINE
@@ -10583,7 +10914,12 @@ function RepresentadasCadastro({
     style: {
       borderColor: LINE
     }
-  }))), /*#__PURE__*/React.createElement(Field, {
+  }))), msgBusca && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold mb-4",
+    style: {
+      color: ROYAL
+    }
+  }, msgBusca), /*#__PURE__*/React.createElement(Field, {
     label: "Observações"
   }, /*#__PURE__*/React.createElement("textarea", {
     value: form.observacoes,

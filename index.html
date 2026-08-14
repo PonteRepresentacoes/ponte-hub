@@ -545,7 +545,8 @@ function PonteHub({
     setPedidosEspelho: setPedidosEspelho,
     tabelaICMS: tabelaICMS,
     setTabelaICMS: setTabelaICMS,
-    produtos: produtos
+    produtos: produtos,
+    representadasCadastro: representadasCadastro
   }))));
 }
 
@@ -5830,7 +5831,8 @@ function CentralPedidos({
   setPedidosEspelho,
   tabelaICMS,
   setTabelaICMS,
-  produtos
+  produtos,
+  representadasCadastro
 }) {
   const [sub, setSub] = useState("novo"); // "novo" | "lista" | "icms"
 
@@ -5896,6 +5898,7 @@ function CentralPedidos({
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
     produtos: produtos,
+    representadasCadastro: representadasCadastro,
     onSalvo: () => setSub("lista"),
     onIrICMS: () => setSub("icms")
   }), sub === "lista" && /*#__PURE__*/React.createElement(ListaPedidosEspelho, {
@@ -5987,6 +5990,7 @@ function NovoPedidoEspelho({
   pedidosEspelho,
   setPedidosEspelho,
   produtos,
+  representadasCadastro,
   onSalvo,
   onIrICMS
 }) {
@@ -6209,15 +6213,21 @@ function NovoPedidoEspelho({
     className: "grid grid-cols-1 md:grid-cols-2 gap-3"
   }, /*#__PURE__*/React.createElement(Field, {
     label: "Empresa / Representada"
-  }, /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("select", {
     value: representada,
     onChange: e => setRepresentada(e.target.value),
-    placeholder: "Ex: Nobre, Coza, Taschibra...",
     className: "w-full border rounded-md px-3 py-2 text-sm",
     style: {
       borderColor: LINE
     }
-  })), /*#__PURE__*/React.createElement(Field, {
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), (representadasCadastro || []).filter(r => !r.excluida).map(r => /*#__PURE__*/React.createElement("option", {
+    key: r.id,
+    value: r.nome
+  }, r.nome)), representada && !(representadasCadastro || []).some(r => r.nome === representada) && /*#__PURE__*/React.createElement("option", {
+    value: representada
+  }, representada, " (avulso)"))), /*#__PURE__*/React.createElement(Field, {
     label: "Cliente"
   }, /*#__PURE__*/React.createElement("select", {
     value: clienteId,

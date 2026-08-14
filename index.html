@@ -10576,6 +10576,10 @@ function RepresentadasCadastro({
       setBuscandoCep(false);
     }
   };
+  const set = campo => e => setForm(f => ({
+    ...f,
+    [campo]: e.target.value
+  }));
   const editar = r => {
     setForm({
       ...blankRepresentada(),

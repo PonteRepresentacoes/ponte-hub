@@ -521,7 +521,8 @@ function PonteHub({
     negocios: negociosFunil,
     setNegocios: setNegociosFunil,
     clientes: clientes,
-    vendedores: vendedores
+    vendedores: vendedores,
+    representadasCadastro: representadasCadastro
   }), area === "vendas" && tab === "vendas-interacoes" && /*#__PURE__*/React.createElement(Interacoes, {
     interacoes: interacoes,
     setInteracoes: setInteracoes,
@@ -3802,6 +3803,7 @@ function blankNegocio() {
     titulo: "",
     clienteId: "",
     clienteNome: "",
+    representada: "",
     valor: "",
     prioridade: "Média",
     etapa: "Prospecção",
@@ -3824,7 +3826,8 @@ function FunilVendas({
   negocios,
   setNegocios,
   clientes,
-  vendedores
+  vendedores,
+  representadasCadastro
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
@@ -3984,6 +3987,20 @@ function FunilVendas({
       borderColor: LINE
     }
   })), /*#__PURE__*/React.createElement(Field, {
+    label: "Representada"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: form.representada,
+    onChange: set("representada"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), (representadasCadastro || []).filter(r => !r.excluida).map(r => /*#__PURE__*/React.createElement("option", {
+    key: r.id,
+    value: r.nome
+  }, r.nome)))), /*#__PURE__*/React.createElement(Field, {
     label: "Prioridade"
   }, /*#__PURE__*/React.createElement("select", {
     value: form.prioridade,
@@ -4100,7 +4117,9 @@ function FunilVendas({
         className: "text-[11px] text-slate-500"
       }, n.clienteNome || "sem cliente"), n.vendedorId && /*#__PURE__*/React.createElement("p", {
         className: "text-[11px] text-slate-400"
-      }, vendedores.find(v => v.id === n.vendedorId)?.nome), n.status === "Perdido" && n.motivoPerda && /*#__PURE__*/React.createElement("p", {
+      }, vendedores.find(v => v.id === n.vendedorId)?.nome), n.representada && /*#__PURE__*/React.createElement("p", {
+        className: "text-[11px] text-slate-400"
+      }, n.representada), n.status === "Perdido" && n.motivoPerda && /*#__PURE__*/React.createElement("p", {
         className: "text-[10px] text-red-600 mt-1"
       }, "Motivo: ", n.motivoPerda), /*#__PURE__*/React.createElement("div", {
         className: "flex items-center justify-between mt-2"

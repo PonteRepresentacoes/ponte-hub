@@ -236,7 +236,8 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 // Depois de publicar o backend na Vercel (ver /backend/README-deploy-sintegra.md),
 // troque pela URL real, ex: "https://seu-projeto.vercel.app/api/sintegra"
 // Deixe em branco para pular essa busca (IE/regime ficam manuais até então).
-const SINTEGRA_ENDPOINT = "/api/sintegra";
+const SINTEGRA_ENDPOINT = "/api/sintegra"; // backend ja publicado (api/sintegra.js)
+
 const STORAGE_KEY = "ponte-hub-data";
 function PonteHub({
   sessao,
@@ -274,6 +275,8 @@ function PonteHub({
     cliente: [],
     produto: []
   });
+  const [checklistVisitaModelo, setChecklistVisitaModelo] = useState([]);
+  const [devolucoesNFD, setDevolucoesNFD] = useState([]);
   const [taxaImposto, setTaxaImposto] = useState(15.5);
   const [tema, setTema] = useState(() => typeof localStorage !== "undefined" && localStorage.getItem("ponte-hub-tema") || "claro");
   useEffect(() => {
@@ -314,6 +317,8 @@ function PonteHub({
             cliente: [],
             produto: []
           });
+          setChecklistVisitaModelo(data.checklistVisitaModelo || []);
+          setDevolucoesNFD(data.devolucoesNFD || []);
           setTaxaImposto(typeof data.taxaImposto === "number" ? data.taxaImposto : 15.5);
         }
       } catch (e) {
@@ -352,6 +357,8 @@ function PonteHub({
           interacoes,
           compromissos,
           camposOcultos,
+          checklistVisitaModelo,
+          devolucoesNFD,
           taxaImposto
         });
         const ok = await window.storage.set(STORAGE_KEY, payload, false);
@@ -368,7 +375,7 @@ function PonteHub({
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, produtos, condicoesPagamentoCadastro, representadasCadastro, transportadorasCadastro, contasPagar, contasReceber, negociosFunil, metas, interacoes, compromissos, camposOcultos, taxaImposto, loaded]);
+  }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, produtos, condicoesPagamentoCadastro, representadasCadastro, transportadorasCadastro, contasPagar, contasReceber, negociosFunil, metas, interacoes, compromissos, camposOcultos, checklistVisitaModelo, devolucoesNFD, taxaImposto, loaded]);
 
   // ---------- Derived totals ----------
   const totalBruto = lancamentos.reduce((a, l) => a + l.valorBruto, 0);
@@ -488,6 +495,10 @@ function PonteHub({
     contasReceber: contasReceber,
     setContasReceber: setContasReceber,
     representadasCadastro: representadasCadastro
+  }), area === "adm" && tab === "devolucoes" && /*#__PURE__*/React.createElement(ModuloDevolucoes, {
+    clientes: clientes,
+    devolucoesNFD: devolucoesNFD,
+    setDevolucoesNFD: setDevolucoesNFD
   }), area === "adm" && tab === "personalizar" && /*#__PURE__*/React.createElement(ConfiguracaoCampos, {
     camposOcultos: camposOcultos,
     setCamposOcultos: setCamposOcultos
@@ -537,7 +548,9 @@ function PonteHub({
     setCompromissos: setCompromissos,
     clientes: clientes,
     vendedores: vendedores,
-    negociosFunil: negociosFunil
+    negociosFunil: negociosFunil,
+    checklistVisitaModelo: checklistVisitaModelo,
+    setChecklistVisitaModelo: setChecklistVisitaModelo
   }), area === "vendas" && tab === "vendas-pedidos" && /*#__PURE__*/React.createElement(CentralPedidos, {
     clientes: clientes,
     vendedores: vendedores,
@@ -694,6 +707,9 @@ function TopBar({
   }, {
     id: "financeiro",
     label: "Financeiro"
+  }, {
+    id: "devolucoes",
+    label: "Devoluções"
   }, {
     id: "personalizar",
     label: "Personalizar"
@@ -4575,6 +4591,8 @@ function blankCompromisso() {
     vendedorId: "",
     negocioId: "",
     observacao: "",
+    checklist: [],
+    // [{ id, texto, feito }]
     status: "Agendado",
     // "Agendado" | "Concluído" | "Cancelado"
     criadoEm: new Date().toISOString()
@@ -4585,7 +4603,9 @@ function Agenda({
   setCompromissos,
   clientes,
   vendedores,
-  negociosFunil
+  negociosFunil,
+  checklistVisitaModelo,
+  setChecklistVisitaModelo
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [form, setForm] = useState(blankCompromisso());
@@ -4598,20 +4618,46 @@ function Agenda({
   const salvar = () => {
     if (!form.titulo.trim() || !form.data) return;
     const cliente = clientes.find(c => c.id === form.clienteId);
+    const checklistInicial = form.tipo === "Visita" && form.checklist.length === 0 ? checklistVisitaModelo.map(item => ({
+      id: uid(),
+      texto: item.texto,
+      feito: false
+    })) : form.checklist;
     setCompromissos([...compromissos, {
       ...form,
       id: uid(),
       clienteNome: cliente ? cliente.nome : form.clienteNome,
+      checklist: checklistInicial,
       criadoEm: new Date().toISOString()
     }]);
     setForm(blankCompromisso());
     setMostrarForm(false);
+  };
+  const toggleItemChecklist = (compromissoId, itemId) => {
+    setCompromissos(compromissos.map(c => c.id === compromissoId ? {
+      ...c,
+      checklist: c.checklist.map(it => it.id === itemId ? {
+        ...it,
+        feito: !it.feito
+      } : it)
+    } : c));
   };
   const marcarStatus = (id, status) => setCompromissos(compromissos.map(c => c.id === id ? {
     ...c,
     status
   } : c));
   const remover = id => setCompromissos(compromissos.filter(c => c.id !== id));
+  const [mostrarConfigChecklist, setMostrarConfigChecklist] = useState(false);
+  const [novoItemChecklist, setNovoItemChecklist] = useState("");
+  const adicionarItemModelo = () => {
+    if (!novoItemChecklist.trim()) return;
+    setChecklistVisitaModelo([...checklistVisitaModelo, {
+      id: uid(),
+      texto: novoItemChecklist.trim()
+    }]);
+    setNovoItemChecklist("");
+  };
+  const removerItemModelo = id => setChecklistVisitaModelo(checklistVisitaModelo.filter(it => it.id !== id));
   const hoje = new Date().toISOString().slice(0, 10);
   const em7dias = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
   const filtrados = compromissos.filter(c => {
@@ -4632,13 +4678,55 @@ function Agenda({
     }
   }, "Agenda"), /*#__PURE__*/React.createElement("p", {
     className: "text-sm text-slate-500"
-  }, "Visitas, ligações e follow-ups programados.")), /*#__PURE__*/React.createElement("button", {
+  }, "Visitas, ligações e follow-ups programados.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMostrarConfigChecklist(m => !m),
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, "✅ Checklist de Visita"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setMostrarForm(true),
     className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
     style: {
       background: ROYAL
     }
-  }, "+ Novo Compromisso")), mostrarForm && /*#__PURE__*/React.createElement(Card, {
+  }, "+ Novo Compromisso"))), mostrarConfigChecklist && /*#__PURE__*/React.createElement(Card, {
+    title: "Checklist padrão de Visita",
+    subtitle: "Esses itens entram automaticamente em todo compromisso do tipo Visita"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 mb-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: novoItemChecklist,
+    onChange: e => setNovoItemChecklist(e.target.value),
+    placeholder: "Ex: Levar catálogo atualizado",
+    className: "flex-1 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    },
+    onKeyDown: e => e.key === "Enter" && adicionarItemModelo()
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: adicionarItemModelo,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "+ Adicionar")), checklistVisitaModelo.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum item cadastrado ainda."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1"
+  }, checklistVisitaModelo.map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.id,
+    className: "flex items-center justify-between border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("span", null, item.texto), /*#__PURE__*/React.createElement("button", {
+    onClick: () => removerItemModelo(item.id),
+    className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+  }, "Remover"))))), mostrarForm && /*#__PURE__*/React.createElement(Card, {
     title: "Novo compromisso"
   }, /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-3 gap-3"
@@ -4820,7 +4908,23 @@ function Agenda({
       className: "text-xs text-slate-600 mt-2"
     }, c.observacao), negocio && /*#__PURE__*/React.createElement("p", {
       className: "text-[11px] text-blue-600 mt-1"
-    }, "🔗 Vinculado ao negócio: ", negocio.titulo)), /*#__PURE__*/React.createElement("div", {
+    }, "🔗 Vinculado ao negócio: ", negocio.titulo), c.tipo === "Visita" && (c.checklist || []).length > 0 && /*#__PURE__*/React.createElement("div", {
+      className: "mt-2 pt-2 border-t space-y-1",
+      style: {
+        borderColor: LINE
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      className: "text-[10px] font-bold uppercase tracking-wide text-slate-400"
+    }, "Checklist (", c.checklist.filter(it => it.feito).length, "/", c.checklist.length, ")"), c.checklist.map(item => /*#__PURE__*/React.createElement("label", {
+      key: item.id,
+      className: "flex items-center gap-2 text-xs text-slate-600"
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "checkbox",
+      checked: item.feito,
+      onChange: () => toggleItemChecklist(c.id, item.id)
+    }), /*#__PURE__*/React.createElement("span", {
+      className: item.feito ? "line-through text-slate-400" : ""
+    }, item.texto))))), /*#__PURE__*/React.createElement("div", {
       className: "flex flex-col items-end gap-1"
     }, c.status === "Agendado" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
       onClick: () => marcarStatus(c.id, "Concluído"),
@@ -6887,6 +6991,519 @@ function ListaPedidosEspelho({
   }, "Registrar NF e Auditar")) : /*#__PURE__*/React.createElement("div", {
     className: `mt-3 rounded-md border px-3 py-2 text-xs font-bold ${Math.abs(p.divergencia) < 0.01 ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-red-50 border-red-300 text-red-700"}`
   }, Math.abs(p.divergencia) < 0.01 ? "✅ Auditoria OK — valores conferem" : `⚠️ Divergência de ${brl(Math.abs(p.divergencia))} (faturado: ${brl(p.valorFaturado)}, travado: ${brl(p.total)})`)))));
+}
+
+// ============================================================
+// DEVOLUÇÕES — ESPELHO DE DEVOLUÇÃO (NFD), A PARTIR DO XML DA NF-E DE ORIGEM
+// ============================================================
+const MOTIVOS_DEVOLUCAO = ["Avaria / produto danificado", "Produto errado (troca)", "Divergência de pedido", "Desistência do cliente", "Vencimento / validade", "Outro"];
+
+// Lê o XML de uma NF-e (padrão nfeProc/NFe) e extrai só o que a devolução precisa.
+function parseNFeXML(xmlText) {
+  let doc;
+  try {
+    doc = new DOMParser().parseFromString(xmlText, "text/xml");
+  } catch (e) {
+    return {
+      erro: "Não consegui interpretar esse arquivo como XML."
+    };
+  }
+  if (doc.querySelector("parsererror")) return {
+    erro: "Arquivo XML inválido ou corrompido."
+  };
+  const infNFe = doc.querySelector("infNFe");
+  if (!infNFe) return {
+    erro: "Não encontrei os dados da NF-e nesse XML (tag infNFe ausente)."
+  };
+  const txt = (sel, root) => {
+    const el = (root || infNFe).querySelector(sel);
+    return el ? el.textContent.trim() : "";
+  };
+  const numero = txt("ide > nNF");
+  const serie = txt("ide > serie");
+  const dhEmi = txt("ide > dhEmi") || txt("ide > dEmi");
+  const dataEmissao = dhEmi ? dhEmi.slice(0, 10) : "";
+  const emitenteNome = txt("emit > xNome");
+  const emitenteCnpj = txt("emit > CNPJ");
+  const destNome = txt("dest > xNome");
+  const destCnpj = txt("dest > CNPJ") || txt("dest > CPF");
+  const destLgr = txt("enderDest xLgr");
+  const destNro = txt("enderDest nro");
+  const destBairro = txt("enderDest xBairro");
+  const destMun = txt("enderDest xMun");
+  const destUf = txt("enderDest UF");
+  const destCep = txt("enderDest CEP");
+  const destEndereco = [destLgr ? `${destLgr}, ${destNro || "s/n"}` : "", destBairro, destMun && destUf ? `${destMun}/${destUf}` : "", destCep].filter(Boolean).join(" — ");
+  const chaveProt = txt("protNFe infProt chNFe");
+  const chaveId = (infNFe.getAttribute("Id") || "").replace(/^NFe/, "");
+  const chaveAcesso = chaveProt || chaveId;
+  const itens = Array.from(infNFe.querySelectorAll("det")).map(det => {
+    const prod = det.querySelector("prod");
+    if (!prod) return null;
+    const quantidade = Number(txt("qCom", prod)) || 0;
+    const valorUnitario = Number(txt("vUnCom", prod)) || 0;
+    return {
+      id: uid(),
+      codigo: txt("cProd", prod),
+      descricao: txt("xProd", prod),
+      ncm: txt("NCM", prod),
+      cfop: txt("CFOP", prod),
+      unidade: txt("uCom", prod),
+      quantidade,
+      valorUnitario,
+      valorTotal: Number(txt("vProd", prod)) || quantidade * valorUnitario
+    };
+  }).filter(Boolean);
+  if (itens.length === 0) return {
+    erro: "Não encontrei itens (tag det/prod) nesse XML."
+  };
+  return {
+    numero,
+    serie,
+    dataEmissao,
+    chaveAcesso,
+    emitenteNome,
+    emitenteCnpj,
+    destNome,
+    destCnpj,
+    destEndereco,
+    itens
+  };
+}
+function gerarHTMLDevolucao(d) {
+  const itensRows = d.itens.map(i => `
+    <tr>
+      <td>${i.codigo || "—"}</td>
+      <td>${i.descricao}</td>
+      <td style="text-align:center">${i.unidade || "—"}</td>
+      <td style="text-align:right">${i.quantidadeDevolvida}</td>
+      <td style="text-align:right">${brl(i.valorUnitario)}</td>
+      <td style="text-align:right">${brl(i.quantidadeDevolvida * i.valorUnitario)}</td>
+    </tr>`).join("");
+  return `<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Espelho de Devolução ${d.protocolo}</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:32px;color:#0B1220}
+      h1{font-size:18px;border-bottom:3px solid #1D4ED8;padding-bottom:8px;margin-bottom:4px}
+      .sub{color:#64748B;font-size:12px;margin-bottom:20px}
+      .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E2E8F0;font-size:13px}
+      .label{color:#64748B;font-weight:bold}
+      table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}
+      th{text-align:left;border-bottom:2px solid #0B1220;padding:6px 4px;font-size:11px;text-transform:uppercase;color:#64748B}
+      td{border-bottom:1px solid #E2E8F0;padding:6px 4px}
+      .total{text-align:right;font-size:16px;font-weight:900;margin-top:12px;color:#1D4ED8}
+      .aviso{margin-top:24px;font-size:11px;color:#94A3B8}
+    </style></head><body>
+    <h1>Espelho de Devolução de Mercadoria — ${d.protocolo}</h1>
+    <p class="sub">Documento interno de controle. Não substitui a nota fiscal de devolução formal quando exigida.</p>
+    <div class="row"><span class="label">Cliente</span><span>${d.clienteNome || "—"}</span></div>
+    <div class="row"><span class="label">Data da devolução</span><span>${d.dataDevolucao ? new Date(d.dataDevolucao + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</span></div>
+    <div class="row"><span class="label">Motivo</span><span>${d.motivo || "—"}</span></div>
+    <div class="row"><span class="label">NF de origem</span><span>Nº ${d.origemNF.numero || "—"} · Série ${d.origemNF.serie || "—"} · Emitida em ${d.origemNF.dataEmissao ? new Date(d.origemNF.dataEmissao + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</span></div>
+    <div class="row"><span class="label">Chave de acesso</span><span style="font-family:monospace">${d.origemNF.chaveAcesso || "—"}</span></div>
+    <div class="row"><span class="label">Emitente da NF</span><span>${d.origemNF.emitenteNome || "—"}</span></div>
+    ${d.observacoes ? `<div class="row"><span class="label">Observações</span><span>${d.observacoes}</span></div>` : ""}
+    <table>
+      <thead><tr><th>Código</th><th>Produto</th><th>Un.</th><th style="text-align:right">Qtd. devolvida</th><th style="text-align:right">Valor unit.</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>${itensRows}</tbody>
+    </table>
+    <p class="total">Total devolvido: ${brl(d.valorTotalDevolvido)}</p>
+    <p class="aviso">Gerado pelo Ponte Hub em ${new Date(d.criadoEm).toLocaleString("pt-BR")}.</p>
+    </body></html>`;
+}
+function baixarDevolucao(d) {
+  const html = gerarHTMLDevolucao(d);
+  const blob = new Blob([html], {
+    type: "text/html;charset=utf-8;"
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${d.protocolo}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function ModuloDevolucoes({
+  clientes,
+  devolucoesNFD,
+  setDevolucoesNFD
+}) {
+  const [sub, setSub] = useState("novo"); // "novo" | "historico"
+
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Devoluções (NFD)"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Espelho de devolução de mercadoria, montado a partir do XML da NF-e de origem.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "novo",
+    onClick: () => setSub("novo")
+  }, "Nova devolução"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "historico",
+    onClick: () => setSub("historico")
+  }, "Histórico (", devolucoesNFD.filter(d => !d.excluido).length, ")")), sub === "novo" && /*#__PURE__*/React.createElement(NovaDevolucaoNFD, {
+    clientes: clientes,
+    devolucoesNFD: devolucoesNFD,
+    setDevolucoesNFD: setDevolucoesNFD,
+    onSalvo: () => setSub("historico")
+  }), sub === "historico" && /*#__PURE__*/React.createElement(HistoricoDevolucoes, {
+    devolucoesNFD: devolucoesNFD,
+    setDevolucoesNFD: setDevolucoesNFD
+  }));
+}
+function NovaDevolucaoNFD({
+  clientes,
+  devolucoesNFD,
+  setDevolucoesNFD,
+  onSalvo
+}) {
+  const [origemNF, setOrigemNF] = useState(null);
+  const [itensXML, setItensXML] = useState([]);
+  const [clienteId, setClienteId] = useState("");
+  const [motivo, setMotivo] = useState(MOTIVOS_DEVOLUCAO[0]);
+  const [observacoes, setObservacoes] = useState("");
+  const [dataDevolucao, setDataDevolucao] = useState(() => new Date().toISOString().slice(0, 10));
+  const [erro, setErro] = useState("");
+  const [msgXML, setMsgXML] = useState("");
+  const [lendoXML, setLendoXML] = useState(false);
+  const importarXML = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setLendoXML(true);
+    setMsgXML("");
+    setErro("");
+    setOrigemNF(null);
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const dados = parseNFeXML(String(ev.target.result));
+      setLendoXML(false);
+      if (dados.erro) {
+        setMsgXML(dados.erro);
+        return;
+      }
+      setOrigemNF(dados);
+      setItensXML(dados.itens.map(i => ({
+        ...i,
+        selecionado: true,
+        quantidadeDevolvida: i.quantidade
+      })));
+      const digitsDest = (dados.destCnpj || "").replace(/\D/g, "");
+      const match = digitsDest ? clientes.find(c => (c.cnpj || "").replace(/\D/g, "") === digitsDest) : null;
+      setClienteId(match ? match.id : "");
+      setMsgXML(match ? `XML lido. Cliente identificado: ${match.nome}.` : `XML lido. Não encontrei cliente cadastrado com o CNPJ ${dados.destCnpj || "—"} — selecione manualmente abaixo.`);
+    };
+    reader.onerror = () => {
+      setLendoXML(false);
+      setMsgXML("Não consegui ler o arquivo. Confira se é um .xml válido.");
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+  const toggleItem = id => setItensXML(itensXML.map(i => i.id === id ? {
+    ...i,
+    selecionado: !i.selecionado
+  } : i));
+  const setQuantidadeDevolvida = (id, valor) => {
+    setItensXML(itensXML.map(i => {
+      if (i.id !== id) return i;
+      const qtd = Math.max(0, Math.min(Number(valor) || 0, i.quantidade));
+      return {
+        ...i,
+        quantidadeDevolvida: qtd
+      };
+    }));
+  };
+  const itensSelecionados = itensXML.filter(i => i.selecionado && i.quantidadeDevolvida > 0);
+  const valorTotalDevolvido = itensSelecionados.reduce((a, i) => a + i.quantidadeDevolvida * i.valorUnitario, 0);
+  const cliente = clientes.find(c => c.id === clienteId);
+  const salvar = () => {
+    if (!origemNF) {
+      setErro("Importe o XML da nota de origem antes de salvar.");
+      return;
+    }
+    if (!clienteId) {
+      setErro("Selecione o cliente que está devolvendo a mercadoria.");
+      return;
+    }
+    if (itensSelecionados.length === 0) {
+      setErro("Marque ao menos um item (com quantidade maior que zero) pra devolver.");
+      return;
+    }
+    setErro("");
+    const protocolo = `NFD-${new Date().getFullYear()}-${String(devolucoesNFD.length + 1).padStart(4, "0")}`;
+    setDevolucoesNFD([...devolucoesNFD, {
+      id: uid(),
+      protocolo,
+      criadoEm: new Date().toISOString(),
+      dataDevolucao,
+      motivo,
+      observacoes,
+      clienteId,
+      clienteNome: cliente ? cliente.nome : origemNF.destNome,
+      origemNF: {
+        numero: origemNF.numero,
+        serie: origemNF.serie,
+        dataEmissao: origemNF.dataEmissao,
+        chaveAcesso: origemNF.chaveAcesso,
+        emitenteNome: origemNF.emitenteNome,
+        emitenteCnpj: origemNF.emitenteCnpj
+      },
+      itens: itensSelecionados.map(i => ({
+        codigo: i.codigo,
+        descricao: i.descricao,
+        ncm: i.ncm,
+        cfop: i.cfop,
+        unidade: i.unidade,
+        quantidadeOriginal: i.quantidade,
+        quantidadeDevolvida: i.quantidadeDevolvida,
+        valorUnitario: i.valorUnitario
+      })),
+      valorTotalDevolvido,
+      excluido: false
+    }]);
+    onSalvo();
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "1. Importar XML da NF-e de origem"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".xml",
+    onChange: importarXML,
+    disabled: lendoXML,
+    className: "text-sm"
+  }), lendoXML && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-500 mt-2"
+  }, "Lendo XML…"), msgXML && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold mt-2",
+    style: {
+      color: origemNF ? "#047857" : "#B45309"
+    }
+  }, msgXML)), origemNF && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Card, {
+    title: "2. Dados da nota de origem"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3 text-sm"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-bold uppercase text-slate-400"
+  }, "NF-e"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: NAVY
+    }
+  }, "Nº ", origemNF.numero || "—", " · Série ", origemNF.serie || "—", " ·", " ", origemNF.dataEmissao ? new Date(origemNF.dataEmissao + "T00:00:00").toLocaleDateString("pt-BR") : "—")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-bold uppercase text-slate-400"
+  }, "Chave de acesso"), /*#__PURE__*/React.createElement("p", {
+    className: "font-mono text-xs",
+    style: {
+      color: NAVY
+    }
+  }, origemNF.chaveAcesso || "—")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-bold uppercase text-slate-400"
+  }, "Emitente"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: NAVY
+    }
+  }, origemNF.emitenteNome || "—")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-bold uppercase text-slate-400"
+  }, "Destinatário (no XML)"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: NAVY
+    }
+  }, origemNF.destNome || "—", " — ", origemNF.destCnpj || "—"))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Cliente no Hub (confirme ou selecione)"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: clienteId,
+    onChange: e => setClienteId(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), clientes.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome)))))), /*#__PURE__*/React.createElement(Card, {
+    title: "3. Itens — marque o que está voltando e ajuste a quantidade"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, itensXML.map(i => /*#__PURE__*/React.createElement("div", {
+    key: i.id,
+    className: "flex items-center gap-3 border rounded-md px-3 py-2",
+    style: {
+      borderColor: LINE,
+      opacity: i.selecionado ? 1 : 0.5
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: i.selecionado,
+    onChange: () => toggleItem(i.id)
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, i.descricao), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400"
+  }, "Cód. ", i.codigo || "—", " · NCM ", i.ncm || "—", " · Un. ", i.unidade || "—", " · ", brl(i.valorUnitario), "/un")), /*#__PURE__*/React.createElement("div", {
+    className: "text-right"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-[10px] font-bold uppercase text-slate-400 block"
+  }, "Qtd. devolvida (de ", i.quantidade, ")"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: 0,
+    max: i.quantidade,
+    value: i.quantidadeDevolvida,
+    onChange: e => setQuantidadeDevolvida(i.id, e.target.value),
+    disabled: !i.selecionado,
+    className: "w-24 border rounded-md px-2 py-1 text-sm text-right",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "text-right w-28"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-[10px] font-bold uppercase text-slate-400"
+  }, "Subtotal"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, brl(i.selecionado ? i.quantidadeDevolvida * i.valorUnitario : 0)))))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 pt-3 border-t flex items-center justify-between",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, "Total a devolver"), /*#__PURE__*/React.createElement("span", {
+    className: "text-lg font-black",
+    style: {
+      color: ROYAL
+    }
+  }, brl(valorTotalDevolvido)))), /*#__PURE__*/React.createElement(Card, {
+    title: "4. Motivo e observações"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Motivo da devolução"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: motivo,
+    onChange: e => setMotivo(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, MOTIVOS_DEVOLUCAO.map(m => /*#__PURE__*/React.createElement("option", {
+    key: m
+  }, m)))), /*#__PURE__*/React.createElement(Field, {
+    label: "Data da devolução"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dataDevolucao,
+    onChange: e => setDataDevolucao(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Observações"
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: observacoes,
+    onChange: e => setObservacoes(e.target.value),
+    rows: 3,
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })))), erro && /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+  }, erro), /*#__PURE__*/React.createElement("button", {
+    onClick: salvar,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-3 rounded-md w-full",
+    style: {
+      background: "#047857"
+    }
+  }, "Gerar protocolo e salvar espelho de devolução")));
+}
+function HistoricoDevolucoes({
+  devolucoesNFD,
+  setDevolucoesNFD
+}) {
+  const [exibirExcluidas, setExibirExcluidas] = useState(false);
+  const excluir = id => setDevolucoesNFD(devolucoesNFD.map(d => d.id === id ? {
+    ...d,
+    excluido: true
+  } : d));
+  const restaurar = id => setDevolucoesNFD(devolucoesNFD.map(d => d.id === id ? {
+    ...d,
+    excluido: false
+  } : d));
+  const filtradas = devolucoesNFD.filter(d => exibirExcluidas || !d.excluido);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("label", {
+    className: "flex items-center gap-1.5 text-xs font-semibold text-slate-600"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: exibirExcluidas,
+    onChange: e => setExibirExcluidas(e.target.checked)
+  }), "Exibir devoluções excluídas")), filtradas.length === 0 ? /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhuma devolução registrada ainda.",
+    hint: "Importe o XML da NF-e de origem na aba 'Nova devolução' pra começar."
+  })) : /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 lg:grid-cols-2 gap-3"
+  }, filtradas.slice().reverse().map(d => /*#__PURE__*/React.createElement(Card, {
+    key: d.id,
+    className: d.excluido ? "opacity-50" : ""
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start justify-between gap-3"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: NAVY
+    }
+  }, d.protocolo, " — ", d.clienteNome), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500"
+  }, "NF origem ", d.origemNF.numero || "—", " · ", d.motivo)), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-black",
+    style: {
+      color: ROYAL
+    }
+  }, brl(d.valorTotalDevolvido))), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-2"
+  }, "Devolvido em ", d.dataDevolucao ? new Date(d.dataDevolucao + "T00:00:00").toLocaleDateString("pt-BR") : "—", " · ", d.itens.length, " item(ns)"), d.observacoes && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-600 mt-2"
+  }, d.observacoes), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 mt-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => baixarDevolucao(d),
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: ROYAL,
+      color: ROYAL
+    }
+  }, "Baixar espelho"), d.excluido ? /*#__PURE__*/React.createElement("button", {
+    onClick: () => restaurar(d.id),
+    className: "text-[11px] font-semibold text-blue-600 hover:underline ml-auto"
+  }, "Restaurar") : /*#__PURE__*/React.createElement("button", {
+    onClick: () => excluir(d.id),
+    className: "text-[11px] font-semibold text-slate-400 hover:text-red-600 ml-auto"
+  }, "Excluir"))))));
 }
 function ToggleBtn({
   active,
@@ -13062,6 +13679,7 @@ function LancamentoRow({
     }
   }, "Ponte ", brl(l.ficaComPonte))));
 }
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/*#__PURE__*/React.createElement(AuthGate, null));
 </script>

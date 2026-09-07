@@ -77,6 +77,21 @@ body { margin: 0; }
       return { key, value: snap.data().value, shared: !!shared };
     },
     async set(key, value, shared) {
+      // Antes de sobrescrever, guarda uma cópia do que estava lá (1 por dia) — proteção
+      // contra qualquer bug futuro que tente salvar um estado vazio/errado por cima do real.
+      try {
+        const atual = await db.collection("storage").doc(key).get();
+        if (atual.exists) {
+          const hoje = new Date().toISOString().slice(0, 10);
+          await db.collection("storage_backups").doc(`${key}__${hoje}`).set({
+            value: atual.data().value,
+            backupDe: hoje,
+            criadoEm: new Date().toISOString(),
+          });
+        }
+      } catch (e) {
+        console.error("Ponte Hub — falha ao gravar backup diário (não impede o salvamento):", e);
+      }
       await db.collection("storage").doc(key).set({ value });
       return { key, value, shared: !!shared };
     },
@@ -283,6 +298,8 @@ function PonteHub({
     if (typeof localStorage !== "undefined") localStorage.setItem("ponte-hub-tema", tema);
   }, [tema]);
   const [loaded, setLoaded] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadFailedMsg, setLoadFailedMsg] = useState("");
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
   const [saveError, setSaveError] = useState("");
 
@@ -322,7 +339,16 @@ function PonteHub({
           setTaxaImposto(typeof data.taxaImposto === "number" ? data.taxaImposto : 15.5);
         }
       } catch (e) {
-        // no data yet — fine, start empty
+        // "not found" é esperado (primeira vez que o Hub roda, ainda não existe documento —
+        // pode seguir e salvar normalmente). Qualquer OUTRO erro (rede, permissão, dado
+        // corrompido) é tratado como falha real: bloqueia o salvamento automático pra não
+        // sobrescrever dados de verdade no banco com o estado vazio desta aba.
+        const msg = e && e.message ? e.message : "Erro desconhecido";
+        console.error("Ponte Hub — falha ao carregar dados do Firestore:", e);
+        if (msg !== "not found") {
+          setLoadFailed(true);
+          setLoadFailedMsg(msg);
+        }
       } finally {
         setLoaded(true);
       }
@@ -331,7 +357,7 @@ function PonteHub({
 
   // ---------- Persist on change ----------
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || loadFailed) return;
     const t = setTimeout(async () => {
       setSaveState("saving");
       try {
@@ -375,7 +401,7 @@ function PonteHub({
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, produtos, condicoesPagamentoCadastro, representadasCadastro, transportadorasCadastro, contasPagar, contasReceber, negociosFunil, metas, interacoes, compromissos, camposOcultos, checklistVisitaModelo, devolucoesNFD, taxaImposto, loaded]);
+  }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, produtos, condicoesPagamentoCadastro, representadasCadastro, transportadorasCadastro, contasPagar, contasReceber, negociosFunil, metas, interacoes, compromissos, camposOcultos, checklistVisitaModelo, devolucoesNFD, taxaImposto, loaded, loadFailed]);
 
   // ---------- Derived totals ----------
   const totalBruto = lancamentos.reduce((a, l) => a + l.valorBruto, 0);
@@ -416,7 +442,15 @@ function PonteHub({
     setTema: setTema,
     sessao: sessao,
     onLogout: onLogout
-  }), /*#__PURE__*/React.createElement("main", {
+  }), loadFailed && /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl mx-auto px-4 pt-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rounded-lg border-2 border-red-400 bg-red-50 px-4 py-3"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-black text-red-700"
+  }, "⚠️ Não consegui carregar os dados salvos (", loadFailedMsg || "erro desconhecido", ")."), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-red-600 mt-1"
+  }, "Por segurança, o salvamento automático está desligado nesta aba pra não sobrescrever seus dados reais com uma tela vazia. Feche esta aba sem mexer em nada e tente entrar de novo em alguns minutos (verifique sua internet). Se continuar assim, avise quem cuida do sistema antes de continuar usando."))), /*#__PURE__*/React.createElement("main", {
     className: "max-w-7xl mx-auto px-4 py-6"
   }, area === "adm" && tab === "dashboard" && /*#__PURE__*/React.createElement(Dashboard, {
     vendedores: vendedores,

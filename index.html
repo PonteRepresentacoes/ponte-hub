@@ -2010,7 +2010,23 @@ function FichaRapida({
         cadastroBairro: data.bairro || "",
         cadastroCep: data.cep || "",
         cadastroCidade: data.municipio || "",
-        cadastroEstado: data.uf || ""
+        cadastroEstado: data.uf || "",
+        // Já deixa cobrança e entrega preenchidas com o endereço da Receita —
+        // o usuário só edita se o endereço real de entrega/cobrança for diferente.
+        cobrancaEndereco: data.logradouro || "",
+        cobrancaNumero: data.numero || "",
+        cobrancaComplemento: data.complemento || "",
+        cobrancaBairro: data.bairro || "",
+        cobrancaCep: data.cep || "",
+        cobrancaCidade: data.municipio || "",
+        cobrancaEstado: data.uf || "",
+        entregaEndereco: data.logradouro || "",
+        entregaNumero: data.numero || "",
+        entregaComplemento: data.complemento || "",
+        entregaBairro: data.bairro || "",
+        entregaCep: data.cep || "",
+        entregaCidade: data.municipio || "",
+        entregaEstado: data.uf || ""
       }));
       setBuscaMsg("Dados encontrados na Receita Federal.");
 
@@ -2508,6 +2524,54 @@ function FichaRapida({
   }, /*#__PURE__*/React.createElement("input", {
     value: ficha.nome,
     onChange: set("nome"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Endereço"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.cadastroEndereco,
+    onChange: set("cadastroEndereco"),
+    placeholder: "Preenchido automaticamente na busca por CNPJ",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-3 gap-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Número"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.cadastroNumero,
+    onChange: set("cadastroNumero"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Complemento"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.cadastroComplemento,
+    onChange: set("cadastroComplemento"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Bairro"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.cadastroBairro,
+    onChange: set("cadastroBairro"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }))), /*#__PURE__*/React.createElement(Field, {
+    label: "CEP"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.cadastroCep,
+    onChange: set("cadastroCep"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
     style: {
       borderColor: LINE

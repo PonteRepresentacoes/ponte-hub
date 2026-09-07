@@ -214,6 +214,10 @@ const brl = n => (isFinite(n) ? n : 0).toLocaleString("pt-BR", {
   currency: "BRL"
 });
 const norm = s => (s || "").toString().trim().toLowerCase();
+
+// Usado no checklist de qualidade de dado pra achar clientes possivelmente duplicados
+// mesmo quando o nome vem grafado diferente (maiúsculas, "LTDA" no final, acentos etc.)
+const normalizarNomeEmpresa = s => norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\b(ltda|me|eireli|epp|mei|sa|s\/a)\b/g, "").replace(/[^a-z0-9]/g, "");
 function gerarCodigoAcesso() {
   const alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem 0/O/1/I pra evitar confusão
   let codigo = "";
@@ -536,6 +540,10 @@ function PonteHub({
     lancamentos: lancamentos,
     negociosFunil: negociosFunil,
     metas: metas
+  }), area === "adm" && tab === "qualidade" && /*#__PURE__*/React.createElement(QualidadeDados, {
+    clientes: clientes,
+    pedidosEspelho: pedidosEspelho,
+    negociosFunil: negociosFunil
   }), area === "adm" && tab === "devolucoes" && /*#__PURE__*/React.createElement(ModuloDevolucoes, {
     clientes: clientes,
     devolucoesNFD: devolucoesNFD,
@@ -751,6 +759,9 @@ function TopBar({
   }, {
     id: "relatorios",
     label: "Relatórios"
+  }, {
+    id: "qualidade",
+    label: "Qualidade de Dado"
   }, {
     id: "devolucoes",
     label: "Devoluções"
@@ -1704,6 +1715,153 @@ function RelatorioFunil({
 }
 
 // ============================================================
+// QUALIDADE DE DADO (Fase 2 do board) — checklist de limpeza/consistência
+// ============================================================
+function QualidadeDados({
+  clientes,
+  pedidosEspelho,
+  negociosFunil
+}) {
+  const listaClientes = clientes || [];
+
+  // 1) Clientes com o mesmo CNPJ cadastrado mais de uma vez
+  const porCnpj = {};
+  listaClientes.forEach(c => {
+    const digits = (c.cnpj || "").replace(/\D/g, "");
+    if (!digits) return;
+    if (!porCnpj[digits]) porCnpj[digits] = [];
+    porCnpj[digits].push(c);
+  });
+  const gruposCnpj = Object.values(porCnpj).filter(g => g.length > 1);
+
+  // 2) Clientes com nome muito parecido (fora os que já caíram no grupo acima)
+  const idsEmGrupoCnpj = new Set(gruposCnpj.flat().map(c => c.id));
+  const porNome = {};
+  listaClientes.forEach(c => {
+    if (idsEmGrupoCnpj.has(c.id)) return;
+    const chave = normalizarNomeEmpresa(c.nome);
+    if (!chave) return;
+    if (!porNome[chave]) porNome[chave] = [];
+    porNome[chave].push(c);
+  });
+  const gruposNome = Object.values(porNome).filter(g => g.length > 1);
+
+  // 3) Pedidos já lançados sem os campos que os relatórios (Fase 1) precisam pra contar certo
+  const pedidosProblema = (pedidosEspelho || []).filter(p => !p.excluido).map(p => {
+    const faltando = [];
+    if (!p.representada) faltando.push("Representada");
+    if (!p.consumidorFinal && !p.clienteId) faltando.push("Cliente");
+    if (!p.itens || p.itens.length === 0) faltando.push("Itens");
+    if (!p.dataEmissao) faltando.push("Data de emissão");
+    return {
+      pedido: p,
+      faltando
+    };
+  }).filter(x => x.faltando.length > 0);
+
+  // 4) Negócios perdidos sem motivo (dado antigo — a tela do Funil já exige o motivo pra marcar como Perdido)
+  const negociosSemMotivo = (negociosFunil || []).filter(n => n.status === "Perdido" && !n.motivoPerda);
+  const totalAchados = gruposCnpj.length + gruposNome.length + pedidosProblema.length + negociosSemMotivo.length;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Qualidade de Dado"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Checklist de limpeza — não trava nada, só aponta o que vale corrigir pra deixar os Relatórios mais confiáveis.")), totalAchados === 0 ? /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum problema encontrado no momento. 🎉"
+  })) : null, /*#__PURE__*/React.createElement(Card, {
+    title: `Clientes com o mesmo CNPJ (${gruposCnpj.length})`,
+    subtitle: "Provável duplicidade — revise e mantenha só um cadastro"
+  }, gruposCnpj.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum CNPJ repetido encontrado."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, gruposCnpj.map((grupo, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "border rounded-md p-3",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] font-bold text-slate-500 mb-1"
+  }, "CNPJ ", grupo[0].cnpj), grupo.map(c => /*#__PURE__*/React.createElement("p", {
+    key: c.id,
+    className: "text-sm",
+    style: {
+      color: NAVY
+    }
+  }, c.nome, " ", c.cidade || c.municipio ? `— ${c.cidade || c.municipio}/${c.estado || ""}` : "")))))), /*#__PURE__*/React.createElement(Card, {
+    title: `Clientes com nome parecido (${gruposNome.length})`,
+    subtitle: "Mesmo nome escrito de forma diferente — confira se não é o mesmo cliente cadastrado 2x"
+  }, gruposNome.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum nome parecido encontrado."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, gruposNome.map((grupo, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "border rounded-md p-3",
+    style: {
+      borderColor: LINE
+    }
+  }, grupo.map(c => /*#__PURE__*/React.createElement("p", {
+    key: c.id,
+    className: "text-sm",
+    style: {
+      color: NAVY
+    }
+  }, c.nome, " ", c.cnpj ? `— CNPJ ${c.cnpj}` : "— sem CNPJ")))))), /*#__PURE__*/React.createElement(Card, {
+    title: `Pedidos com campo obrigatório faltando (${pedidosProblema.length})`,
+    subtitle: "Sem representada, cliente, item ou data — ficam de fora (ou distorcem) os Relatórios"
+  }, pedidosProblema.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Todos os pedidos lançados têm os campos básicos preenchidos."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, pedidosProblema.map(({
+    pedido,
+    faltando
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: pedido.id,
+    className: "flex items-center justify-between border rounded-md px-3 py-2",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, pedido.protocolo || pedido.id), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500"
+  }, pedido.clienteNome || "Sem cliente", " ", pedido.dataEmissao ? `— ${pedido.dataEmissao}` : "")), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] font-bold text-amber-600 text-right"
+  }, "Falta: ", faltando.join(", ")))))), /*#__PURE__*/React.createElement(Card, {
+    title: `Negócios perdidos sem motivo (${negociosSemMotivo.length})`,
+    subtitle: "Dado antigo — hoje o Funil já exige escolher o motivo ao marcar como Perdido"
+  }, negociosSemMotivo.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Todo negócio perdido tem motivo registrado."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, negociosSemMotivo.map(n => /*#__PURE__*/React.createElement("div", {
+    key: n.id,
+    className: "flex items-center justify-between border rounded-md px-3 py-2",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, n.titulo), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500"
+  }, n.clienteNome || "sem cliente"))))));
+}
+
+// ============================================================
 // APP DE VENDAS (placeholder — próximos módulos)
 // ============================================================
 function VendasHome({
@@ -2304,6 +2462,8 @@ function FichaRapida({
       setBuscaMsg("Preencha ao menos o nome do cliente antes de salvar.");
       return;
     }
+    const cnpjDigits = (ficha.cnpj || "").replace(/\D/g, "");
+    const duplicado = cnpjDigits ? clientes.find(c => c.id !== ficha.id && (c.cnpj || "").replace(/\D/g, "") === cnpjDigits) : null;
     let fichaFinal = ficha;
     const existe = clientes.some(c => c.id === ficha.id);
     if (existe) {
@@ -2313,6 +2473,7 @@ function FichaRapida({
     }
     setSalvo(true);
     setTimeout(() => setSalvo(false), 2000);
+    setBuscaMsg(duplicado ? `⚠️ Salvo, mas já existe outro cliente com esse CNPJ: "${duplicado.nome}". Confira em Qualidade de Dado se não é duplicidade.` : "");
 
     // Sincroniza os dados básicos com a coleção "clientes" compartilhada com o app do Repositor
     if (ficha.cnpj && ficha.cnpj.trim() && window.salvarClienteCompartilhado) {
@@ -6900,8 +7061,18 @@ function NovoPedidoEspelho({
   };
   const subtotalBruto = itens.reduce((a, i) => a + i.quantidade * i.precoUnitario, 0);
   const calcular = () => {
-    if (!clienteId || itens.length === 0) {
-      setErro("Selecione o cliente e adicione ao menos um item, na aba Itens.");
+    if (!representada) {
+      setErro("Selecione a representada, na aba Cabeçalho.");
+      setResultado(null);
+      return;
+    }
+    if (!consumidorFinal && !clienteId) {
+      setErro("Selecione o cliente (ou marque Consumidor final), na aba Cabeçalho.");
+      setResultado(null);
+      return;
+    }
+    if (itens.length === 0) {
+      setErro("Adicione ao menos um item, na aba Itens.");
       setResultado(null);
       return;
     }
@@ -9080,6 +9251,8 @@ function Clientes({
   };
   const addManual = () => {
     if (!nome.trim()) return;
+    const cnpjDigits = cnpj.replace(/\D/g, "");
+    const duplicado = cnpjDigits ? clientes.find(c => (c.cnpj || "").replace(/\D/g, "") === cnpjDigits) : null;
     setClientes([...clientes, {
       id: uid(),
       nome: nome.trim(),
@@ -9093,7 +9266,7 @@ function Clientes({
     setCidade("");
     setEstado("");
     setVendedorId("");
-    setBuscaMsg("");
+    setBuscaMsg(duplicado ? `⚠️ Salvo, mas já existia outro cliente com esse CNPJ: "${duplicado.nome}". Confira em Qualidade de Dado se não é duplicidade.` : "");
   };
   const remove = id => setClientes(clientes.filter(c => c.id !== id));
   const importarClientesMapeado = linhas => {

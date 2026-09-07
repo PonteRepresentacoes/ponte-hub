@@ -160,8 +160,7 @@ body { margin: 0; }
   };
 
 </script>
-<script>
-const {
+<script>const {
   useState,
   useEffect,
   useRef,
@@ -529,6 +528,13 @@ function PonteHub({
     contasReceber: contasReceber,
     setContasReceber: setContasReceber,
     representadasCadastro: representadasCadastro
+  }), area === "adm" && tab === "relatorios" && /*#__PURE__*/React.createElement(ModuloRelatorios, {
+    pedidosEspelho: pedidosEspelho,
+    clientes: clientes,
+    representadasCadastro: representadasCadastro,
+    lancamentos: lancamentos,
+    negociosFunil: negociosFunil,
+    metas: metas
   }), area === "adm" && tab === "devolucoes" && /*#__PURE__*/React.createElement(ModuloDevolucoes, {
     clientes: clientes,
     devolucoesNFD: devolucoesNFD,
@@ -741,6 +747,9 @@ function TopBar({
   }, {
     id: "financeiro",
     label: "Financeiro"
+  }, {
+    id: "relatorios",
+    label: "Relatórios"
   }, {
     id: "devolucoes",
     label: "Devoluções"
@@ -1213,6 +1222,484 @@ function EmptyState({
   }, text), hint && /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-400 mt-1 max-w-sm mx-auto"
   }, hint));
+}
+
+// ============================================================
+// RELATÓRIOS (Painel ADM) — Diagnóstico Comercial, Mix Cliente × Marca, Rentabilidade
+// ============================================================
+function inicioMesISO(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1).toISOString().slice(0, 10);
+}
+function fimMesISO(date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().slice(0, 10);
+}
+function ModuloRelatorios({
+  pedidosEspelho,
+  clientes,
+  representadasCadastro,
+  lancamentos,
+  negociosFunil,
+  metas
+}) {
+  const [sub, setSub] = useState("diagnostico"); // "diagnostico" | "mix" | "rentabilidade"
+
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Relatórios"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Diagnóstico comercial, cross-sell por marca e rentabilidade — cruzando dado que o Hub já guarda.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 flex-wrap"
+  }, /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "diagnostico",
+    onClick: () => setSub("diagnostico")
+  }, "Diagnóstico Comercial"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "mix",
+    onClick: () => setSub("mix")
+  }, "Mix Cliente × Marca"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "rentabilidade",
+    onClick: () => setSub("rentabilidade")
+  }, "Rentabilidade")), sub === "diagnostico" && /*#__PURE__*/React.createElement(DiagnosticoComercial, {
+    pedidosEspelho: pedidosEspelho,
+    clientes: clientes,
+    representadasCadastro: representadasCadastro,
+    lancamentos: lancamentos,
+    negociosFunil: negociosFunil,
+    metas: metas
+  }), sub === "mix" && /*#__PURE__*/React.createElement(MixClienteMarca, {
+    pedidosEspelho: pedidosEspelho,
+    clientes: clientes,
+    representadasCadastro: representadasCadastro
+  }), sub === "rentabilidade" && /*#__PURE__*/React.createElement(RentabilidadeClienteRepresentada, {
+    pedidosEspelho: pedidosEspelho,
+    lancamentos: lancamentos
+  }));
+}
+function DiagnosticoComercial({
+  pedidosEspelho,
+  clientes,
+  representadasCadastro,
+  lancamentos,
+  negociosFunil,
+  metas
+}) {
+  const hoje = new Date();
+  const [periodoInicio, setPeriodoInicio] = useState(() => inicioMesISO(hoje));
+  const [periodoFim, setPeriodoFim] = useState(() => fimMesISO(hoje));
+  const [marca, setMarca] = useState("Todas");
+  const dentroPeriodo = dataStr => !!dataStr && dataStr >= periodoInicio && dataStr <= periodoFim;
+  const pedidosFiltrados = pedidosEspelho.filter(p => !p.excluido && p.status === "Pedido" && dentroPeriodo(p.dataEmissao) && (marca === "Todas" || p.representada === marca));
+  const faturamentoTotal = pedidosFiltrados.reduce((a, p) => a + (p.total || 0), 0);
+  const clientesComPedido = new Set(pedidosFiltrados.map(p => p.clienteId).filter(Boolean));
+  const coberturaCarteira = clientes.length > 0 ? clientesComPedido.size / clientes.length * 100 : 0;
+  const negociosFiltrados = (negociosFunil || []).filter(n => n.status !== "Aberto" && dentroPeriodo((n.criadoEm || "").slice(0, 10)) && (marca === "Todas" || n.representada === marca));
+  const ganhos = negociosFiltrados.filter(n => n.status === "Ganho").length;
+  const perdidos = negociosFiltrados.filter(n => n.status === "Perdido").length;
+  const taxaConversao = ganhos + perdidos > 0 ? ganhos / (ganhos + perdidos) * 100 : null;
+  const porRepresentada = {};
+  pedidosFiltrados.forEach(p => {
+    const nome = p.representada || "Sem representada";
+    porRepresentada[nome] = (porRepresentada[nome] || 0) + (p.total || 0);
+  });
+  const mixLista = Object.entries(porRepresentada).map(([nome, valor]) => ({
+    nome,
+    valor,
+    pct: faturamentoTotal > 0 ? valor / faturamentoTotal * 100 : 0
+  })).sort((a, b) => b.valor - a.valor);
+  const lancamentosFiltrados = (lancamentos || []).filter(l => dentroPeriodo(l.dataReferencia) && (marca === "Todas" || l.representada === marca));
+  const comissaoBrutaTotal = lancamentosFiltrados.reduce((a, l) => a + (l.valorBruto || 0), 0);
+  const comissaoEfetiva = faturamentoTotal > 0 ? comissaoBrutaTotal / faturamentoTotal * 100 : null;
+  const temLancamentoSemData = (lancamentos || []).some(l => !l.dataReferencia);
+  const metasRelevantes = (metas || []).filter(m => (marca === "Todas" || m.representada === "Todas" || m.representada === marca) && m.periodoInicio && m.periodoFim && m.periodoInicio <= periodoFim && m.periodoFim >= periodoInicio);
+  let metaTotal = 0;
+  let realizadoMeta = 0;
+  metasRelevantes.forEach(m => {
+    metaTotal += Object.values(m.metasPorVendedor || {}).reduce((a, v) => a + (Number(v) || 0), 0);
+    const pedidosDaMeta = pedidosEspelho.filter(p => !p.excluido && p.status === "Pedido" && p.dataEmissao && p.dataEmissao >= m.periodoInicio && p.dataEmissao <= m.periodoFim && (m.representada === "Todas" || p.representada === m.representada));
+    realizadoMeta += pedidosDaMeta.reduce((a, p) => a + (p.total || 0), 0);
+  });
+  const atingimentoMeta = metaTotal > 0 ? realizadoMeta / metaTotal * 100 : null;
+  const marcas = ["Todas", ...(representadasCadastro || []).filter(r => !r.excluida).map(r => r.nome)];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    title: "Filtros"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-3"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: "Período — início"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: periodoInicio,
+    onChange: e => setPeriodoInicio(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Período — fim"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: periodoFim,
+    onChange: e => setPeriodoFim(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Marca / Representada"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: marca,
+    onChange: e => setMarca(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, marcas.map(m => /*#__PURE__*/React.createElement("option", {
+    key: m
+  }, m)))))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 md:grid-cols-5 gap-3"
+  }, /*#__PURE__*/React.createElement(Stat, {
+    label: "Taxa de conversão",
+    value: taxaConversao === null ? "—" : `${taxaConversao.toFixed(1)}%`,
+    tone: "royal"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Cobertura de carteira",
+    value: `${coberturaCarteira.toFixed(1)}%`
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Comissão efetiva",
+    value: comissaoEfetiva === null ? "—" : `${comissaoEfetiva.toFixed(1)}%`,
+    tone: "amber"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Atingimento de meta",
+    value: atingimentoMeta === null ? "Sem meta" : `${atingimentoMeta.toFixed(1)}%`,
+    tone: "emerald"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Faturamento no período",
+    value: brl(faturamentoTotal)
+  })), /*#__PURE__*/React.createElement(Card, {
+    title: "Mix por representada",
+    subtitle: "% do faturamento do período por indústria representada"
+  }, mixLista.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum pedido faturado no período/marca selecionados."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, mixLista.map(m => /*#__PURE__*/React.createElement("div", {
+    key: m.nome
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between text-xs mb-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold",
+    style: {
+      color: NAVY
+    }
+  }, m.nome), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-500"
+  }, brl(m.valor), " · ", m.pct.toFixed(1), "%")), /*#__PURE__*/React.createElement("div", {
+    className: "h-2 rounded-full bg-slate-100 overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full rounded-full",
+    style: {
+      width: `${m.pct}%`,
+      background: ROYAL
+    }
+  })))))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400"
+  }, "Taxa de conversão considera negócios do Funil concluídos (Ganho/Perdido) cuja data de abertura cai no período selecionado."), temLancamentoSemData && /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-amber-600"
+  }, "⚠️ Alguns lançamentos de comissão não têm data preenchida e ficam de fora do cálculo de comissão efetiva por período.")));
+}
+function MixClienteMarca({
+  pedidosEspelho,
+  clientes,
+  representadasCadastro
+}) {
+  const [busca, setBusca] = useState("");
+  const marcasAtivas = (representadasCadastro || []).filter(r => !r.excluida);
+  const ativos = pedidosEspelho.filter(p => !p.excluido && p.status === "Pedido");
+  const compraPorCliente = {};
+  ativos.forEach(p => {
+    if (!p.clienteId) return;
+    if (!compraPorCliente[p.clienteId]) compraPorCliente[p.clienteId] = new Set();
+    if (p.representada) compraPorCliente[p.clienteId].add(p.representada);
+  });
+  const clientesComCompra = clientes.filter(c => compraPorCliente[c.id] && compraPorCliente[c.id].size > 0);
+  const filtrados = clientesComCompra.filter(c => !busca || norm(c.nome).includes(norm(busca))).sort((a, b) => compraPorCliente[b.id].size - compraPorCliente[a.id].size);
+  const exportar = () => {
+    const header = ["Cliente", ...marcasAtivas.map(m => m.nome), "Nº de marcas"].join(",");
+    const rows = filtrados.map(c => [c.nome, ...marcasAtivas.map(m => compraPorCliente[c.id].has(m.nome) ? "Sim" : "Não"), compraPorCliente[c.id].size]);
+    downloadCSV("mix-cliente-marca.csv", header, rows);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap items-center gap-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: busca,
+    onChange: e => setBusca(e.target.value),
+    placeholder: "Buscar cliente...",
+    className: "flex-1 min-w-[180px] border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), filtrados.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: exportar,
+    className: "text-[11px] font-bold uppercase tracking-wide whitespace-nowrap",
+    style: {
+      color: ROYAL
+    }
+  }, "Exportar CSV ↓"))), marcasAtivas.length === 0 ? /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Cadastre representadas pra ver o mix por marca."
+  })) : filtrados.length === 0 ? /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum cliente com pedido faturado ainda."
+  })) : /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    className: "overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-xs"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    className: "border-b",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-2 pr-3 font-bold text-slate-500 whitespace-nowrap"
+  }, "Cliente"), marcasAtivas.map(m => /*#__PURE__*/React.createElement("th", {
+    key: m.id,
+    className: "text-center py-2 px-2 font-bold text-slate-500 whitespace-nowrap"
+  }, m.nome)), /*#__PURE__*/React.createElement("th", {
+    className: "text-center py-2 pl-3 font-bold text-slate-500 whitespace-nowrap"
+  }, "Marcas"))), /*#__PURE__*/React.createElement("tbody", null, filtrados.map(c => /*#__PURE__*/React.createElement("tr", {
+    key: c.id,
+    className: "border-b",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "py-2 pr-3 font-semibold whitespace-nowrap",
+    style: {
+      color: NAVY
+    }
+  }, c.nome), marcasAtivas.map(m => /*#__PURE__*/React.createElement("td", {
+    key: m.id,
+    className: "text-center py-2 px-2"
+  }, compraPorCliente[c.id].has(m.nome) ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "#047857"
+    }
+  }, "✓") : /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-300"
+  }, "—"))), /*#__PURE__*/React.createElement("td", {
+    className: "text-center py-2 pl-3 font-bold",
+    style: {
+      color: ROYAL
+    }
+  }, compraPorCliente[c.id].size, "/", marcasAtivas.length))))))));
+}
+function RentabilidadeClienteRepresentada({
+  pedidosEspelho,
+  lancamentos
+}) {
+  const [visao, setVisao] = useState("cliente"); // "cliente" | "representada"
+  const ativos = pedidosEspelho.filter(p => !p.excluido && p.status === "Pedido");
+  const agrupar = (chaveFn, nomeFn) => {
+    const grupos = {};
+    ativos.forEach(p => {
+      const chave = chaveFn(p);
+      if (!chave) return;
+      if (!grupos[chave]) grupos[chave] = {
+        nome: nomeFn(p),
+        bruto: 0,
+        liquido: 0,
+        pedidos: 0
+      };
+      grupos[chave].bruto += p.subtotalBruto || 0;
+      grupos[chave].liquido += p.total || 0;
+      grupos[chave].pedidos += 1;
+    });
+    return grupos;
+  };
+  const grupos = visao === "cliente" ? agrupar(p => p.clienteId || p.clienteNome, p => p.clienteNome) : agrupar(p => p.representada, p => p.representada);
+  const comissaoPorChave = {};
+  (lancamentos || []).forEach(l => {
+    const chave = visao === "cliente" ? norm(l.cliente) : norm(l.representada);
+    if (!chave) return;
+    comissaoPorChave[chave] = (comissaoPorChave[chave] || 0) + (l.ficaComPonte || 0);
+  });
+  const linhas = Object.values(grupos).map(g => ({
+    nome: g.nome || "Sem nome",
+    bruto: g.bruto,
+    liquido: g.liquido,
+    descontoMedio: g.bruto > 0 ? (g.bruto - g.liquido) / g.bruto * 100 : 0,
+    pedidos: g.pedidos,
+    comissaoLiquida: comissaoPorChave[norm(g.nome)] || 0
+  })).sort((a, b) => b.liquido - a.liquido);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: visao === "cliente",
+    onClick: () => setVisao("cliente")
+  }, "Por Cliente"), /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: visao === "representada",
+    onClick: () => setVisao("representada")
+  }, "Por Representada")), linhas.length === 0 ? /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum pedido faturado ainda."
+  })) : /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    className: "overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-xs"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    className: "border-b",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-2 pr-3 font-bold text-slate-500 whitespace-nowrap"
+  }, visao === "cliente" ? "Cliente" : "Representada"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right py-2 px-2 font-bold text-slate-500 whitespace-nowrap"
+  }, "Faturamento bruto"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right py-2 px-2 font-bold text-slate-500 whitespace-nowrap"
+  }, "Faturamento líquido"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right py-2 px-2 font-bold text-slate-500 whitespace-nowrap"
+  }, "Desconto médio"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right py-2 px-2 font-bold text-slate-500 whitespace-nowrap"
+  }, "Pedidos"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right py-2 pl-3 font-bold text-slate-500 whitespace-nowrap"
+  }, "Comissão líquida (Ponte)"))), /*#__PURE__*/React.createElement("tbody", null, linhas.map(l => /*#__PURE__*/React.createElement("tr", {
+    key: l.nome,
+    className: "border-b",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "py-2 pr-3 font-semibold",
+    style: {
+      color: NAVY
+    }
+  }, l.nome), /*#__PURE__*/React.createElement("td", {
+    className: "text-right py-2 px-2"
+  }, brl(l.bruto)), /*#__PURE__*/React.createElement("td", {
+    className: "text-right py-2 px-2 font-bold",
+    style: {
+      color: ROYAL
+    }
+  }, brl(l.liquido)), /*#__PURE__*/React.createElement("td", {
+    className: "text-right py-2 px-2"
+  }, l.descontoMedio.toFixed(1), "%"), /*#__PURE__*/React.createElement("td", {
+    className: "text-right py-2 px-2"
+  }, l.pedidos), /*#__PURE__*/React.createElement("td", {
+    className: "text-right py-2 pl-3",
+    style: {
+      color: "#047857"
+    }
+  }, brl(l.comissaoLiquida))))))), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-3"
+  }, "Comissão líquida casada pelo nome do cliente/representada no lançamento de comissão — pode não encontrar correspondência se o nome vier escrito diferente do cadastro.")));
+}
+function RelatorioFunil({
+  negocios
+}) {
+  const lista = negocios || [];
+  const abertos = lista.filter(n => n.status === "Aberto");
+  const ganhos = lista.filter(n => n.status === "Ganho");
+  const perdidos = lista.filter(n => n.status === "Perdido");
+  const concluidos = ganhos.length + perdidos.length;
+  const taxaConversao = concluidos > 0 ? ganhos.length / concluidos * 100 : null;
+  const porEtapa = ETAPAS_FUNIL.map(etapa => {
+    const doEtapa = abertos.filter(n => n.etapa === etapa);
+    return {
+      etapa,
+      qtd: doEtapa.length,
+      valor: doEtapa.reduce((a, n) => a + (Number(n.valor) || 0), 0)
+    };
+  });
+  const maxQtd = Math.max(1, ...porEtapa.map(e => e.qtd));
+  const porMotivo = {};
+  perdidos.forEach(n => {
+    const motivo = n.motivoPerda || "Sem motivo registrado";
+    porMotivo[motivo] = (porMotivo[motivo] || 0) + 1;
+  });
+  const motivosLista = Object.entries(porMotivo).map(([motivo, qtd]) => ({
+    motivo,
+    qtd,
+    pct: perdidos.length > 0 ? qtd / perdidos.length * 100 : 0
+  })).sort((a, b) => b.qtd - a.qtd);
+  return /*#__PURE__*/React.createElement(Card, {
+    title: "Conversão por etapa e motivo de perda",
+    subtitle: "Negócios em aberto hoje por etapa do funil, e por que os negócios perdidos foram perdidos."
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 md:grid-cols-4 gap-3 mb-5"
+  }, /*#__PURE__*/React.createElement(Stat, {
+    label: "Negócios em aberto",
+    value: abertos.length
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Taxa de conversão",
+    value: taxaConversao === null ? "—" : `${taxaConversao.toFixed(1)}%`,
+    tone: "royal"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Ganhos",
+    value: ganhos.length,
+    tone: "emerald"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Perdidos",
+    value: perdidos.length,
+    tone: "amber"
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-bold uppercase tracking-wide text-slate-500 mb-2"
+  }, "Negócios em aberto por etapa"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2 mb-5"
+  }, porEtapa.map(e => /*#__PURE__*/React.createElement("div", {
+    key: e.etapa
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between text-xs mb-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold",
+    style: {
+      color: NAVY
+    }
+  }, e.etapa), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-500"
+  }, e.qtd, " negócio(s) · ", brl(e.valor))), /*#__PURE__*/React.createElement("div", {
+    className: "h-2 rounded-full bg-slate-100 overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full rounded-full",
+    style: {
+      width: `${e.qtd / maxQtd * 100}%`,
+      background: ETAPA_COR[e.etapa]
+    }
+  }))))), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-bold uppercase tracking-wide text-slate-500 mb-2"
+  }, "Motivo de perda (agregado)"), perdidos.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum negócio marcado como perdido ainda."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, motivosLista.map(m => /*#__PURE__*/React.createElement("div", {
+    key: m.motivo
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between text-xs mb-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold",
+    style: {
+      color: NAVY
+    }
+  }, m.motivo), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-500"
+  }, m.qtd, " (", m.pct.toFixed(0), "%)")), /*#__PURE__*/React.createElement("div", {
+    className: "h-2 rounded-full bg-slate-100 overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full rounded-full",
+    style: {
+      width: `${m.pct}%`,
+      background: "#B91C1C"
+    }
+  }))))));
 }
 
 // ============================================================
@@ -3944,6 +4431,7 @@ function FunilVendas({
   const [mostrarPerdidos, setMostrarPerdidos] = useState(false);
   const [perdendoId, setPerdendoId] = useState(null);
   const [motivoSelecionado, setMotivoSelecionado] = useState("");
+  const [mostrarRelatorio, setMostrarRelatorio] = useState(false);
   const set = campo => e => setForm(f => ({
     ...f,
     [campo]: e.target.value
@@ -4034,12 +4522,21 @@ function FunilVendas({
     checked: mostrarPerdidos,
     onChange: e => setMostrarPerdidos(e.target.checked)
   }), "Exibir perdidos"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMostrarRelatorio(v => !v),
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, mostrarRelatorio ? "Ocultar relatório" : "📊 Relatório de conversão"), /*#__PURE__*/React.createElement("button", {
     onClick: novoNegocio,
     className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
     style: {
       background: ROYAL
     }
-  }, "+ Novo Negócio"))), mostrarForm && /*#__PURE__*/React.createElement(Card, {
+  }, "+ Novo Negócio"))), mostrarRelatorio && /*#__PURE__*/React.createElement(RelatorioFunil, {
+    negocios: negocios
+  }), mostrarForm && /*#__PURE__*/React.createElement(Card, {
     title: editandoId ? "Editar negócio" : "Novo negócio"
   }, /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-3 gap-3"
@@ -13979,7 +14476,6 @@ function LancamentoRow({
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/*#__PURE__*/React.createElement(AuthGate, null));
-
 </script>
 </body>
 </html>

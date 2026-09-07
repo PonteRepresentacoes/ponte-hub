@@ -1406,10 +1406,30 @@ function blankFicha(cnpj = "") {
     categoriaClienteCodigo: "",
     obsPedido: "",
     obsPrivadaPedido: "",
-    repositorDocId: "" // vincula com a coleção "clientes" compartilhada com o app do Repositor
+    repositorDocId: "",
+    // vincula com a coleção "clientes" compartilhada com o app do Repositor
+    origemCliente: "",
+    // Indicação | Prospecção ativa | Feira/Evento | Outro
+    indicadoPor: "",
+    // preenchido quando origemCliente === "Indicação"
+    perfilCompra: "" // A (Preço) | B (Relacionamento) | C (Conveniência) | D (Qualidade)
   };
 }
 const MESES_ABREV = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const ORIGEM_CLIENTE_OPCOES = ["Indicação", "Prospecção ativa", "Feira/Evento", "Outro"];
+const PERFIL_COMPRA_OPCOES = [{
+  id: "A",
+  label: "A — Preço"
+}, {
+  id: "B",
+  label: "B — Relacionamento"
+}, {
+  id: "C",
+  label: "C — Conveniência"
+}, {
+  id: "D",
+  label: "D — Qualidade"
+}];
 function fichaCompletude(f) {
   const temComercial = Array.isArray(f.referenciasComerciais) && f.referenciasComerciais.some(r => r.empresa && r.empresa.trim());
   const temBancaria = Array.isArray(f.referenciasBancarias) && f.referenciasBancarias.some(r => r.banco && r.banco.trim());
@@ -2917,7 +2937,44 @@ function FichaRapida({
     style: {
       borderColor: LINE
     }
-  })), visivel("redeCliente") && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Field, {
+  })), visivel("origemCliente") && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Field, {
+    label: "Origem do cliente"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: ficha.origemCliente,
+    onChange: set("origemCliente"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), ORIGEM_CLIENTE_OPCOES.map(o => /*#__PURE__*/React.createElement("option", {
+    key: o
+  }, o)))), ficha.origemCliente === "Indicação" && /*#__PURE__*/React.createElement(Field, {
+    label: "Indicado por"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: ficha.indicadoPor,
+    onChange: set("indicadoPor"),
+    placeholder: "Nome de quem indicou",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }))), visivel("perfilCompra") && /*#__PURE__*/React.createElement(Field, {
+    label: "Perfil de compra"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: ficha.perfilCompra,
+    onChange: set("perfilCompra"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecione..."), PERFIL_COMPRA_OPCOES.map(p => /*#__PURE__*/React.createElement("option", {
+    key: p.id,
+    value: p.id
+  }, p.label)))), visivel("redeCliente") && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Field, {
     label: "Rede de cliente — código"
   }, /*#__PURE__*/React.createElement("input", {
     value: ficha.redeClienteCodigo,
@@ -4260,9 +4317,11 @@ function blankInteracao() {
     chamadoLraId: "",
     descricao: "",
     geradaAtividade: false,
+    tipoObjecao: "",
     criadoEm: new Date().toISOString()
   };
 }
+const TIPOS_OBJECAO_OPCOES = ["", "Falta de valor percebido", "Preço real", "Hesitação", "Outro"];
 function Interacoes({
   interacoes,
   setInteracoes,
@@ -4344,7 +4403,8 @@ function Interacoes({
       temCTE: false,
       anexos: [],
       solucao: SOLUCOES[0],
-      status: "Aberto"
+      status: "Aberto",
+      casoBemResolvido: false
     };
     setChamadosLRA([...(chamadosLRA || []), novoChamado]);
     setInteracoes(interacoes.map(x => x.id === interacao.id ? {
@@ -4496,7 +4556,20 @@ function Interacoes({
   }, "Nenhum"), (chamadosLRA || []).map(c => /*#__PURE__*/React.createElement("option", {
     key: c.id,
     value: c.id
-  }, c.protocolo, " — ", c.clienteNome))))), /*#__PURE__*/React.createElement(Field, {
+  }, c.protocolo, " — ", c.clienteNome)))), /*#__PURE__*/React.createElement(Field, {
+    label: "Tipo de objeção (se houve)"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: form.tipoObjecao,
+    onChange: set("tipoObjecao"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Nenhuma"), TIPOS_OBJECAO_OPCOES.filter(Boolean).map(o => /*#__PURE__*/React.createElement("option", {
+    key: o
+  }, o))))), /*#__PURE__*/React.createElement(Field, {
     label: "Descrição / Anotações"
   }, /*#__PURE__*/React.createElement("textarea", {
     value: form.descricao,
@@ -4586,7 +4659,9 @@ function Interacoes({
       className: "text-[11px] text-slate-500 mt-1"
     }, i.clienteNome || "sem cliente", " · ", i.data, i.vendedorId && ` · ${vendedores.find(v => v.id === i.vendedorId)?.nome || ""}`, i.representada ? ` · ${i.representada}` : ""), i.descricao && /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-slate-600 mt-2"
-    }, i.descricao), negocio && /*#__PURE__*/React.createElement("p", {
+    }, i.descricao), i.tipoObjecao && /*#__PURE__*/React.createElement("p", {
+      className: "text-[11px] text-orange-600 font-semibold mt-1"
+    }, "🛑 Objeção: ", i.tipoObjecao), negocio && /*#__PURE__*/React.createElement("p", {
       className: "text-[11px] text-blue-600 mt-1"
     }, "🔗 Vinculado ao negócio: ", negocio.titulo), chamado && /*#__PURE__*/React.createElement("p", {
       className: "text-[11px] text-amber-700 mt-1"
@@ -5106,7 +5181,8 @@ function NovoChamadoLRA({
       temCTE: chkCTE,
       anexos,
       solucao,
-      status: "Aberto"
+      status: "Aberto",
+      casoBemResolvido: false
     }]);
     onSalvo();
   };
@@ -5257,6 +5333,10 @@ function HistoricoLRA({
     ...c,
     status
   } : c));
+  const toggleCasoBemResolvido = id => setChamadosLRA(chamadosLRA.map(c => c.id === id ? {
+    ...c,
+    casoBemResolvido: !c.casoBemResolvido
+  } : c));
   const mailtoFor = c => {
     const assunto = encodeURIComponent(`Chamado L.R.A ${c.protocolo} — ${c.clienteNome}`);
     const corpo = encodeURIComponent(`Protocolo: ${c.protocolo}\nCliente: ${c.clienteNome}\nNF: ${c.numeroNF || "—"}\nTipo: ${c.tipoOcorrencia}\nSolução pretendida: ${c.solucao}\nStatus: ${c.status}\n\nRelato:\n${c.relato}\n\n(Anexe manualmente as fotos/áudio deste chamado — o mailto não permite anexo automático)`);
@@ -5297,7 +5377,16 @@ function HistoricoLRA({
       style: {
         color: NIVEL_META[prazo.nivel].cor
       }
-    }, NIVEL_META[prazo.nivel].label, " — ", prazo.restante > 0 ? `faltam ${prazo.restante} dia(s)` : `estourou há ${Math.abs(prazo.restante)} dia(s)`), /*#__PURE__*/React.createElement("p", {
+    }, NIVEL_META[prazo.nivel].label, " — ", prazo.restante > 0 ? `faltam ${prazo.restante} dia(s)` : `estourou há ${Math.abs(prazo.restante)} dia(s)`), c.status === "Resolvido" && /*#__PURE__*/React.createElement("label", {
+      className: "flex items-center gap-2 text-xs font-semibold mt-3",
+      style: {
+        color: c.casoBemResolvido ? "#B45309" : "#64748B"
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "checkbox",
+      checked: !!c.casoBemResolvido,
+      onChange: () => toggleCasoBemResolvido(c.id)
+    }), "🌟 Caso bem resolvido (reaproveitar como prova social em vendas futuras)"), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-slate-600 mt-3"
     }, c.relato), /*#__PURE__*/React.createElement("p", {
       className: "text-[11px] text-slate-400 mt-1"
@@ -7586,9 +7675,13 @@ function blankVendedor() {
     flexPeriodo: "",
     flexVerba: "",
     flexLimitePercentual: "",
-    flexConsiderarBonificacao: false
+    flexConsiderarBonificacao: false,
+    treinamentos: [],
+    // [{ id, nome, tipo, data }]
+    desviosProcesso: [] // [{ id, descricao, data }]
   };
 }
+const TIPOS_TREINAMENTO = ["Produto", "Processo", "Objeção", "Pós-venda"];
 function Equipe({
   vendedores,
   setVendedores
@@ -7599,6 +7692,11 @@ function Equipe({
   const [form, setForm] = useState(blankVendedor());
   const [novaRepresentada, setNovaRepresentada] = useState("");
   const [novaRepresentadaPct, setNovaRepresentadaPct] = useState("");
+  const [novoTreinamentoNome, setNovoTreinamentoNome] = useState("");
+  const [novoTreinamentoTipo, setNovoTreinamentoTipo] = useState(TIPOS_TREINAMENTO[0]);
+  const [novoTreinamentoData, setNovoTreinamentoData] = useState(() => new Date().toISOString().slice(0, 10));
+  const [novoDesvioDescricao, setNovoDesvioDescricao] = useState("");
+  const [novoDesvioData, setNovoDesvioData] = useState(() => new Date().toISOString().slice(0, 10));
   const set = campo => e => setForm(f => ({
     ...f,
     [campo]: e.target.value
@@ -7623,6 +7721,39 @@ function Equipe({
   const removerRepresentadaComissao = id => setForm(f => ({
     ...f,
     representadasComissao: f.representadasComissao.filter(r => r.id !== id)
+  }));
+  const adicionarTreinamento = () => {
+    if (!novoTreinamentoNome.trim()) return;
+    setForm(f => ({
+      ...f,
+      treinamentos: [...(f.treinamentos || []), {
+        id: uid(),
+        nome: novoTreinamentoNome.trim(),
+        tipo: novoTreinamentoTipo,
+        data: novoTreinamentoData
+      }]
+    }));
+    setNovoTreinamentoNome("");
+  };
+  const removerTreinamento = id => setForm(f => ({
+    ...f,
+    treinamentos: (f.treinamentos || []).filter(t => t.id !== id)
+  }));
+  const adicionarDesvio = () => {
+    if (!novoDesvioDescricao.trim()) return;
+    setForm(f => ({
+      ...f,
+      desviosProcesso: [...(f.desviosProcesso || []), {
+        id: uid(),
+        descricao: novoDesvioDescricao.trim(),
+        data: novoDesvioData
+      }]
+    }));
+    setNovoDesvioDescricao("");
+  };
+  const removerDesvio = id => setForm(f => ({
+    ...f,
+    desviosProcesso: (f.desviosProcesso || []).filter(d => d.id !== id)
   }));
   const novo = () => {
     setForm(blankVendedor());
@@ -7702,7 +7833,9 @@ function Equipe({
     id: "representadas"
   }, "Representadas e Comissão"), /*#__PURE__*/React.createElement(AbaBtn, {
     id: "flex"
-  }, "FLEX e Limites")), /*#__PURE__*/React.createElement("div", {
+  }, "FLEX e Limites"), /*#__PURE__*/React.createElement(AbaBtn, {
+    id: "desenvolvimento"
+  }, "Treinamentos e Desvios")), /*#__PURE__*/React.createElement("div", {
     className: "p-5"
   }, aba === "cadastro" && /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-3 gap-3"
@@ -7914,7 +8047,106 @@ function Equipe({
     style: {
       borderColor: LINE
     }
-  }))))), /*#__PURE__*/React.createElement("div", {
+  }))))), aba === "desenvolvimento" && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2"
+  }, "Treinamentos concluídos"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-4 gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: novoTreinamentoNome,
+    onChange: e => setNovoTreinamentoNome(e.target.value),
+    placeholder: "Nome do treinamento",
+    className: "md:col-span-2 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("select", {
+    value: novoTreinamentoTipo,
+    onChange: e => setNovoTreinamentoTipo(e.target.value),
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, TIPOS_TREINAMENTO.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t
+  }, t))), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: novoTreinamentoData,
+    onChange: e => setNovoTreinamentoData(e.target.value),
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: adicionarTreinamento,
+    className: "mt-2 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "Adicionar treinamento"), (form.treinamentos || []).length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum treinamento registrado ainda."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2 mt-3"
+  }, form.treinamentos.map(t => /*#__PURE__*/React.createElement("div", {
+    key: t.id,
+    className: "flex items-center justify-between border rounded-md px-3 py-2",
+    style: {
+      borderColor: LINE
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-bold",
+    style: {
+      color: NAVY
+    }
+  }, t.nome), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-slate-400 ml-2"
+  }, t.tipo, " · ", t.data)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => removerTreinamento(t.id),
+    className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+  }, "Remover"))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2"
+  }, "Desvios de processo"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-500 mb-2"
+  }, "Registro separado do desempenho normal — use pra apontar quando um processo combinado não foi seguido."), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-4 gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: novoDesvioDescricao,
+    onChange: e => setNovoDesvioDescricao(e.target.value),
+    placeholder: "O que aconteceu",
+    className: "md:col-span-3 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: novoDesvioData,
+    onChange: e => setNovoDesvioData(e.target.value),
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: adicionarDesvio,
+    className: "mt-2 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: ROYAL
+    }
+  }, "Adicionar desvio"), (form.desviosProcesso || []).length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    text: "Nenhum desvio de processo registrado."
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2 mt-3"
+  }, form.desviosProcesso.map(d => /*#__PURE__*/React.createElement("div", {
+    key: d.id,
+    className: "flex items-center justify-between border rounded-md px-3 py-2 border-amber-200 bg-amber-50"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-bold text-amber-800"
+  }, d.descricao), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-amber-600 ml-2"
+  }, d.data)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => removerDesvio(d.id),
+    className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+  }, "Remover")))))), /*#__PURE__*/React.createElement("div", {
     className: "flex gap-2 mt-5 pt-4 border-t",
     style: {
       borderColor: LINE
@@ -7954,7 +8186,11 @@ function Equipe({
       className: "text-sm font-bold"
     }, v.nome), (v.representadasComissao || []).length > 0 && /*#__PURE__*/React.createElement("span", {
       className: "text-[10px] font-bold text-slate-400"
-    }, "· ", v.representadasComissao.length, " comissão(ões) específica(s)"), v.codigoAcesso && /*#__PURE__*/React.createElement("span", {
+    }, "· ", v.representadasComissao.length, " comissão(ões) específica(s)"), (v.treinamentos || []).length > 0 && /*#__PURE__*/React.createElement("span", {
+      className: "text-[10px] font-bold text-slate-400"
+    }, "· ", v.treinamentos.length, " treinamento(s)"), (v.desviosProcesso || []).length > 0 && /*#__PURE__*/React.createElement("span", {
+      className: "text-[10px] font-bold text-amber-600"
+    }, "· ", v.desviosProcesso.length, " desvio(s)"), v.codigoAcesso && /*#__PURE__*/React.createElement("span", {
       className: "text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/60"
     }, "🔑 ", v.codigoAcesso)), /*#__PURE__*/React.createElement("div", {
       className: "flex items-center gap-3"
@@ -12691,6 +12927,12 @@ const CAMPOS_EXTRAS_CLIENTE = [{
 }, {
   id: "obsPrivadaPedido",
   label: "Observação privada para o pedido"
+}, {
+  id: "origemCliente",
+  label: "Origem do cliente"
+}, {
+  id: "perfilCompra",
+  label: "Perfil de compra (A/B/C/D)"
 }];
 const CAMPOS_EXTRAS_PRODUTO = [{
   id: "diametro",
@@ -13412,6 +13654,7 @@ function Comissoes({
           const clienteNome = String(pickField(row, ["cliente", "fantasia", "nome"]) || "").trim();
           const valorBruto = Number(pickField(row, ["valor", "comissão", "comissao"])) || 0;
           const representada = pickField(row, ["representada", "fabrica", "fábrica"]) || "";
+          const dataReferencia = excelDateToISO(pickField(row, ["data", "data de fatura", "data fatura", "competencia", "competência", "data de liquidez"])) || new Date().toISOString().slice(0, 10);
           const vendedor = findVendedorByCliente(clienteNome);
           const imposto = valorBruto * (taxaImposto / 100);
           const base = valorBruto - imposto;
@@ -13422,6 +13665,7 @@ function Comissoes({
             id: uid(),
             cliente: clienteNome,
             representada,
+            dataReferencia,
             valorBruto,
             imposto,
             base,
@@ -13490,10 +13734,12 @@ function Comissoes({
       const percentual = vendedor ? vendedor.percentual : 0;
       const repasse = vendedor ? base * (percentual / 100) : 0;
       const ficaComPonte = base - repasse;
+      const dataReferencia = excelDateToISO(row.dataDeFatura) || excelDateToISO(row.dataDeLiquidez) || "";
       return {
         id: uid(),
         cliente: clienteNome,
         representada,
+        dataReferencia,
         valorBruto,
         imposto,
         base,
@@ -13542,8 +13788,8 @@ function Comissoes({
     setMsg(`Lançado no financeiro${novasContasPagar.length > 0 ? `, no fluxo de caixa e em ${novasContasPagar.length} conta(s) a pagar` : " e no fluxo de caixa"} com sucesso.`);
   };
   const exportCSV = () => {
-    const header = "Cliente,Vendedor,Representada,Bruto,Imposto,Base,Percentual,Repasse,FicaComPonte\n";
-    const body = lancamentos.map(l => [l.cliente, l.vendedorNome, l.representada, l.valorBruto, l.imposto, l.base, l.percentual, l.repasse, l.ficaComPonte].map(v => `"${v}"`).join(",")).join("\n");
+    const header = "Data,Cliente,Vendedor,Representada,Bruto,Imposto,Base,Percentual,Repasse,FicaComPonte\n";
+    const body = lancamentos.map(l => [l.dataReferencia || "", l.cliente, l.vendedorNome, l.representada, l.valorBruto, l.imposto, l.base, l.percentual, l.repasse, l.ficaComPonte].map(v => `"${v}"`).join(",")).join("\n");
     const blob = new Blob([header + body], {
       type: "text/csv;charset=utf-8;"
     });
@@ -13609,9 +13855,15 @@ function Comissoes({
     }
   }, msg), preview.length > 0 && /*#__PURE__*/React.createElement("div", {
     className: "mt-4 space-y-2"
-  }, preview.map(l => /*#__PURE__*/React.createElement(LancamentoRow, {
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-500"
+  }, "Confira a data de cada lançamento antes de confirmar — foi detectada automaticamente da planilha, mas pode ajustar."), preview.map(l => /*#__PURE__*/React.createElement(LancamentoRow, {
     key: l.id,
-    l: l
+    l: l,
+    onChangeData: novaData => setPreview(p => p.map(x => x.id === l.id ? {
+      ...x,
+      dataReferencia: novaData
+    } : x))
   })), /*#__PURE__*/React.createElement("button", {
     onClick: confirmar,
     className: "mt-2 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
@@ -13683,7 +13935,8 @@ function Arrow() {
   }, "→");
 }
 function LancamentoRow({
-  l
+  l,
+  onChangeData
 }) {
   return /*#__PURE__*/React.createElement("div", {
     className: "border rounded-md px-3 py-2 flex items-center justify-between",
@@ -13697,7 +13950,17 @@ function LancamentoRow({
     }
   }, l.cliente), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-slate-400"
-  }, l.vendedorNome, l.representada ? ` · ${l.representada}` : "")), /*#__PURE__*/React.createElement("div", {
+  }, l.vendedorNome, l.representada ? ` · ${l.representada}` : ""), onChangeData ? /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: l.dataReferencia || "",
+    onChange: e => onChangeData(e.target.value),
+    className: "mt-1 border rounded-md px-2 py-1 text-[11px]",
+    style: {
+      borderColor: LINE
+    }
+  }) : l.dataReferencia && /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400"
+  }, l.dataReferencia)), /*#__PURE__*/React.createElement("div", {
     className: "text-right text-[11px] leading-tight"
   }, /*#__PURE__*/React.createElement("p", {
     className: "text-slate-400"
@@ -13716,6 +13979,7 @@ function LancamentoRow({
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/*#__PURE__*/React.createElement(AuthGate, null));
+
 </script>
 </body>
 </html>

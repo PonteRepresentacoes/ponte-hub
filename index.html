@@ -6351,6 +6351,8 @@ function FunilVendas({
     className: "px-2 py-1.5 text-right"
   }, "Valor"), React.createElement("th", {
     className: "px-2 py-1.5 text-left"
+  }, "NF"), React.createElement("th", {
+    className: "px-2 py-1.5 text-left"
   }, "Situa\xE7\xE3o"), React.createElement("th", {
     className: "px-2 py-1.5 text-left"
   }, "Status"), React.createElement("th", {
@@ -6376,6 +6378,8 @@ function FunilVendas({
   }, l.cliente), React.createElement("td", {
     className: "px-2 py-1 text-right font-mono whitespace-nowrap"
   }, brl(l.valor)), React.createElement("td", {
+    className: "px-2 py-1 font-mono whitespace-nowrap"
+  }, l.notaFiscal || "—"), React.createElement("td", {
     className: "px-2 py-1 whitespace-nowrap"
   }, l.situacao), React.createElement("td", {
     className: "px-2 py-1"

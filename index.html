@@ -10,7 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<style>*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0}.inset-y-0{top:0;bottom:0}.-left-6{left:-1.5rem}.bottom-2{bottom:.5rem}.left-0{left:0}.left-\[7px\]{left:7px}.right-0{right:0}.top-0\.5{top:.125rem}.top-2{top:.5rem}.z-20{z-index:20}.z-30{z-index:30}.z-40{z-index:40}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.ml-1{margin-left:.25rem}.ml-2{margin-left:.5rem}.ml-3{margin-left:.75rem}.ml-auto{margin-left:auto}.mr-2{margin-right:.5rem}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.h-1\.5{height:.375rem}.h-10{height:2.5rem}.h-2{height:.5rem}.h-2\.5{height:.625rem}.h-20{height:5rem}.h-3\.5{height:.875rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-full{height:100%}.max-h-56{max-height:14rem}.max-h-80{max-height:20rem}.max-h-96{max-height:24rem}.max-h-\[28rem\]{max-height:28rem}.min-h-\[120px\]{min-height:120px}.min-h-\[4rem\]{min-height:4rem}.min-h-full{min-height:100%}.w-0\.5{width:.125rem}.w-1\.5{width:.375rem}.w-10{width:2.5rem}.w-16{width:4rem}.w-2{width:.5rem}.w-2\.5{width:.625rem}.w-20{width:5rem}.w-24{width:6rem}.w-28{width:7rem}.w-3\.5{width:.875rem}.w-32{width:8rem}.w-40{width:10rem}.w-56{width:14rem}.w-64{width:16rem}.w-7{width:1.75rem}.w-72{width:18rem}.w-8{width:2rem}.w-9{width:2.25rem}.w-full{width:100%}.min-w-0{min-width:0}.min-w-\[140px\]{min-width:140px}.min-w-\[180px\]{min-width:180px}.min-w-\[200px\]{min-width:200px}.min-w-\[220px\]{min-width:220px}.min-w-\[260px\]{min-width:260px}.min-w-max{min-width:-moz-max-content;min-width:max-content}.max-w-7xl{max-width:80rem}.max-w-\[160px\]{max-width:160px}.max-w-\[220px\]{max-width:220px}.max-w-sm{max-width:24rem}.max-w-xl{max-width:36rem}.flex-1{flex:1 1 0%}.flex-shrink-0,.shrink-0{flex-shrink:0}.-translate-x-full{--tw-translate-x:-100%}.-translate-x-full,.translate-x-0{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-x-0{--tw-translate-x:0px}.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-move{cursor:move}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-7{grid-template-columns:repeat(7,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.25rem*var(--tw-space-y-reverse))}.space-y-1\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.375rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.375rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-2\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.625rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.625rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem*var(--tw-space-y-reverse))}.space-y-5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem*var(--tw-space-y-reverse))}.space-y-6>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem*var(--tw-space-y-reverse))}.space-y-8>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem*var(--tw-space-y-reverse))}.self-center{align-self:center}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis}.truncate,.whitespace-nowrap{white-space:nowrap}.break-all{word-break:break-all}.rounded{border-radius:.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-md{border-radius:.375rem}.rounded-xl{border-radius:.75rem}.rounded-b-lg{border-bottom-right-radius:.5rem;border-bottom-left-radius:.5rem}.rounded-t-lg{border-top-left-radius:.5rem;border-top-right-radius:.5rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-l-4{border-left-width:4px}.border-t{border-top-width:1px}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138/var(--tw-border-opacity,1))}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77/var(--tw-border-opacity,1))}.border-amber-400{--tw-border-opacity:1;border-color:rgb(251 191 36/var(--tw-border-opacity,1))}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254/var(--tw-border-opacity,1))}.border-blue-300{--tw-border-opacity:1;border-color:rgb(147 197 253/var(--tw-border-opacity,1))}.border-blue-400{--tw-border-opacity:1;border-color:rgb(96 165 250/var(--tw-border-opacity,1))}.border-cyan-400{--tw-border-opacity:1;border-color:rgb(34 211 238/var(--tw-border-opacity,1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208/var(--tw-border-opacity,1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183/var(--tw-border-opacity,1))}.border-emerald-400{--tw-border-opacity:1;border-color:rgb(52 211 153/var(--tw-border-opacity,1))}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202/var(--tw-border-opacity,1))}.border-red-300{--tw-border-opacity:1;border-color:rgb(252 165 165/var(--tw-border-opacity,1))}.border-red-400{--tw-border-opacity:1;border-color:rgb(248 113 113/var(--tw-border-opacity,1))}.border-rose-400{--tw-border-opacity:1;border-color:rgb(251 113 133/var(--tw-border-opacity,1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity,1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225/var(--tw-border-opacity,1))}.border-violet-300{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.border-violet-400{--tw-border-opacity:1;border-color:rgb(167 139 250/var(--tw-border-opacity,1))}.border-white{--tw-border-opacity:1;border-color:rgb(255 255 255/var(--tw-border-opacity,1))}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199/var(--tw-bg-opacity,1))}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235/var(--tw-bg-opacity,1))}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11/var(--tw-bg-opacity,1))}.bg-black\/50{background-color:rgba(0,0,0,.5)}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255/var(--tw-bg-opacity,1))}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246/var(--tw-bg-opacity,1))}.bg-cyan-50{--tw-bg-opacity:1;background-color:rgb(236 254 255/var(--tw-bg-opacity,1))}.bg-cyan-500{--tw-bg-opacity:1;background-color:rgb(6 182 212/var(--tw-bg-opacity,1))}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229/var(--tw-bg-opacity,1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245/var(--tw-bg-opacity,1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226/var(--tw-bg-opacity,1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242/var(--tw-bg-opacity,1))}.bg-red-500{--tw-bg-opacity:1;background-color:rgb(239 68 68/var(--tw-bg-opacity,1))}.bg-rose-50{--tw-bg-opacity:1;background-color:rgb(255 241 242/var(--tw-bg-opacity,1))}.bg-rose-500{--tw-bg-opacity:1;background-color:rgb(244 63 94/var(--tw-bg-opacity,1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240/var(--tw-bg-opacity,1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.bg-violet-50{--tw-bg-opacity:1;background-color:rgb(245 243 255/var(--tw-bg-opacity,1))}.bg-violet-500{--tw-bg-opacity:1;background-color:rgb(139 92 246/var(--tw-bg-opacity,1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.bg-white\/60{background-color:hsla(0,0%,100%,.6)}.object-cover{-o-object-fit:cover;object-fit:cover}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:.25rem;padding-right:.25rem}.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-2{padding-bottom:.5rem}.pb-3{padding-bottom:.75rem}.pb-4{padding-bottom:1rem}.pb-5{padding-bottom:1.25rem}.pl-3{padding-left:.75rem}.pl-6{padding-left:1.5rem}.pr-1{padding-right:.25rem}.pr-2{padding-right:.5rem}.pr-3{padding-right:.75rem}.pr-4{padding-right:1rem}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.pt-5{padding-top:1.25rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[9px\]{font-size:9px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-.025em}.tracking-wide{letter-spacing:.025em}.tracking-widest{letter-spacing:.1em}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14/var(--tw-text-opacity,1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity,1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216/var(--tw-text-opacity,1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175/var(--tw-text-opacity,1))}.text-cyan-800{--tw-text-opacity:1;color:rgb(21 94 117/var(--tw-text-opacity,1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105/var(--tw-text-opacity,1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87/var(--tw-text-opacity,1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70/var(--tw-text-opacity,1))}.text-orange-600{--tw-text-opacity:1;color:rgb(234 88 12/var(--tw-text-opacity,1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.text-red-700{--tw-text-opacity:1;color:rgb(185 28 28/var(--tw-text-opacity,1))}.text-rose-800{--tw-text-opacity:1;color:rgb(159 18 57/var(--tw-text-opacity,1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105/var(--tw-text-opacity,1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}.text-violet-800{--tw-text-opacity:1;color:rgb(91 33 182/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.text-white\/80{color:hsla(0,0%,100%,.8)}.underline{text-decoration-line:underline}.line-through{text-decoration-line:line-through}.opacity-50{opacity:.5}.opacity-70{opacity:.7}.shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.shadow-lg,.shadow-sm{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}.outline-none{outline:2px solid transparent;outline-offset:2px}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-shadow{transition-property:box-shadow;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.duration-200{transition-duration:.2s}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:border-blue-300:hover{--tw-border-opacity:1;border-color:rgb(147 197 253/var(--tw-border-opacity,1))}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.hover\:text-amber-700:hover{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.hover\:text-blue-600:hover{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity,1))}.hover\:text-red-600:hover{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.hover\:underline:hover{text-decoration-line:underline}.hover\:opacity-80:hover{opacity:.8}.hover\:shadow-md:hover{--tw-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color),0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:bg-slate-100:disabled{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.disabled\:text-slate-400:disabled{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.disabled\:opacity-40:disabled{opacity:.4}@media (min-width:640px){.sm\:col-span-2{grid-column:span 2/span 2}.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (min-width:768px){.md\:col-span-1{grid-column:span 1/span 1}.md\:col-span-2{grid-column:span 2/span 2}.md\:col-span-3{grid-column:span 3/span 3}.md\:w-64{width:16rem}.md\:w-72{width:18rem}.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.md\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.md\:flex-row{flex-direction:row}}@media (min-width:1024px){.lg\:sticky{position:sticky}.lg\:top-0{top:0}.lg\:flex{display:flex}.lg\:hidden{display:none}.lg\:h-screen{height:100vh}.lg\:shrink-0{flex-shrink:0}.lg\:translate-x-0{--tw-translate-x:0px;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:items-start{align-items:flex-start}}</style>
+<style>*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0}.inset-y-0{top:0;bottom:0}.-left-6{left:-1.5rem}.bottom-2{bottom:.5rem}.left-0{left:0}.left-\[7px\]{left:7px}.right-0{right:0}.top-0{top:0}.top-0\.5{top:.125rem}.top-2{top:.5rem}.z-20{z-index:20}.z-30{z-index:30}.z-40{z-index:40}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.ml-1{margin-left:.25rem}.ml-2{margin-left:.5rem}.ml-3{margin-left:.75rem}.ml-auto{margin-left:auto}.mr-2{margin-right:.5rem}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.h-1\.5{height:.375rem}.h-10{height:2.5rem}.h-2{height:.5rem}.h-2\.5{height:.625rem}.h-20{height:5rem}.h-3\.5{height:.875rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-full{height:100%}.max-h-56{max-height:14rem}.max-h-80{max-height:20rem}.max-h-96{max-height:24rem}.max-h-\[28rem\]{max-height:28rem}.min-h-\[120px\]{min-height:120px}.min-h-\[4rem\]{min-height:4rem}.min-h-full{min-height:100%}.w-0\.5{width:.125rem}.w-1\.5{width:.375rem}.w-10{width:2.5rem}.w-16{width:4rem}.w-2{width:.5rem}.w-2\.5{width:.625rem}.w-20{width:5rem}.w-24{width:6rem}.w-28{width:7rem}.w-3\.5{width:.875rem}.w-32{width:8rem}.w-40{width:10rem}.w-56{width:14rem}.w-64{width:16rem}.w-7{width:1.75rem}.w-72{width:18rem}.w-8{width:2rem}.w-80{width:20rem}.w-9{width:2.25rem}.w-full{width:100%}.min-w-0{min-width:0}.min-w-\[140px\]{min-width:140px}.min-w-\[160px\]{min-width:160px}.min-w-\[180px\]{min-width:180px}.min-w-\[200px\]{min-width:200px}.min-w-\[220px\]{min-width:220px}.min-w-\[260px\]{min-width:260px}.min-w-max{min-width:-moz-max-content;min-width:max-content}.max-w-7xl{max-width:80rem}.max-w-\[160px\]{max-width:160px}.max-w-\[220px\]{max-width:220px}.max-w-sm{max-width:24rem}.max-w-xl{max-width:36rem}.flex-1{flex:1 1 0%}.flex-shrink-0,.shrink-0{flex-shrink:0}.-translate-x-full{--tw-translate-x:-100%}.-translate-x-full,.translate-x-0{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-x-0{--tw-translate-x:0px}.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-move{cursor:move}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-7{grid-template-columns:repeat(7,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.25rem*var(--tw-space-y-reverse))}.space-y-1\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.375rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.375rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-2\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.625rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.625rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem*var(--tw-space-y-reverse))}.space-y-5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem*var(--tw-space-y-reverse))}.space-y-6>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem*var(--tw-space-y-reverse))}.space-y-8>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem*var(--tw-space-y-reverse))}.self-center{align-self:center}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis}.truncate,.whitespace-nowrap{white-space:nowrap}.break-all{word-break:break-all}.rounded{border-radius:.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-md{border-radius:.375rem}.rounded-xl{border-radius:.75rem}.rounded-b-lg{border-bottom-right-radius:.5rem;border-bottom-left-radius:.5rem}.rounded-t-lg{border-top-left-radius:.5rem;border-top-right-radius:.5rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-l-4{border-left-width:4px}.border-t{border-top-width:1px}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138/var(--tw-border-opacity,1))}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77/var(--tw-border-opacity,1))}.border-amber-400{--tw-border-opacity:1;border-color:rgb(251 191 36/var(--tw-border-opacity,1))}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254/var(--tw-border-opacity,1))}.border-blue-300{--tw-border-opacity:1;border-color:rgb(147 197 253/var(--tw-border-opacity,1))}.border-blue-400{--tw-border-opacity:1;border-color:rgb(96 165 250/var(--tw-border-opacity,1))}.border-cyan-400{--tw-border-opacity:1;border-color:rgb(34 211 238/var(--tw-border-opacity,1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208/var(--tw-border-opacity,1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183/var(--tw-border-opacity,1))}.border-emerald-400{--tw-border-opacity:1;border-color:rgb(52 211 153/var(--tw-border-opacity,1))}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202/var(--tw-border-opacity,1))}.border-red-300{--tw-border-opacity:1;border-color:rgb(252 165 165/var(--tw-border-opacity,1))}.border-red-400{--tw-border-opacity:1;border-color:rgb(248 113 113/var(--tw-border-opacity,1))}.border-rose-400{--tw-border-opacity:1;border-color:rgb(251 113 133/var(--tw-border-opacity,1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity,1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225/var(--tw-border-opacity,1))}.border-violet-300{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.border-violet-400{--tw-border-opacity:1;border-color:rgb(167 139 250/var(--tw-border-opacity,1))}.border-white{--tw-border-opacity:1;border-color:rgb(255 255 255/var(--tw-border-opacity,1))}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199/var(--tw-bg-opacity,1))}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235/var(--tw-bg-opacity,1))}.bg-amber-50\/60{background-color:rgba(255,251,235,.6)}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11/var(--tw-bg-opacity,1))}.bg-black\/50{background-color:rgba(0,0,0,.5)}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255/var(--tw-bg-opacity,1))}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246/var(--tw-bg-opacity,1))}.bg-cyan-50{--tw-bg-opacity:1;background-color:rgb(236 254 255/var(--tw-bg-opacity,1))}.bg-cyan-500{--tw-bg-opacity:1;background-color:rgb(6 182 212/var(--tw-bg-opacity,1))}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229/var(--tw-bg-opacity,1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245/var(--tw-bg-opacity,1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226/var(--tw-bg-opacity,1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242/var(--tw-bg-opacity,1))}.bg-red-500{--tw-bg-opacity:1;background-color:rgb(239 68 68/var(--tw-bg-opacity,1))}.bg-rose-50{--tw-bg-opacity:1;background-color:rgb(255 241 242/var(--tw-bg-opacity,1))}.bg-rose-500{--tw-bg-opacity:1;background-color:rgb(244 63 94/var(--tw-bg-opacity,1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240/var(--tw-bg-opacity,1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.bg-violet-50{--tw-bg-opacity:1;background-color:rgb(245 243 255/var(--tw-bg-opacity,1))}.bg-violet-500{--tw-bg-opacity:1;background-color:rgb(139 92 246/var(--tw-bg-opacity,1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.bg-white\/60{background-color:hsla(0,0%,100%,.6)}.object-cover{-o-object-fit:cover;object-fit:cover}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:.25rem;padding-right:.25rem}.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-2{padding-bottom:.5rem}.pb-3{padding-bottom:.75rem}.pb-4{padding-bottom:1rem}.pb-5{padding-bottom:1.25rem}.pl-3{padding-left:.75rem}.pl-6{padding-left:1.5rem}.pr-1{padding-right:.25rem}.pr-2{padding-right:.5rem}.pr-3{padding-right:.75rem}.pr-4{padding-right:1rem}.pt-0{padding-top:0}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.pt-5{padding-top:1.25rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[9px\]{font-size:9px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-none{line-height:1}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-.025em}.tracking-wide{letter-spacing:.025em}.tracking-widest{letter-spacing:.1em}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14/var(--tw-text-opacity,1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity,1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216/var(--tw-text-opacity,1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175/var(--tw-text-opacity,1))}.text-cyan-800{--tw-text-opacity:1;color:rgb(21 94 117/var(--tw-text-opacity,1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105/var(--tw-text-opacity,1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87/var(--tw-text-opacity,1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70/var(--tw-text-opacity,1))}.text-orange-600{--tw-text-opacity:1;color:rgb(234 88 12/var(--tw-text-opacity,1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.text-red-700{--tw-text-opacity:1;color:rgb(185 28 28/var(--tw-text-opacity,1))}.text-rose-800{--tw-text-opacity:1;color:rgb(159 18 57/var(--tw-text-opacity,1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105/var(--tw-text-opacity,1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}.text-violet-800{--tw-text-opacity:1;color:rgb(91 33 182/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.text-white\/80{color:hsla(0,0%,100%,.8)}.underline{text-decoration-line:underline}.line-through{text-decoration-line:line-through}.opacity-50{opacity:.5}.opacity-70{opacity:.7}.shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.shadow-lg,.shadow-sm{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}.outline-none{outline:2px solid transparent;outline-offset:2px}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-shadow{transition-property:box-shadow;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.duration-200{transition-duration:.2s}.file\:mr-3::file-selector-button{margin-right:.75rem}.file\:rounded-md::file-selector-button{border-radius:.375rem}.file\:border-0::file-selector-button{border-width:0}.file\:bg-slate-100::file-selector-button{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.file\:px-3::file-selector-button{padding-left:.75rem;padding-right:.75rem}.file\:py-1\.5::file-selector-button{padding-top:.375rem;padding-bottom:.375rem}.file\:text-xs::file-selector-button{font-size:.75rem;line-height:1rem}.file\:font-bold::file-selector-button{font-weight:700}.file\:text-slate-700::file-selector-button{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:border-blue-300:hover{--tw-border-opacity:1;border-color:rgb(147 197 253/var(--tw-border-opacity,1))}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.hover\:text-amber-700:hover{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.hover\:text-blue-600:hover{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity,1))}.hover\:text-red-600:hover{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.hover\:underline:hover{text-decoration-line:underline}.hover\:opacity-80:hover{opacity:.8}.hover\:shadow-md:hover{--tw-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color),0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:bg-slate-100:disabled{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.disabled\:text-slate-400:disabled{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.disabled\:opacity-40:disabled{opacity:.4}@media (min-width:640px){.sm\:col-span-2{grid-column:span 2/span 2}.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (min-width:768px){.md\:col-span-1{grid-column:span 1/span 1}.md\:col-span-2{grid-column:span 2/span 2}.md\:col-span-3{grid-column:span 3/span 3}.md\:w-64{width:16rem}.md\:w-72{width:18rem}.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.md\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.md\:flex-row{flex-direction:row}}@media (min-width:1024px){.lg\:sticky{position:sticky}.lg\:top-0{top:0}.lg\:flex{display:flex}.lg\:hidden{display:none}.lg\:h-screen{height:100vh}.lg\:shrink-0{flex-shrink:0}.lg\:translate-x-0{--tw-translate-x:0px;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:items-start{align-items:flex-start}}</style>
 </head>
 <body>
 <div id="root"></div>
@@ -5531,6 +5531,12 @@ const NIVEL_META = {
     bg: "bg-red-100 border-red-400"
   }
 };
+const ETAPAS_LRA_KANBAN = ["Aberto", "Em Tratativa", "Concluído"];
+const ETAPA_LRA_COR = {
+  "Aberto": "#DC2626",
+  "Em Tratativa": "#D97706",
+  "Concluído": "#047857"
+};
 const ETAPAS_ATENDIMENTO = ["Novo Contato", "Em Contato", "Qualificando"];
 const ETAPA_ATENDIMENTO_COR = {
   "Novo Contato": "#0EA5E9",
@@ -5891,7 +5897,10 @@ function blankNegocio() {
     vencimento: "",
     vendedorId: "",
     status: "Aberto",
-    criadoEm: new Date().toISOString()
+    criadoEm: new Date().toISOString(),
+    observacao: "",
+    pedidoFabrica: "",
+    notaFiscal: ""
   };
 }
 function diasRestantes(dataStr) {
@@ -5900,6 +5909,24 @@ function diasRestantes(dataStr) {
   hoje.setHours(0, 0, 0, 0);
   const alvo = new Date(dataStr + "T00:00:00");
   return Math.round((alvo - hoje) / 86400000);
+}
+function formatarDataPlanilha(val) {
+  if (!val) return "";
+  if (val instanceof Date) return val.toISOString().slice(0, 10);
+  if (typeof val === "number") {
+    const d = new Date((val - 25569) * 86400000);
+    return d.toISOString().slice(0, 10);
+  }
+  const s = String(val).trim();
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  return "";
+}
+function parseValorPlanilha(val) {
+  if (typeof val === "number") return val;
+  if (!val) return 0;
+  return parseFloat(String(val).replace(/[^\d.,\-]/g, "").replace(",", ".")) || 0;
 }
 const MOTIVOS_PERDA_OPCOES = ["Achou caro", "Cliente está satisfeito com o produto/serviço que utiliza", "Comprou do concorrente", "Dificuldade financeira", "Não precisa de mercadoria", "Não temos o produto/serviço desejado", "O concorrente tem melhores condições", "Passar outro dia", "Responsável ausente", "Outros"];
 function FunilVendas({
@@ -5917,6 +5944,9 @@ function FunilVendas({
   const [perdendoId, setPerdendoId] = useState(null);
   const [motivoSelecionado, setMotivoSelecionado] = useState("");
   const [mostrarRelatorio, setMostrarRelatorio] = useState(false);
+  const [mostrarImportacao, setMostrarImportacao] = useState(false);
+  const [importPreview, setImportPreview] = useState([]);
+  const [importFabrica, setImportFabrica] = useState("");
   const set = campo => e => setForm(f => ({
     ...f,
     [campo]: e.target.value
@@ -5986,6 +6016,84 @@ function FunilVendas({
     if (arrastando) moverEtapa(arrastando, etapa);
     setArrastando(null);
   };
+  const processarPlanilhaFunil = file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const wb = XLSX.read(ev.target.result, {
+        type: "array",
+        cellDates: true
+      });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const dados = XLSX.utils.sheet_to_json(ws, {
+        defval: ""
+      });
+      if (!dados.length) return;
+      const headers = Object.keys(dados[0]);
+      const find = (...terms) => headers.find(h => terms.some(t => h.toString().toLowerCase().trim().includes(t)));
+      const colPedido = find("pedido", "nº ped", "num ped");
+      const colCliente = find("cliente", "razão social", "nome cliente");
+      const colValor = find("total", "valor");
+      const colDataEmissao = find("data de emissão", "data emissão", "emissão");
+      const colPrevisao = find("previsão", "prev. fat", "data prevista", "previsão de faturamento");
+      const colSituacao = find("situação", "status", "sit.");
+      const colRepresentante = find("representante", "vendedor");
+      const colNotaFiscal = find("nota fiscal", "nf ");
+      const colOrdemCompra = find("ordem de compra", "oc ", "marca");
+      const pedidosExistentes = new Set(negocios.filter(n => n.pedidoFabrica).map(n => n.pedidoFabrica));
+      const linhas = dados.map((row, i) => {
+        const pedido = String(row[colPedido] || "").trim();
+        if (!pedido) return null;
+        const jaImportado = pedidosExistentes.has(pedido);
+        return {
+          idx: i,
+          pedido,
+          cliente: String(row[colCliente] || "").trim(),
+          valor: parseValorPlanilha(row[colValor]),
+          dataEmissao: formatarDataPlanilha(row[colDataEmissao]),
+          previsao: formatarDataPlanilha(row[colPrevisao]),
+          situacao: String(row[colSituacao] || "").trim(),
+          representante: String(row[colRepresentante] || "").trim(),
+          notaFiscal: String(row[colNotaFiscal] || "").trim(),
+          ordemCompra: String(row[colOrdemCompra] || "").trim(),
+          status: "Ganho",
+          observacao: "",
+          selecionado: !jaImportado,
+          jaImportado
+        };
+      }).filter(Boolean);
+      setImportPreview(linhas);
+    };
+    reader.readAsArrayBuffer(file);
+  };
+  const confirmarImportacao = () => {
+    const selecionados = importPreview.filter(l => l.selecionado && !l.jaImportado);
+    if (!selecionados.length) return;
+    const fab = importFabrica.trim();
+    const novos = selecionados.map(l => {
+      const vend = vendedores.find(v => v.nome.toLowerCase().includes(l.representante.toLowerCase()));
+      return {
+        id: uid(),
+        titulo: fab ? `${fab} #${l.pedido}` : `Pedido #${l.pedido}`,
+        clienteId: "",
+        clienteNome: l.cliente,
+        representada: fab || "",
+        valor: l.valor,
+        prioridade: "Média",
+        etapa: "Fechamento",
+        vencimento: l.previsao || l.dataEmissao,
+        vendedorId: vend ? vend.id : "",
+        status: l.status,
+        criadoEm: l.dataEmissao ? new Date(l.dataEmissao + "T12:00:00").toISOString() : new Date().toISOString(),
+        pedidoFabrica: l.pedido,
+        observacao: l.observacao,
+        notaFiscal: l.notaFiscal
+      };
+    });
+    setNegocios([...negocios, ...novos]);
+    setImportPreview([]);
+    setMostrarImportacao(false);
+    setImportFabrica("");
+  };
   const ativos = negocios.filter(n => mostrarPerdidos || n.status !== "Perdido");
   return React.createElement("div", {
     className: "space-y-6"
@@ -6019,7 +6127,14 @@ function FunilVendas({
     style: {
       background: ROYAL
     }
-  }, "+ Novo Neg\xF3cio"))), mostrarRelatorio && React.createElement(RelatorioFunil, {
+  }, "+ Novo Neg\xF3cio"), React.createElement("button", {
+    onClick: () => setMostrarImportacao(v => !v),
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, mostrarImportacao ? "Fechar importação" : "📥 Importar relatório"))), mostrarRelatorio && React.createElement(RelatorioFunil, {
     negocios: negocios
   }), mostrarForm && React.createElement(Card, {
     title: editandoId ? "Editar negócio" : "Novo negócio"
@@ -6134,7 +6249,19 @@ function FunilVendas({
   }, "Venda direta (Ponte)"), vendedores.map(v => React.createElement("option", {
     key: v.id,
     value: v.id
-  }, v.nome))))), React.createElement("div", {
+  }, v.nome)))), React.createElement("div", {
+    className: "md:col-span-3"
+  }, React.createElement(Field, {
+    label: "Observa\xE7\xE3o (opcional)"
+  }, React.createElement("input", {
+    value: form.observacao || "",
+    onChange: set("observacao"),
+    placeholder: "Ex.: an\xE1lise de cr\xE9dito, aguardando estoque...",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })))), React.createElement("div", {
     className: "flex gap-2 mt-4"
   }, React.createElement("button", {
     onClick: salvar,
@@ -6149,7 +6276,125 @@ function FunilVendas({
       borderColor: LINE,
       color: NAVY
     }
-  }, "Cancelar"))), React.createElement("div", {
+  }, "Cancelar"))), mostrarImportacao && React.createElement(Card, {
+    title: "\uD83D\uDCE5 Importar relat\xF3rio de vendas (.xlsx)"
+  }, React.createElement("div", {
+    className: "space-y-4"
+  }, React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  }, React.createElement(Field, {
+    label: "Nome da f\xE1brica / representada"
+  }, React.createElement("input", {
+    value: importFabrica,
+    onChange: e => setImportFabrica(e.target.value),
+    placeholder: "Ex.: Brinox, Tramontina...",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), React.createElement(Field, {
+    label: "Arquivo Excel (.xlsx)"
+  }, React.createElement("input", {
+    type: "file",
+    accept: ".xlsx,.xls",
+    onChange: e => {
+      if (e.target.files[0]) processarPlanilhaFunil(e.target.files[0]);
+    },
+    className: "w-full text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700"
+  }))), importPreview.length > 0 && React.createElement(React.Fragment, null, React.createElement("p", {
+    className: "text-xs text-slate-500"
+  }, importPreview.filter(l => l.selecionado && !l.jaImportado).length, " de ", importPreview.length, " pedidos selecionados para importa\xE7\xE3o", importPreview.some(l => l.jaImportado) ? ` · ${importPreview.filter(l => l.jaImportado).length} já importado(s)` : ""), React.createElement("div", {
+    className: "border rounded-lg overflow-auto max-h-96",
+    style: {
+      borderColor: LINE
+    }
+  }, React.createElement("table", {
+    className: "w-full text-xs"
+  }, React.createElement("thead", null, React.createElement("tr", {
+    className: "bg-slate-100 sticky top-0"
+  }, React.createElement("th", {
+    className: "px-2 py-1.5 text-left w-8"
+  }, "\u2713"), React.createElement("th", {
+    className: "px-2 py-1.5 text-left"
+  }, "Pedido"), React.createElement("th", {
+    className: "px-2 py-1.5 text-left"
+  }, "Cliente"), React.createElement("th", {
+    className: "px-2 py-1.5 text-right"
+  }, "Valor"), React.createElement("th", {
+    className: "px-2 py-1.5 text-left"
+  }, "Situa\xE7\xE3o"), React.createElement("th", {
+    className: "px-2 py-1.5 text-left"
+  }, "Status"), React.createElement("th", {
+    className: "px-2 py-1.5 text-left min-w-[160px]"
+  }, "Observa\xE7\xE3o"))), React.createElement("tbody", null, importPreview.map((l, i) => React.createElement("tr", {
+    key: i,
+    className: l.jaImportado ? "bg-amber-50/60" : i % 2 === 0 ? "bg-white" : "bg-slate-50"
+  }, React.createElement("td", {
+    className: "px-2 py-1"
+  }, l.jaImportado ? React.createElement("span", {
+    className: "text-[9px] text-amber-600 font-bold whitespace-nowrap"
+  }, "J\xC1 IMPORT.") : React.createElement("input", {
+    type: "checkbox",
+    checked: l.selecionado,
+    onChange: e => setImportPreview(prev => prev.map((r, j) => j === i ? {
+      ...r,
+      selecionado: e.target.checked
+    } : r))
+  })), React.createElement("td", {
+    className: "px-2 py-1 font-mono whitespace-nowrap"
+  }, l.pedido), React.createElement("td", {
+    className: "px-2 py-1"
+  }, l.cliente), React.createElement("td", {
+    className: "px-2 py-1 text-right font-mono whitespace-nowrap"
+  }, brl(l.valor)), React.createElement("td", {
+    className: "px-2 py-1 whitespace-nowrap"
+  }, l.situacao), React.createElement("td", {
+    className: "px-2 py-1"
+  }, React.createElement("select", {
+    value: l.status,
+    onChange: e => setImportPreview(prev => prev.map((r, j) => j === i ? {
+      ...r,
+      status: e.target.value
+    } : r)),
+    className: "text-[10px] border rounded px-1 py-0.5",
+    style: {
+      borderColor: LINE
+    },
+    disabled: l.jaImportado
+  }, React.createElement("option", null, "Ganho"), React.createElement("option", null, "Aberto"))), React.createElement("td", {
+    className: "px-2 py-1"
+  }, React.createElement("input", {
+    value: l.observacao,
+    onChange: e => setImportPreview(prev => prev.map((r, j) => j === i ? {
+      ...r,
+      observacao: e.target.value
+    } : r)),
+    placeholder: "Obs...",
+    className: "w-full border rounded px-1.5 py-0.5 text-[10px]",
+    style: {
+      borderColor: LINE
+    },
+    disabled: l.jaImportado
+  }))))))), React.createElement("div", {
+    className: "flex gap-2 justify-end"
+  }, React.createElement("button", {
+    onClick: () => {
+      setImportPreview([]);
+      setMostrarImportacao(false);
+      setImportFabrica("");
+    },
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, "Cancelar"), React.createElement("button", {
+    onClick: confirmarImportacao,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#047857"
+    }
+  }, "\u2713 Confirmar importa\xE7\xE3o (", importPreview.filter(l => l.selecionado && !l.jaImportado).length, ")"))))), React.createElement("div", {
     className: "overflow-x-auto pb-4"
   }, React.createElement("div", {
     className: "flex gap-3 min-w-max"
@@ -6209,7 +6454,11 @@ function FunilVendas({
         className: "text-[11px] text-slate-400"
       }, vendedores.find(v => v.id === n.vendedorId)?.nome), n.representada && React.createElement("p", {
         className: "text-[11px] text-slate-400"
-      }, n.representada), n.status === "Perdido" && n.motivoPerda && React.createElement("p", {
+      }, n.representada), n.pedidoFabrica && React.createElement("p", {
+        className: "text-[10px] text-slate-400 font-mono"
+      }, "#", n.pedidoFabrica, n.notaFiscal ? ` · NF ${n.notaFiscal}` : ""), n.observacao && React.createElement("p", {
+        className: "text-[10px] text-amber-600 italic"
+      }, n.observacao), n.status === "Perdido" && n.motivoPerda && React.createElement("p", {
         className: "text-[10px] text-red-600 mt-1"
       }, "Motivo: ", n.motivoPerda), React.createElement("div", {
         className: "flex items-center justify-between mt-2"
@@ -8323,9 +8572,33 @@ function HistoricoLRA({
   chamadosLRA,
   setChamadosLRA
 }) {
-  const setStatus = (id, status) => setChamadosLRA(chamadosLRA.map(c => c.id === id ? {
+  const [arrastando, setArrastando] = useState(null);
+  const [expandidoId, setExpandidoId] = useState(null);
+  const etapaDoStatus = status => {
+    if (status === "Aberto") return "Aberto";
+    if (status === "Em Tratativa") return "Em Tratativa";
+    return "Concluído";
+  };
+  const moverEtapa = (id, novaEtapa) => {
+    setChamadosLRA(chamadosLRA.map(c => {
+      if (c.id !== id) return c;
+      if (novaEtapa === "Aberto") return {
+        ...c,
+        status: "Aberto"
+      };
+      if (novaEtapa === "Em Tratativa") return {
+        ...c,
+        status: "Em Tratativa"
+      };
+      return {
+        ...c,
+        status: "Resolvido"
+      };
+    }));
+  };
+  const marcarDesfecho = (id, desfecho) => setChamadosLRA(chamadosLRA.map(c => c.id === id ? {
     ...c,
-    status
+    status: desfecho
   } : c));
   const toggleCasoBemResolvido = id => setChamadosLRA(chamadosLRA.map(c => c.id === id ? {
     ...c,
@@ -8336,75 +8609,159 @@ function HistoricoLRA({
     const corpo = encodeURIComponent(`Protocolo: ${c.protocolo}\nCliente: ${c.clienteNome}\nNF: ${c.numeroNF || "—"}\nTipo: ${c.tipoOcorrencia}\nSolução pretendida: ${c.solucao}\nStatus: ${c.status}\n\nRelato:\n${c.relato}\n\n(Anexe manualmente as fotos/áudio deste chamado — o mailto não permite anexo automático)`);
     return `mailto:sac@ponterepresentacoes.com.br?subject=${assunto}&body=${corpo}`;
   };
+  const onDrop = etapa => e => {
+    e.preventDefault();
+    if (arrastando) moverEtapa(arrastando, etapa);
+    setArrastando(null);
+  };
   if (chamadosLRA.length === 0) {
     return React.createElement(Card, null, React.createElement(EmptyState, {
       text: "Nenhum chamado registrado ainda."
     }));
   }
   return React.createElement("div", {
-    className: "grid grid-cols-1 lg:grid-cols-2 gap-3"
-  }, chamadosLRA.slice().reverse().map(c => {
-    const diasLimite = c.diasLimite;
-    const prazo = calcularPrazoCDC(c.tipoOcorrencia, c.dataBase, diasLimite);
-    return React.createElement(Card, {
-      key: c.id
+    className: "overflow-x-auto pb-4"
+  }, React.createElement("div", {
+    className: "flex gap-3 min-w-max"
+  }, ETAPAS_LRA_KANBAN.map(etapa => {
+    const doEtapa = chamadosLRA.filter(c => etapaDoStatus(c.status) === etapa);
+    return React.createElement("div", {
+      key: etapa,
+      className: "w-80 flex-shrink-0",
+      onDragOver: e => e.preventDefault(),
+      onDrop: onDrop(etapa)
     }, React.createElement("div", {
-      className: "flex items-start justify-between gap-3"
-    }, React.createElement("div", null, React.createElement("p", {
-      className: "text-sm font-black",
+      className: "rounded-t-lg px-3 py-2",
       style: {
-        color: NAVY
+        background: ETAPA_LRA_COR[etapa]
       }
-    }, c.protocolo, " \u2014 ", c.clienteNome), React.createElement("p", {
-      className: "text-[11px] text-slate-500"
-    }, c.tipoOcorrencia, " \xB7 NF ", c.numeroNF || "—", " \xB7 ", c.solucao)), React.createElement("select", {
-      value: c.status,
-      onChange: e => setStatus(c.id, e.target.value),
-      className: "text-xs font-bold border rounded-md px-2 py-1",
-      style: {
-        borderColor: LINE
-      }
-    }, STATUS_LRA.map(s => React.createElement("option", {
-      key: s
-    }, s)))), prazo && React.createElement("div", {
-      className: `mt-3 rounded-md border px-3 py-2 text-xs font-semibold ${NIVEL_META[prazo.nivel].bg}`,
-      style: {
-        color: NIVEL_META[prazo.nivel].cor
-      }
-    }, NIVEL_META[prazo.nivel].label, " \u2014 ", prazo.restante > 0 ? `faltam ${prazo.restante} dia(s)` : `estourou há ${Math.abs(prazo.restante)} dia(s)`), c.status === "Resolvido" && React.createElement("label", {
-      className: "flex items-center gap-2 text-xs font-semibold mt-3",
-      style: {
-        color: c.casoBemResolvido ? "#B45309" : "#64748B"
-      }
-    }, React.createElement("input", {
-      type: "checkbox",
-      checked: !!c.casoBemResolvido,
-      onChange: () => toggleCasoBemResolvido(c.id)
-    }), "\uD83C\uDF1F Caso bem resolvido (reaproveitar como prova social em vendas futuras)"), React.createElement("p", {
-      className: "text-xs text-slate-600 mt-3"
-    }, c.relato), React.createElement("p", {
-      className: "text-[11px] text-slate-400 mt-1"
-    }, c.temCTE ? "✓ CTE ressalvado" : "✗ sem CTE", " \xB7 ", (c.anexos || []).length, " anexo(s)"), (c.anexos || []).length > 0 && React.createElement("div", {
-      className: "flex flex-wrap gap-2 mt-2"
-    }, c.anexos.map(a => React.createElement("a", {
-      key: a.id,
-      href: a.url,
-      target: "_blank",
-      rel: "noreferrer",
-      className: "text-[11px] font-semibold px-2 py-1 rounded border hover:underline",
-      style: {
-        borderColor: LINE,
-        color: NAVY
-      }
-    }, iconeAnexo(a.tipo), " ", a.nome))), React.createElement("a", {
-      href: mailtoFor(c),
-      className: "inline-block mt-3 text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
-      style: {
-        borderColor: ROYAL,
-        color: ROYAL
-      }
-    }, "Enviar por e-mail ao SAC"));
-  }));
+    }, React.createElement("p", {
+      className: "text-xs font-black text-white uppercase tracking-wide"
+    }, etapa), React.createElement("p", {
+      className: "text-[11px] text-white/80"
+    }, doEtapa.length, " chamado(s)")), React.createElement("div", {
+      className: "bg-slate-50 rounded-b-lg p-2 space-y-2 min-h-[120px]"
+    }, doEtapa.length === 0 && React.createElement("p", {
+      className: "text-[11px] text-slate-400 text-center py-4"
+    }, "\u2014"), doEtapa.map(c => {
+      const prazo = calcularPrazoCDC(c.tipoOcorrencia, c.dataBase, c.diasLimite);
+      const isExpandido = expandidoId === c.id;
+      const desfecho = c.status === "Resolvido" || c.status === "Não Resolvido" ? c.status : null;
+      return React.createElement("div", {
+        key: c.id,
+        draggable: true,
+        onDragStart: () => setArrastando(c.id),
+        className: "bg-white rounded-md border shadow-sm cursor-move",
+        style: {
+          borderColor: LINE
+        }
+      }, React.createElement("div", {
+        className: "p-3",
+        onClick: () => setExpandidoId(isExpandido ? null : c.id),
+        style: {
+          cursor: "pointer"
+        }
+      }, React.createElement("div", {
+        className: "flex items-center justify-between mb-1"
+      }, React.createElement("span", {
+        className: "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100",
+        style: {
+          color: NAVY
+        }
+      }, c.protocolo), prazo && React.createElement("span", {
+        className: "text-[10px] font-bold px-2 py-0.5 rounded-full",
+        style: {
+          color: NIVEL_META[prazo.nivel].cor,
+          background: prazo.nivel === "verde" ? "#D1FAE5" : prazo.nivel === "amarelo" ? "#FEF3C7" : "#FEE2E2"
+        }
+      }, prazo.restante > 0 ? `${prazo.restante}d restantes` : `estourou ${Math.abs(prazo.restante)}d`)), React.createElement("p", {
+        className: "text-sm font-bold",
+        style: {
+          color: NAVY
+        }
+      }, c.clienteNome || "Sem cliente"), React.createElement("p", {
+        className: "text-[11px] text-slate-500"
+      }, c.tipoOcorrencia), etapa === "Concluído" && desfecho && React.createElement("span", {
+        className: "inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full",
+        style: {
+          background: desfecho === "Resolvido" ? "#D1FAE5" : "#FEE2E2",
+          color: desfecho === "Resolvido" ? "#047857" : "#B91C1C"
+        }
+      }, desfecho === "Resolvido" ? "✓ Resolvido" : "✕ Não Resolvido"), React.createElement("p", {
+        className: "text-[10px] text-slate-400 mt-1"
+      }, isExpandido ? "▲ fechar detalhes" : "▼ ver detalhes")), isExpandido && React.createElement("div", {
+        className: "px-3 pb-3 pt-0 border-t space-y-2",
+        style: {
+          borderColor: LINE
+        }
+      }, React.createElement("p", {
+        className: "text-[11px] text-slate-500 pt-2"
+      }, "NF ", c.numeroNF || "—", " \xB7 ", c.solucao, " \xB7 ", c.tipoProduto === "duravel" ? "Durável (90d)" : "Não durável (30d)"), prazo && React.createElement("div", {
+        className: `rounded-md border px-3 py-2 text-xs font-semibold ${NIVEL_META[prazo.nivel].bg}`,
+        style: {
+          color: NIVEL_META[prazo.nivel].cor
+        }
+      }, NIVEL_META[prazo.nivel].label, " \u2014 ", prazo.restante > 0 ? `faltam ${prazo.restante} dia(s)` : `estourou há ${Math.abs(prazo.restante)} dia(s)`), React.createElement("p", {
+        className: "text-xs text-slate-600"
+      }, c.relato), React.createElement("p", {
+        className: "text-[11px] text-slate-400"
+      }, c.temCTE ? "✓ CTE ressalvado" : "✗ sem CTE", " \xB7 ", (c.anexos || []).length, " anexo(s)"), (c.anexos || []).length > 0 && React.createElement("div", {
+        className: "flex flex-wrap gap-2"
+      }, c.anexos.map(a => React.createElement("a", {
+        key: a.id,
+        href: a.url,
+        target: "_blank",
+        rel: "noreferrer",
+        className: "text-[11px] font-semibold px-2 py-1 rounded border hover:underline",
+        style: {
+          borderColor: LINE,
+          color: NAVY
+        }
+      }, iconeAnexo(a.tipo), " ", a.nome))), desfecho === "Resolvido" && React.createElement("label", {
+        className: "flex items-center gap-2 text-xs font-semibold",
+        style: {
+          color: c.casoBemResolvido ? "#B45309" : "#64748B"
+        }
+      }, React.createElement("input", {
+        type: "checkbox",
+        checked: !!c.casoBemResolvido,
+        onChange: () => toggleCasoBemResolvido(c.id)
+      }), "Caso bem resolvido (prova social)"), React.createElement("a", {
+        href: mailtoFor(c),
+        className: "inline-block text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+        style: {
+          borderColor: ROYAL,
+          color: ROYAL
+        }
+      }, "Enviar por e-mail ao SAC")), React.createElement("div", {
+        className: "flex items-center gap-2 px-3 py-2 border-t",
+        style: {
+          borderColor: LINE
+        }
+      }, React.createElement("select", {
+        value: etapaDoStatus(c.status),
+        onChange: e => moverEtapa(c.id, e.target.value),
+        className: "text-[10px] border rounded px-1 py-0.5 flex-1",
+        style: {
+          borderColor: LINE
+        }
+      }, ETAPAS_LRA_KANBAN.map(e => React.createElement("option", {
+        key: e
+      }, e))), etapa === "Concluído" && React.createElement(React.Fragment, null, React.createElement("button", {
+        onClick: () => marcarDesfecho(c.id, "Resolvido"),
+        className: "text-[10px] font-bold",
+        style: {
+          color: desfecho === "Resolvido" ? "#047857" : "#94A3B8"
+        }
+      }, "\u2713 Resolvido"), React.createElement("button", {
+        onClick: () => marcarDesfecho(c.id, "Não Resolvido"),
+        className: "text-[10px] font-bold",
+        style: {
+          color: desfecho === "Não Resolvido" ? "#B91C1C" : "#94A3B8"
+        }
+      }, "\u2715 N\xE3o Resolvido"))));
+    })));
+  })));
 }
 function downloadCSV(filename, header, rows) {
   const body = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n");

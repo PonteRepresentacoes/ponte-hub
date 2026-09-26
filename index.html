@@ -5947,6 +5947,7 @@ function FunilVendas({
   const [mostrarImportacao, setMostrarImportacao] = useState(false);
   const [importPreview, setImportPreview] = useState([]);
   const [importFabrica, setImportFabrica] = useState("");
+  const [importMensagem, setImportMensagem] = useState("");
   const set = campo => e => setForm(f => ({
     ...f,
     [campo]: e.target.value
@@ -6017,51 +6018,69 @@ function FunilVendas({
     setArrastando(null);
   };
   const processarPlanilhaFunil = file => {
+    setImportMensagem("⏳ Lendo planilha...");
+    setImportPreview([]);
     const reader = new FileReader();
     reader.onload = ev => {
-      const wb = XLSX.read(ev.target.result, {
-        type: "array",
-        cellDates: true
-      });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const dados = XLSX.utils.sheet_to_json(ws, {
-        defval: ""
-      });
-      if (!dados.length) return;
-      const headers = Object.keys(dados[0]);
-      const find = (...terms) => headers.find(h => terms.some(t => h.toString().toLowerCase().trim().includes(t)));
-      const colPedido = find("pedido", "nº ped", "num ped");
-      const colCliente = find("cliente", "razão social", "nome cliente");
-      const colValor = find("total", "valor");
-      const colDataEmissao = find("data de emissão", "data emissão", "emissão");
-      const colPrevisao = find("previsão", "prev. fat", "data prevista", "previsão de faturamento");
-      const colSituacao = find("situação", "status", "sit.");
-      const colRepresentante = find("representante", "vendedor");
-      const colNotaFiscal = find("nota fiscal", "nf ");
-      const colOrdemCompra = find("ordem de compra", "oc ", "marca");
-      const pedidosExistentes = new Set(negocios.filter(n => n.pedidoFabrica).map(n => n.pedidoFabrica));
-      const linhas = dados.map((row, i) => {
-        const pedido = String(row[colPedido] || "").trim();
-        if (!pedido) return null;
-        const jaImportado = pedidosExistentes.has(pedido);
-        return {
-          idx: i,
-          pedido,
-          cliente: String(row[colCliente] || "").trim(),
-          valor: parseValorPlanilha(row[colValor]),
-          dataEmissao: formatarDataPlanilha(row[colDataEmissao]),
-          previsao: formatarDataPlanilha(row[colPrevisao]),
-          situacao: String(row[colSituacao] || "").trim(),
-          representante: String(row[colRepresentante] || "").trim(),
-          notaFiscal: String(row[colNotaFiscal] || "").trim(),
-          ordemCompra: String(row[colOrdemCompra] || "").trim(),
-          status: "Ganho",
-          observacao: "",
-          selecionado: !jaImportado,
-          jaImportado
-        };
-      }).filter(Boolean);
-      setImportPreview(linhas);
+      try {
+        const wb = XLSX.read(ev.target.result, {
+          type: "array",
+          cellDates: true
+        });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const dados = XLSX.utils.sheet_to_json(ws, {
+          defval: ""
+        });
+        if (!dados.length) {
+          setImportMensagem("⚠️ Planilha vazia — nenhuma linha encontrada.");
+          return;
+        }
+        const headers = Object.keys(dados[0]);
+        const find = (...terms) => headers.find(h => terms.some(t => h.toString().toLowerCase().trim().includes(t)));
+        const colPedido = find("pedido", "nº ped", "num ped", "orçamento", "nº orç", "num orc", "código", "cod");
+        const colCliente = find("cliente", "razão social", "nome cliente");
+        const colValor = find("total", "valor");
+        const colDataEmissao = find("data de emissão", "data emissão", "emissão", "data");
+        const colPrevisao = find("previsão", "prev. fat", "data prevista", "previsão de faturamento");
+        const colSituacao = find("situação", "status", "sit.");
+        const colRepresentante = find("representante", "vendedor");
+        const colNotaFiscal = find("nota fiscal", "nf ");
+        const colOrdemCompra = find("ordem de compra", "oc ", "marca");
+        if (!colPedido && !colCliente) {
+          setImportMensagem("⚠️ Não foi possível identificar as colunas. Colunas encontradas: " + headers.slice(0, 8).join(", ") + (headers.length > 8 ? "..." : ""));
+          return;
+        }
+        const pedidosExistentes = new Set(negocios.filter(n => n.pedidoFabrica).map(n => n.pedidoFabrica));
+        const linhas = dados.map((row, i) => {
+          const pedido = colPedido ? String(row[colPedido] || "").trim() : String(i + 1);
+          if (!pedido) return null;
+          const jaImportado = pedidosExistentes.has(pedido);
+          return {
+            idx: i,
+            pedido,
+            cliente: String(row[colCliente] || "").trim(),
+            valor: parseValorPlanilha(row[colValor]),
+            dataEmissao: formatarDataPlanilha(row[colDataEmissao]),
+            previsao: formatarDataPlanilha(row[colPrevisao]),
+            situacao: String(row[colSituacao] || "").trim(),
+            representante: String(row[colRepresentante] || "").trim(),
+            notaFiscal: String(row[colNotaFiscal] || "").trim(),
+            ordemCompra: String(row[colOrdemCompra] || "").trim(),
+            status: "Ganho",
+            observacao: "",
+            selecionado: !jaImportado,
+            jaImportado
+          };
+        }).filter(Boolean);
+        if (!linhas.length) {
+          setImportMensagem("⚠️ Nenhum registro válido encontrado na planilha.");
+          return;
+        }
+        setImportPreview(linhas);
+        setImportMensagem("");
+      } catch (err) {
+        setImportMensagem("❌ Erro ao ler o arquivo: " + err.message);
+      }
     };
     reader.readAsArrayBuffer(file);
   };
@@ -6093,6 +6112,7 @@ function FunilVendas({
     setImportPreview([]);
     setMostrarImportacao(false);
     setImportFabrica("");
+    setImportMensagem("");
   };
   const ativos = negocios.filter(n => mostrarPerdidos || n.status !== "Perdido");
   return React.createElement("div", {
@@ -6283,16 +6303,20 @@ function FunilVendas({
   }, React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-2 gap-3"
   }, React.createElement(Field, {
-    label: "Nome da f\xE1brica / representada"
-  }, React.createElement("input", {
+    label: "F\xE1brica / representada"
+  }, React.createElement("select", {
     value: importFabrica,
     onChange: e => setImportFabrica(e.target.value),
-    placeholder: "Ex.: Brinox, Tramontina...",
     className: "w-full border rounded-md px-3 py-2 text-sm",
     style: {
       borderColor: LINE
     }
-  })), React.createElement(Field, {
+  }, React.createElement("option", {
+    value: ""
+  }, "Selecione a f\xE1brica..."), (representadasCadastro || []).filter(r => !r.excluida).map(r => React.createElement("option", {
+    key: r.id,
+    value: r.nome
+  }, r.nome)))), React.createElement(Field, {
     label: "Arquivo Excel (.xlsx)"
   }, React.createElement("input", {
     type: "file",
@@ -6301,7 +6325,12 @@ function FunilVendas({
       if (e.target.files[0]) processarPlanilhaFunil(e.target.files[0]);
     },
     className: "w-full text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700"
-  }))), importPreview.length > 0 && React.createElement(React.Fragment, null, React.createElement("p", {
+  }))), importMensagem && !importPreview.length && React.createElement("p", {
+    className: "text-sm font-semibold py-2",
+    style: {
+      color: importMensagem.startsWith("⏳") ? "#6B7280" : importMensagem.startsWith("❌") ? "#B91C1C" : "#B45309"
+    }
+  }, importMensagem), importPreview.length > 0 && React.createElement(React.Fragment, null, React.createElement("p", {
     className: "text-xs text-slate-500"
   }, importPreview.filter(l => l.selecionado && !l.jaImportado).length, " de ", importPreview.length, " pedidos selecionados para importa\xE7\xE3o", importPreview.some(l => l.jaImportado) ? ` · ${importPreview.filter(l => l.jaImportado).length} já importado(s)` : ""), React.createElement("div", {
     className: "border rounded-lg overflow-auto max-h-96",
@@ -6382,6 +6411,7 @@ function FunilVendas({
       setImportPreview([]);
       setMostrarImportacao(false);
       setImportFabrica("");
+      setImportMensagem("");
     },
     className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
     style: {

@@ -794,6 +794,12 @@ function PonteHub({
     clientes: clientes,
     devolucoesNFD: devolucoesNFD,
     setDevolucoesNFD: setDevolucoesNFD
+  }), area === "adm" && tab === "importar-historico" && React.createElement(ImportarHistoricoPedidos, {
+    pedidosEspelho: pedidosEspelho,
+    setPedidosEspelho: setPedidosEspelho,
+    clientes: clientes,
+    vendedores: vendedores,
+    representadasCadastro: representadasCadastro
   }), area === "adm" && tab === "personalizar" && React.createElement(ConfiguracaoCampos, {
     camposOcultos: camposOcultos,
     setCamposOcultos: setCamposOcultos
@@ -1576,6 +1582,9 @@ function Sidebar({
   }, {
     id: "devolucoes",
     label: "Devoluções"
+  }, {
+    id: "importar-historico",
+    label: "Importar Histórico"
   }, {
     id: "personalizar",
     label: "Personalizar"
@@ -9707,9 +9716,6 @@ function CentralPedidos({
     active: sub === "acompanhamento",
     onClick: () => setSub("acompanhamento")
   }, "Acompanhamento das Vendas"), React.createElement(ToggleBtn, {
-    active: sub === "importar",
-    onClick: () => setSub("importar")
-  }, "Importar Hist\xF3rico"), React.createElement(ToggleBtn, {
     active: sub === "icms",
     onClick: () => setSub("icms")
   }, "Tabela de ICMS")), sub === "icms" && React.createElement(TabelaICMS, {
@@ -9721,12 +9727,6 @@ function CentralPedidos({
   }), sub === "orcamentos" && React.createElement(Orcamentos, {
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho
-  }), sub === "importar" && React.createElement(ImportarHistoricoPedidos, {
-    pedidosEspelho: pedidosEspelho,
-    setPedidosEspelho: setPedidosEspelho,
-    clientes: clientes,
-    vendedores: vendedores,
-    representadasCadastro: representadasCadastro
   }), sub === "acompanhamento" && React.createElement(AcompanhamentoVendas, {
     pedidosEspelho: pedidosEspelho,
     vendedores: vendedores,

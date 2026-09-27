@@ -395,6 +395,64 @@ function detectarDuplicatasExtrato(transacoesArquivo, fluxoCaixa) {
     possiveis
   };
 }
+function detectarConciliacaoContas(novas, contasPagar, contasReceber) {
+  const DIAS_TOL_CONTA = 30;
+  const diaMs = 86400000;
+  const pagarPendentes = (contasPagar || []).filter(c => c.status !== "Pago");
+  const receberPendentes = (contasReceber || []).filter(c => c.status !== "Recebido");
+  const usadosPagar = new Set();
+  const usadosReceber = new Set();
+  const comConta = [];
+  const semConta = [];
+  novas.forEach(t => {
+    let melhor = null;
+    if (t.valor < 0) {
+      pagarPendentes.forEach(c => {
+        if (usadosPagar.has(c.id)) return;
+        if (Math.abs(Math.abs(Number(c.valor)) - Math.abs(t.valor)) > 0.005) return;
+        const ref = c.vencimento || (c.criadoEm || "").slice(0, 10);
+        if (!ref) return;
+        const dif = Math.abs(Math.round((new Date(ref + "T12:00:00") - new Date(t.data + "T12:00:00")) / diaMs));
+        if (dif > DIAS_TOL_CONTA) return;
+        if (!melhor || dif < melhor.diasDif) melhor = {
+          conta: c,
+          tipo: "pagar",
+          diasDif: dif
+        };
+      });
+    } else {
+      receberPendentes.forEach(c => {
+        if (usadosReceber.has(c.id)) return;
+        if (Math.abs(Number(c.valor) - t.valor) > 0.005) return;
+        const ref = c.vencimento || (c.criadoEm || "").slice(0, 10);
+        if (!ref) return;
+        const dif = Math.abs(Math.round((new Date(ref + "T12:00:00") - new Date(t.data + "T12:00:00")) / diaMs));
+        if (dif > DIAS_TOL_CONTA) return;
+        if (!melhor || dif < melhor.diasDif) melhor = {
+          conta: c,
+          tipo: "receber",
+          diasDif: dif
+        };
+      });
+    }
+    if (melhor) {
+      if (melhor.tipo === "pagar") usadosPagar.add(melhor.conta.id);else usadosReceber.add(melhor.conta.id);
+      comConta.push({
+        t,
+        conta: melhor.conta,
+        tipo: melhor.tipo,
+        diasDif: melhor.diasDif,
+        conciliar: true
+      });
+    } else {
+      semConta.push(t);
+    }
+  });
+  return {
+    comConta,
+    semConta
+  };
+}
 const REGRAS_CATEGORIA_EXTRATO = [{
   padrao: /posto|combust[íi]vel|auto posto/i,
   categoria: "Combustível"
@@ -16877,7 +16935,11 @@ function Financeiro({
     fluxoCaixa: fluxoCaixa,
     setFluxoCaixa: setFluxoCaixa,
     totals: totals,
-    representadasCadastro: representadasCadastro
+    representadasCadastro: representadasCadastro,
+    contasPagar: contasPagar,
+    setContasPagar: setContasPagar,
+    contasReceber: contasReceber,
+    setContasReceber: setContasReceber
   }), sub === "comissoes" && React.createElement(Comissoes, {
     clientes: clientes,
     vendedores: vendedores,
@@ -16909,7 +16971,11 @@ function Financeiro({
 function ImportarExtratoFluxoCaixa({
   fluxoCaixa,
   setFluxoCaixa,
-  representadasCadastro
+  representadasCadastro,
+  contasPagar,
+  setContasPagar,
+  contasReceber,
+  setContasReceber
 }) {
   const [transacoes, setTransacoes] = useState([]);
   const [ajustes, setAjustes] = useState({});
@@ -16918,6 +16984,7 @@ function ImportarExtratoFluxoCaixa({
   const [busca, setBusca] = useState("");
   const [concluido, setConcluido] = useState(null);
   const [possiveisDup, setPossiveisDup] = useState([]);
+  const [contasConciliar, setContasConciliar] = useState([]);
   const processarArquivo = e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -16932,13 +16999,18 @@ function ImportarExtratoFluxoCaixa({
         return;
       }
       const {
-        novas,
+        novas: novasBruto,
         jaImportadas,
         possiveis
       } = detectarDuplicatasExtrato(resultado.transacoes, fluxoCaixa);
+      const {
+        comConta,
+        semConta: novas
+      } = detectarConciliacaoContas(novasBruto, contasPagar, contasReceber);
       setPuladas(jaImportadas);
       setPossiveisDup(possiveis);
-      if (novas.length === 0 && possiveis.length === 0) {
+      setContasConciliar(comConta);
+      if (novas.length === 0 && possiveis.length === 0 && comConta.length === 0) {
         setErro(resultado.transacoes.length > 0 ? `Todas as ${resultado.transacoes.length} transações desse arquivo já estão no Fluxo de Caixa — nada a importar.` : "Não encontrei nenhuma transação válida nesse arquivo.");
         setTransacoes([]);
         return;
@@ -16985,10 +17057,12 @@ function ImportarExtratoFluxoCaixa({
   const totalSaida = transacoes.filter(t => t.valor < 0).reduce((a, t) => a + Math.abs(t.valor), 0);
   const dupParaImportar = possiveisDup.filter(p => p.importar);
   const dupConciliar = possiveisDup.filter(p => !p.importar);
-  const totalAImportar = transacoes.length + dupParaImportar.length;
+  const contasConfirmar = contasConciliar.filter(p => p.conciliar);
+  const contasNaoConciliar = contasConciliar.filter(p => !p.conciliar);
+  const totalAImportar = transacoes.length + dupParaImportar.length + contasConfirmar.length + contasNaoConciliar.length;
   const confirmar = () => {
     if (totalAImportar === 0 && dupConciliar.length === 0) return;
-    const novosLancamentos = [...transacoes, ...dupParaImportar.map(p => p.t)].map(t => {
+    const novosLancamentos = [...transacoes, ...dupParaImportar.map(p => p.t), ...contasNaoConciliar.map(p => p.t)].map(t => {
       const ajuste = ajustes[t.contraparte] || {
         categoria: "Outro",
         categoriaOutro: t.contraparte,
@@ -17018,16 +17092,63 @@ function ImportarExtratoFluxoCaixa({
       idExtrato: conciliar[f.id],
       conciliadoExtrato: true
     } : f);
-    setFluxoCaixa([...existentesAtualizados, ...novosLancamentos]);
+    const lancamentosContas = contasConfirmar.map(({
+      t,
+      conta
+    }) => {
+      const ajuste = ajustes[t.contraparte] || {
+        categoria: conta.descricao || "Outro",
+        categoriaOutro: t.contraparte,
+        tag: "empresa"
+      };
+      const categoriaFinal = ajuste.categoria === "Outro" ? (ajuste.categoriaOutro || "").trim() || t.contraparte : ajuste.categoria;
+      const descricaoFinal = `${categoriaFinal} — ${t.contraparte}`;
+      return {
+        id: uid(),
+        descricao: descricaoFinal,
+        valor: t.valor,
+        tag: ajuste.tag || "empresa",
+        percentualEmpresa: null,
+        origem: "extrato-bancario",
+        idExtrato: t.idExtrato,
+        dataLancamento: t.data,
+        contraparte: t.contraparte,
+        criadoEm: new Date().toISOString()
+      };
+    });
+    if (contasConfirmar.length > 0 && setContasPagar && setContasReceber) {
+      const idsPagar = new Set(contasConfirmar.filter(p => p.tipo === "pagar").map(p => p.conta.id));
+      const idsReceber = new Set(contasConfirmar.filter(p => p.tipo === "receber").map(p => p.conta.id));
+      const idExtratoMap = Object.fromEntries(contasConfirmar.map(p => [p.conta.id, p.t.idExtrato]));
+      if (idsPagar.size > 0) {
+        setContasPagar(prev => prev.map(c => idsPagar.has(c.id) ? {
+          ...c,
+          status: "Pago",
+          dataPagamento: contasConfirmar.find(p => p.conta.id === c.id)?.t.data || new Date().toISOString().slice(0, 10),
+          idExtrato: idExtratoMap[c.id]
+        } : c));
+      }
+      if (idsReceber.size > 0) {
+        setContasReceber(prev => prev.map(c => idsReceber.has(c.id) ? {
+          ...c,
+          status: "Recebido",
+          dataRecebimento: contasConfirmar.find(p => p.conta.id === c.id)?.t.data || new Date().toISOString().slice(0, 10),
+          idExtrato: idExtratoMap[c.id]
+        } : c));
+      }
+    }
+    setFluxoCaixa([...existentesAtualizados, ...novosLancamentos, ...lancamentosContas]);
     setConcluido({
-      total: novosLancamentos.length,
-      entrada: novosLancamentos.filter(l => l.valor > 0).reduce((a, l) => a + l.valor, 0),
-      saida: novosLancamentos.filter(l => l.valor < 0).reduce((a, l) => a + Math.abs(l.valor), 0),
+      total: novosLancamentos.length + lancamentosContas.length,
+      entrada: [...novosLancamentos, ...lancamentosContas].filter(l => l.valor > 0).reduce((a, l) => a + l.valor, 0),
+      saida: [...novosLancamentos, ...lancamentosContas].filter(l => l.valor < 0).reduce((a, l) => a + Math.abs(l.valor), 0),
       conciliados: dupConciliar.length,
+      contasConciliadas: contasConfirmar.length,
       jaImportadas: puladas
     });
     setTransacoes([]);
     setPossiveisDup([]);
+    setContasConciliar([]);
     setAjustes({});
     setBusca("");
   };
@@ -17049,11 +17170,92 @@ function ImportarExtratoFluxoCaixa({
     style: {
       color: "#047857"
     }
-  }, "\u2713 ", concluido.total, " lan\xE7amento(s) importado(s) \u2014 entradas ", brl(concluido.entrada), ", sa\xEDdas ", brl(concluido.saida), ".", concluido.conciliados > 0 ? ` ${concluido.conciliados} reconhecido(s) como já lançado(s) e vinculado(s) ao extrato, sem duplicar.` : "", concluido.jaImportadas > 0 ? ` ${concluido.jaImportadas} já estava(m) importado(s) de extrato anterior.` : ""), (transacoes.length > 0 || possiveisDup.length > 0) && React.createElement("div", {
+  }, "\u2713 ", concluido.total, " lan\xE7amento(s) importado(s) \u2014 entradas ", brl(concluido.entrada), ", sa\xEDdas ", brl(concluido.saida), ".", concluido.contasConciliadas > 0 ? ` ${concluido.contasConciliadas} conta(s) marcada(s) como paga/recebida automaticamente.` : "", concluido.conciliados > 0 ? ` ${concluido.conciliados} reconhecido(s) como já lançado(s) e vinculado(s) ao extrato, sem duplicar.` : "", concluido.jaImportadas > 0 ? ` ${concluido.jaImportadas} já estava(m) importado(s) de extrato anterior.` : ""), (transacoes.length > 0 || possiveisDup.length > 0 || contasConciliar.length > 0) && React.createElement("div", {
     className: "mt-4 space-y-3"
   }, React.createElement("div", {
     className: "flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold text-slate-500"
-  }, React.createElement("span", null, transacoes.length, " transa\xE7\xE3o(\xF5es) novas em ", grupos.length, " contraparte(s) \xB7 entradas ", brl(totalEntrada), " \xB7 sa\xEDdas ", brl(totalSaida), puladas > 0 ? ` · ${puladas} já importada(s) de extrato anterior (ignoradas)` : "", possiveisDup.length > 0 ? ` · ${possiveisDup.length} possível(is) duplicata(s) pra revisar` : "")), possiveisDup.length > 0 && React.createElement("div", {
+  }, React.createElement("span", null, transacoes.length, " transa\xE7\xE3o(\xF5es) novas em ", grupos.length, " contraparte(s) \xB7 entradas ", brl(totalEntrada), " \xB7 sa\xEDdas ", brl(totalSaida), puladas > 0 ? ` · ${puladas} já importada(s) de extrato anterior (ignoradas)` : "", possiveisDup.length > 0 ? ` · ${possiveisDup.length} possível(is) duplicata(s) pra revisar` : "", contasConciliar.length > 0 ? ` · ${contasConciliar.length} conta(s) abertas encontradas` : "")), contasConciliar.length > 0 && React.createElement("div", {
+    className: "rounded-md border-2 p-3 space-y-2",
+    style: {
+      borderColor: "#6EE7B7",
+      background: "#ECFDF5"
+    }
+  }, React.createElement("div", null, React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: "#065F46"
+    }
+  }, "\u2705 ", contasConciliar.length, " transa\xE7\xE3o(\xF5es) coincidem com contas abertas"), React.createElement("p", {
+    className: "text-[11px]",
+    style: {
+      color: "#065F46"
+    }
+  }, "Mesmo valor de uma conta a pagar ou a receber ainda pendente. Por padr\xE3o ", React.createElement("b", null, "ser\xE3o conciliadas"), ": a conta \xE9 marcada como paga/recebida e a transa\xE7\xE3o entra no Fluxo de Caixa. Desmarque se n\xE3o for a mesma coisa.")), React.createElement("div", {
+    className: "flex gap-3 text-[11px] font-bold"
+  }, React.createElement("button", {
+    onClick: () => setContasConciliar(prev => prev.map(p => ({
+      ...p,
+      conciliar: true
+    }))),
+    className: "underline",
+    style: {
+      color: "#065F46"
+    }
+  }, "Conciliar todas"), React.createElement("button", {
+    onClick: () => setContasConciliar(prev => prev.map(p => ({
+      ...p,
+      conciliar: false
+    }))),
+    className: "underline text-slate-500"
+  }, "Importar todas sem conciliar")), React.createElement("div", {
+    className: "max-h-72 overflow-y-auto space-y-1.5 pr-1"
+  }, contasConciliar.map((p, i) => React.createElement("div", {
+    key: p.t.idExtrato,
+    className: "grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2 items-center bg-white rounded border px-2.5 py-2 text-[11px]",
+    style: {
+      borderColor: p.conciliar ? "#6EE7B7" : LINE
+    }
+  }, React.createElement("div", null, React.createElement("p", {
+    className: "font-bold text-slate-400 uppercase text-[9px] tracking-wide"
+  }, "No extrato"), React.createElement("p", {
+    className: "font-semibold",
+    style: {
+      color: NAVY
+    }
+  }, formatarDataBR(p.t.data), " \xB7 ", React.createElement("span", {
+    style: {
+      color: p.t.valor < 0 ? "#B91C1C" : "#047857"
+    }
+  }, brl(p.t.valor))), React.createElement("p", {
+    className: "text-slate-500 truncate",
+    title: p.t.contraparte
+  }, p.t.contraparte)), React.createElement("div", null, React.createElement("p", {
+    className: "font-bold text-slate-400 uppercase text-[9px] tracking-wide"
+  }, p.tipo === "pagar" ? "Conta a Pagar" : "Conta a Receber"), React.createElement("p", {
+    className: "font-semibold",
+    style: {
+      color: NAVY
+    }
+  }, p.conta.vencimento ? `Vence ${formatarDataBR(p.conta.vencimento)}` : "Sem vencimento", " \xB7 ", brl(Math.abs(Number(p.conta.valor))), p.diasDif > 0 ? React.createElement("span", {
+    className: "text-slate-400 font-normal"
+  }, " (", p.diasDif, "d de diferen\xE7a)") : React.createElement("span", {
+    className: "text-slate-400 font-normal"
+  }, " (mesmo dia)")), React.createElement("p", {
+    className: "text-slate-500 truncate",
+    title: p.conta.descricao
+  }, p.conta.descricao)), React.createElement("label", {
+    className: "flex items-center gap-1.5 font-bold whitespace-nowrap cursor-pointer",
+    style: {
+      color: p.conciliar ? "#065F46" : "#6B7280"
+    }
+  }, React.createElement("input", {
+    type: "checkbox",
+    checked: p.conciliar,
+    onChange: e => setContasConciliar(prev => prev.map((x, j) => j === i ? {
+      ...x,
+      conciliar: e.target.checked
+    } : x))
+  }), "Conciliar"))))), possiveisDup.length > 0 && React.createElement("div", {
     className: "rounded-md border-2 p-3 space-y-2",
     style: {
       borderColor: "#FCD34D",
@@ -17302,7 +17504,11 @@ function FluxoCaixa({
   fluxoCaixa,
   setFluxoCaixa,
   totals,
-  representadasCadastro
+  representadasCadastro,
+  contasPagar,
+  setContasPagar,
+  contasReceber,
+  setContasReceber
 }) {
   const [categoria, setCategoria] = useState("");
   const [descricaoOutro, setDescricaoOutro] = useState("");
@@ -17433,7 +17639,11 @@ function FluxoCaixa({
   }, mostrarImportar ? "Fechar importação de extrato" : "Importar extrato bancário (CSV)")), mostrarImportar && React.createElement(ImportarExtratoFluxoCaixa, {
     fluxoCaixa: fluxoCaixa,
     setFluxoCaixa: setFluxoCaixa,
-    representadasCadastro: representadasCadastro
+    representadasCadastro: representadasCadastro,
+    contasPagar: contasPagar,
+    setContasPagar: setContasPagar,
+    contasReceber: contasReceber,
+    setContasReceber: setContasReceber
   }), React.createElement("div", {
     className: "grid grid-cols-2 gap-3"
   }, React.createElement(Stat, {

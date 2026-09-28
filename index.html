@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
+<meta name="theme-color" content="#0F1729" />
 <title>Ponte Hub</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -2413,16 +2415,19 @@ function detectarDuplicatasExtrato(transacoesArquivo, fluxoCaixa) {
     sobrasExtrato[k] = (sobrasExtrato[k] || 0) + 1;
   });
   let jaImportadas = 0;
+  const jaImportadasList = [];
   const restantes = [];
   transacoesArquivo.forEach(t => {
     if (idsExistentes.has(t.idExtrato)) {
       jaImportadas++;
+      jaImportadasList.push(t);
       return;
     }
     const k = semSaldo(t.idExtrato);
     if (sobrasExtrato[k] > 0) {
       sobrasExtrato[k]--;
       jaImportadas++;
+      jaImportadasList.push(t);
       return;
     }
     restantes.push(t);
@@ -2464,6 +2469,7 @@ function detectarDuplicatasExtrato(transacoesArquivo, fluxoCaixa) {
   return {
     novas,
     jaImportadas,
+    jaImportadasList,
     possiveis
   };
 }
@@ -19108,6 +19114,8 @@ function ImportarExtratoFluxoCaixa({
   const [transacoes, setTransacoes] = useState([]);
   const [ajustes, setAjustes] = useState({});
   const [puladas, setPuladas] = useState(0);
+  const [descartadasExatas, setDescartadasExatas] = useState([]);
+  const [verDescartadas, setVerDescartadas] = useState(false);
   const [erro, setErro] = useState("");
   const [busca, setBusca] = useState("");
   const [concluido, setConcluido] = useState(null);
@@ -19129,6 +19137,7 @@ function ImportarExtratoFluxoCaixa({
       const {
         novas: novasBruto,
         jaImportadas,
+        jaImportadasList,
         possiveis
       } = detectarDuplicatasExtrato(resultado.transacoes, fluxoCaixa);
       const {
@@ -19136,6 +19145,8 @@ function ImportarExtratoFluxoCaixa({
         semConta: novas
       } = detectarConciliacaoContas(novasBruto, contasPagar, contasReceber);
       setPuladas(jaImportadas);
+      setDescartadasExatas(jaImportadasList);
+      setVerDescartadas(false);
       setPossiveisDup(possiveis);
       setContasConciliar(comConta);
       if (novas.length === 0 && possiveis.length === 0 && comConta.length === 0) {
@@ -19298,11 +19309,38 @@ function ImportarExtratoFluxoCaixa({
     style: {
       color: "#047857"
     }
-  }, "\u2713 ", concluido.total, " lan\xE7amento(s) importado(s) \u2014 entradas ", brl(concluido.entrada), ", sa\xEDdas ", brl(concluido.saida), ".", concluido.contasConciliadas > 0 ? ` ${concluido.contasConciliadas} conta(s) marcada(s) como paga/recebida automaticamente.` : "", concluido.conciliados > 0 ? ` ${concluido.conciliados} reconhecido(s) como já lançado(s) e vinculado(s) ao extrato, sem duplicar.` : "", concluido.jaImportadas > 0 ? ` ${concluido.jaImportadas} já estava(m) importado(s) de extrato anterior.` : ""), (transacoes.length > 0 || possiveisDup.length > 0 || contasConciliar.length > 0) && React.createElement("div", {
+  }, "\u2713 ", concluido.total, " lan\xE7amento(s) importado(s) \u2014 entradas ", brl(concluido.entrada), ", sa\xEDdas ", brl(concluido.saida), ".", concluido.contasConciliadas > 0 ? ` ${concluido.contasConciliadas} conta(s) marcada(s) como paga/recebida automaticamente.` : "", concluido.conciliados > 0 ? ` ${concluido.conciliados} reconhecido(s) como já lançado(s) e vinculado(s) ao extrato, sem duplicar.` : "", concluido.jaImportadas > 0 ? ` ${concluido.jaImportadas} já estava(m) importado(s) de extrato anterior.` : ""), (transacoes.length > 0 || possiveisDup.length > 0 || contasConciliar.length > 0 || descartadasExatas.length > 0) && React.createElement("div", {
     className: "mt-4 space-y-3"
   }, React.createElement("div", {
     className: "flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold text-slate-500"
-  }, React.createElement("span", null, transacoes.length, " transa\xE7\xE3o(\xF5es) novas em ", grupos.length, " contraparte(s) \xB7 entradas ", brl(totalEntrada), " \xB7 sa\xEDdas ", brl(totalSaida), puladas > 0 ? ` · ${puladas} já importada(s) de extrato anterior (ignoradas)` : "", possiveisDup.length > 0 ? ` · ${possiveisDup.length} possível(is) duplicata(s) pra revisar` : "", contasConciliar.length > 0 ? ` · ${contasConciliar.length} conta(s) abertas encontradas` : "")), contasConciliar.length > 0 && React.createElement("div", {
+  }, React.createElement("span", null, transacoes.length, " transa\xE7\xE3o(\xF5es) novas em ", grupos.length, " contraparte(s) \xB7 entradas ", brl(totalEntrada), " \xB7 sa\xEDdas ", brl(totalSaida), puladas > 0 ? ` · ${puladas} já importada(s) de extrato anterior (ignoradas)` : "", possiveisDup.length > 0 ? ` · ${possiveisDup.length} possível(is) duplicata(s) pra revisar` : "", contasConciliar.length > 0 ? ` · ${contasConciliar.length} conta(s) abertas encontradas` : "", descartadasExatas.length > 0 ? ` · ${descartadasExatas.length} duplicata(s) descartada(s)` : "")), descartadasExatas.length > 0 && React.createElement("div", {
+    className: "rounded-md border-2 p-3 space-y-2",
+    style: {
+      borderColor: "#CBD5E1",
+      background: "#F8FAFC"
+    }
+  }, React.createElement("div", {
+    className: "flex items-center justify-between gap-3"
+  }, React.createElement("div", null, React.createElement("p", {
+    className: "text-sm font-black text-slate-600"
+  }, "\uD83D\uDDD1\uFE0F ", descartadasExatas.length, " ", descartadasExatas.length === 1 ? "transação idêntica descartada automaticamente" : "transações idênticas descartadas automaticamente"), React.createElement("p", {
+    className: "text-[11px] text-slate-500"
+  }, "J\xE1 existem no Fluxo de Caixa com o mesmo identificador \u2014 n\xE3o ser\xE3o duplicadas. Se quiser ver quais s\xE3o, expanda abaixo.")), React.createElement("button", {
+    onClick: () => setVerDescartadas(v => !v),
+    className: "text-[11px] font-bold whitespace-nowrap underline text-slate-500"
+  }, verDescartadas ? "Ocultar" : "Ver lista")), verDescartadas && React.createElement("div", {
+    className: "max-h-48 overflow-y-auto space-y-1 pr-1"
+  }, descartadasExatas.map((t, i) => React.createElement("div", {
+    key: i,
+    className: "flex items-center justify-between bg-white rounded border border-slate-200 px-2.5 py-1.5 text-[11px]"
+  }, React.createElement("span", {
+    className: "text-slate-600 truncate mr-2"
+  }, formatarDataBR(t.data), " \xB7 ", t.contraparte), React.createElement("span", {
+    className: "font-bold whitespace-nowrap",
+    style: {
+      color: t.valor < 0 ? "#B91C1C" : "#047857"
+    }
+  }, brl(t.valor)))))), contasConciliar.length > 0 && React.createElement("div", {
     className: "rounded-md border-2 p-3 space-y-2",
     style: {
       borderColor: "#6EE7B7",
@@ -19394,29 +19432,29 @@ function ImportarExtratoFluxoCaixa({
     style: {
       color: "#92400E"
     }
-  }, "\u26A0\uFE0F ", possiveisDup.length, " transa\xE7\xE3o(\xF5es) parecem j\xE1 estar no Financeiro"), React.createElement("p", {
+  }, "\u26A0\uFE0F ", possiveisDup.length, " poss\xEDvel(is) duplicata(s) \u2014 revise antes de importar"), React.createElement("p", {
     className: "text-[11px]",
     style: {
       color: "#92400E"
     }
-  }, "Mesmo valor, na mesma \xE9poca, de um lan\xE7amento que j\xE1 existe \u2014 digitado \xE0 m\xE3o, pagamento de conta, comiss\xE3o etc. Cada lan\xE7amento existente s\xF3 cobre uma transa\xE7\xE3o do extrato. Por padr\xE3o ", React.createElement("b", null, "n\xE3o ser\xE3o importadas"), ": o lan\xE7amento existente fica vinculado ao extrato. Marque \"Importar mesmo assim\" s\xF3 se for uma transa\xE7\xE3o diferente.")), React.createElement("div", {
+  }, "Mesmo valor e \xE9poca de lan\xE7amentos j\xE1 existentes. ", React.createElement("b", null, "Por padr\xE3o ser\xE3o descartadas"), " (n\xE3o duplicar). Marque \"Importar mesmo assim\" s\xF3 se for uma transa\xE7\xE3o diferente.")), React.createElement("div", {
     className: "flex gap-3 text-[11px] font-bold"
   }, React.createElement("button", {
     onClick: () => setPossiveisDup(prev => prev.map(p => ({
       ...p,
       importar: false
     }))),
-    className: "underline",
+    className: "px-3 py-1 rounded-md font-bold text-white text-[11px]",
     style: {
-      color: "#92400E"
+      background: "#B45309"
     }
-  }, "Tratar todas como duplicata"), React.createElement("button", {
+  }, "\uD83D\uDDD1\uFE0F Descartar todas"), React.createElement("button", {
     onClick: () => setPossiveisDup(prev => prev.map(p => ({
       ...p,
       importar: true
     }))),
-    className: "underline text-slate-500"
-  }, "Importar todas")), React.createElement("div", {
+    className: "underline text-slate-500 text-[11px]"
+  }, "Importar todas mesmo assim")), React.createElement("div", {
     className: "max-h-72 overflow-y-auto space-y-1.5 pr-1"
   }, possiveisDup.map((p, i) => React.createElement("div", {
     key: p.t.idExtrato,
@@ -19648,6 +19686,9 @@ function FluxoCaixa({
   const [mostrarImportar, setMostrarImportar] = useState(false);
   const [filtroMes, setFiltroMes] = useState(() => new Date().toISOString().slice(0, 7));
   const [verTudo, setVerTudo] = useState(false);
+  const [ordemLista, setOrdemLista] = useState("data");
+  const [editandoId, setEditandoId] = useState(null);
+  const [editForm, setEditForm] = useState({});
   const descricaoFinal = categoria === "Outro" ? descricaoOutro.trim() : categoria;
   const v = parseValorBR(valor);
   const valido = descricaoFinal !== "" && v > 0;
@@ -19669,6 +19710,34 @@ function FluxoCaixa({
     setTimeout(() => setConfirmado(false), 2000);
   };
   const remove = id => setFluxoCaixa(fluxoCaixa.filter(f => f.id !== id));
+  const abrirEditar = f => {
+    setEditandoId(f.id);
+    setEditForm({
+      descricao: f.descricao || "",
+      valor: String(Math.abs(f.valor)).replace(".", ","),
+      tipo: f.valor >= 0 ? "entrada" : "saida",
+      tag: f.tag || "empresa",
+      percentualEmpresa: f.percentualEmpresa ?? 70,
+      dataLancamento: f.dataLancamento || ""
+    });
+  };
+  const salvarEditar = () => {
+    const v = parseValorBR(editForm.valor);
+    if (!editForm.descricao.trim() || v <= 0) return;
+    setFluxoCaixa(fluxoCaixa.map(f => f.id !== editandoId ? f : {
+      ...f,
+      descricao: editForm.descricao.trim(),
+      valor: editForm.tipo === "saida" ? -Math.abs(v) : Math.abs(v),
+      tag: editForm.tag,
+      percentualEmpresa: editForm.tag === "misto" ? Number(editForm.percentualEmpresa) : null,
+      dataLancamento: editForm.dataLancamento || f.dataLancamento
+    }));
+    setEditandoId(null);
+  };
+  const setEF = k => e => setEditForm(p => ({
+    ...p,
+    [k]: e.target.value
+  }));
   const tagMeta = {
     empresa: {
       label: "🏢 Empresa",
@@ -19683,7 +19752,12 @@ function FluxoCaixa({
       chip: "bg-violet-50 text-violet-800 border-violet-300"
     }
   };
-  const lancamentosOrdenados = fluxoCaixa.slice().sort((a, b) => (b.dataLancamento || b.criadoEm || "").localeCompare(a.dataLancamento || a.criadoEm || ""));
+  const lancamentosOrdenados = fluxoCaixa.slice().sort((a, b) => {
+    if (ordemLista === "az") return (a.descricao || "").localeCompare(b.descricao || "", "pt-BR");
+    if (ordemLista === "valor-desc") return Math.abs(b.valor) - Math.abs(a.valor);
+    if (ordemLista === "valor-asc") return Math.abs(a.valor) - Math.abs(b.valor);
+    return (b.dataLancamento || b.criadoEm || "").localeCompare(a.dataLancamento || a.criadoEm || "");
+  });
   const lancamentosFiltrados = verTudo ? lancamentosOrdenados : lancamentosOrdenados.filter(f => (f.dataLancamento || f.criadoEm || "").slice(0, 7) === filtroMes);
   return React.createElement("div", {
     className: "space-y-6"
@@ -19803,16 +19877,25 @@ function FluxoCaixa({
   }), React.createElement("button", {
     onClick: () => setVerTudo(v => !v),
     className: `text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-md border ${verTudo ? "bg-blue-50 text-blue-800 border-blue-300" : "border-slate-200 text-slate-500"}`
-  }, verTudo ? "Mostrando todos os períodos" : "Ver todos os períodos")), fluxoCaixa.length === 0 ? React.createElement(EmptyState, {
+  }, verTudo ? "Mostrando todos os períodos" : "Ver todos os períodos"), React.createElement("button", {
+    onClick: () => setOrdemLista(o => o === "az" ? "data" : "az"),
+    className: `text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-md border ${ordemLista === "az" ? "bg-emerald-50 text-emerald-800 border-emerald-300" : "border-slate-200 text-slate-500"}`
+  }, ordemLista === "az" ? "A–Z ✓" : "A–Z"), React.createElement("button", {
+    onClick: () => setOrdemLista(o => o === "valor-desc" ? "valor-asc" : "valor-desc"),
+    className: `text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-md border ${ordemLista === "valor-desc" || ordemLista === "valor-asc" ? "bg-violet-50 text-violet-800 border-violet-300" : "border-slate-200 text-slate-500"}`
+  }, ordemLista === "valor-desc" ? "Valor ↓" : ordemLista === "valor-asc" ? "Valor ↑" : "Valor")), fluxoCaixa.length === 0 ? React.createElement(EmptyState, {
     text: "Nenhum lan\xE7amento no fluxo de caixa ainda."
   }) : lancamentosFiltrados.length === 0 ? React.createElement(EmptyState, {
     text: "Nenhum lan\xE7amento nesse m\xEAs. Troque o m\xEAs acima ou clique em \"Ver todos os per\xEDodos\"."
   }) : React.createElement("div", {
     className: "space-y-2"
   }, lancamentosFiltrados.map(f => {
-    const m = tagMeta[f.tag];
+    const m = tagMeta[f.tag] || tagMeta.empresa;
+    const estaEditando = editandoId === f.id;
     return React.createElement("div", {
       key: f.id,
+      className: "space-y-1"
+    }, React.createElement("div", {
       className: `flex items-center justify-between border-l-4 rounded-md px-3 py-2 ${m.chip}`
     }, React.createElement("div", null, React.createElement("p", {
       className: "text-sm font-bold"
@@ -19822,10 +19905,97 @@ function FluxoCaixa({
       className: "flex items-center gap-3"
     }, React.createElement("span", {
       className: "text-sm font-bold"
-    }, brl(f.valor)), f.origem !== "comissao" && React.createElement("button", {
+    }, brl(f.valor)), f.origem !== "comissao" && React.createElement(React.Fragment, null, React.createElement("button", {
+      onClick: () => estaEditando ? setEditandoId(null) : abrirEditar(f),
+      className: "text-[11px] font-semibold text-slate-500 hover:text-blue-600"
+    }, estaEditando ? "Cancelar" : "Editar"), React.createElement("button", {
       onClick: () => remove(f.id),
       className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
-    }, "Remover")));
+    }, "Remover")))), estaEditando && React.createElement("div", {
+      className: "rounded-md border px-3 py-3 bg-white space-y-2",
+      style: {
+        borderColor: LINE
+      }
+    }, React.createElement("div", {
+      className: "grid grid-cols-1 md:grid-cols-3 gap-2"
+    }, React.createElement("div", {
+      className: "md:col-span-2"
+    }, React.createElement("label", {
+      className: "text-[10px] font-bold uppercase text-slate-400"
+    }, "Descri\xE7\xE3o"), React.createElement("input", {
+      value: editForm.descricao,
+      onChange: setEF("descricao"),
+      className: "w-full border rounded-md px-3 py-2 text-sm mt-0.5",
+      style: {
+        borderColor: LINE
+      }
+    })), React.createElement("div", null, React.createElement("label", {
+      className: "text-[10px] font-bold uppercase text-slate-400"
+    }, "Valor"), React.createElement("input", {
+      value: editForm.valor,
+      onChange: setEF("valor"),
+      inputMode: "decimal",
+      className: "w-full border rounded-md px-3 py-2 text-sm mt-0.5",
+      style: {
+        borderColor: LINE
+      }
+    })), React.createElement("div", null, React.createElement("label", {
+      className: "text-[10px] font-bold uppercase text-slate-400"
+    }, "Tipo"), React.createElement("select", {
+      value: editForm.tipo,
+      onChange: setEF("tipo"),
+      className: "w-full border rounded-md px-3 py-2 text-sm mt-0.5",
+      style: {
+        borderColor: LINE
+      }
+    }, React.createElement("option", {
+      value: "entrada"
+    }, "Entrada"), React.createElement("option", {
+      value: "saida"
+    }, "Sa\xEDda"))), React.createElement("div", null, React.createElement("label", {
+      className: "text-[10px] font-bold uppercase text-slate-400"
+    }, "Etiqueta"), React.createElement("select", {
+      value: editForm.tag,
+      onChange: setEF("tag"),
+      className: "w-full border rounded-md px-3 py-2 text-sm mt-0.5",
+      style: {
+        borderColor: LINE
+      }
+    }, React.createElement("option", {
+      value: "empresa"
+    }, "\uD83C\uDFE2 Empresa"), React.createElement("option", {
+      value: "pessoal"
+    }, "\uD83C\uDFE0 Pessoal"), React.createElement("option", {
+      value: "misto"
+    }, "\uD83D\uDD04 Misto"))), editForm.tag === "misto" && React.createElement("div", null, React.createElement("label", {
+      className: "text-[10px] font-bold uppercase text-slate-400"
+    }, "% Empresa"), React.createElement("input", {
+      type: "number",
+      min: 0,
+      max: 100,
+      value: editForm.percentualEmpresa,
+      onChange: setEF("percentualEmpresa"),
+      className: "w-full border rounded-md px-3 py-2 text-sm mt-0.5",
+      style: {
+        borderColor: LINE
+      }
+    })), React.createElement("div", null, React.createElement("label", {
+      className: "text-[10px] font-bold uppercase text-slate-400"
+    }, "Data"), React.createElement("input", {
+      type: "date",
+      value: editForm.dataLancamento,
+      onChange: setEF("dataLancamento"),
+      className: "w-full border rounded-md px-3 py-2 text-sm mt-0.5",
+      style: {
+        borderColor: LINE
+      }
+    }))), React.createElement("button", {
+      onClick: salvarEditar,
+      className: "text-white text-xs font-bold px-4 py-2 rounded-md",
+      style: {
+        background: ROYAL
+      }
+    }, "Salvar altera\xE7\xE3o")));
   }))));
 }
 function statusConta(c, campoStatusOk) {

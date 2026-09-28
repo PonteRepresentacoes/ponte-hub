@@ -11922,12 +11922,45 @@ function ImportarHistoricoPedidos({
       return null;
     };
     const chavesExistentes = new Set(pedidosEspelho.filter(p => !p.excluido).map(p => chavePedido(p.representada, p.numeroNaIndustria, p.nfNumero)).filter(Boolean));
+    const existentePorChave = new Map();
+    pedidosEspelho.filter(p => !p.excluido).forEach(p => {
+      const k = chavePedido(p.representada, p.numeroNaIndustria, p.nfNumero);
+      if (k && !existentePorChave.has(k)) existentePorChave.set(k, p);
+    });
+    const atualizacoes = new Map();
     let jaExistiam = 0;
     let semCliente = 0;
     let cancelados = 0;
+    let canceladosExistentes = 0;
+    let atualizados = 0;
+    let faturadosAgora = 0;
     const novos = linhas.map(row => {
+      const repLinhaCedo = String(row.industriaNomeFantasia || row.industriaRazaoSocial || "").trim() || fabricaFixa;
+      const chaveCedo = chavePedido(repLinhaCedo, row.numeroNaIndustria, row.notaFiscal);
+      const existente = chaveCedo ? existentePorChave.get(chaveCedo) : null;
       if (situacaoEhCancelado(row.statusDoPedido)) {
-        cancelados++;
+        if (existente && !atualizacoes.has(existente.id)) {
+          atualizacoes.set(existente.id, {
+            cancelar: true
+          });
+          canceladosExistentes++;
+        } else cancelados++;
+        return null;
+      }
+      if (existente) {
+        const nf = String(row.notaFiscal ?? "").trim();
+        const situacao = String(row.statusDoPedido ?? "").trim();
+        const dataFat = excelDateToISO(row.dataDeFatura);
+        const muda = nf && nf !== (existente.nfNumero || "") || situacao && situacao !== (existente.situacao || "") || dataFat && dataFat !== (existente.dataFaturamento || "");
+        if (muda && !atualizacoes.has(existente.id)) {
+          atualizacoes.set(existente.id, {
+            nf,
+            situacao,
+            dataFaturamento: dataFat
+          });
+          atualizados++;
+          if (nf && existente.pedidoStatus !== "Faturado") faturadosAgora++;
+        } else jaExistiam++;
         return null;
       }
       const cnpjLinha = String(row.clienteCnpj ?? "").replace(/\D/g, "");
@@ -12009,11 +12042,39 @@ function ImportarHistoricoPedidos({
         excluido: false
       };
     }).filter(Boolean);
-    if (novos.length) setPedidosEspelho([...pedidosEspelho, ...novos]);
+    if (novos.length || atualizacoes.size) {
+      const agora = new Date().toISOString();
+      const atualizadosLista = pedidosEspelho.map(p => {
+        const u = atualizacoes.get(p.id);
+        if (!u) return p;
+        if (u.cancelar) return {
+          ...p,
+          excluido: true,
+          situacao: "Cancelado",
+          atualizadoPorImportacaoEm: agora
+        };
+        const novo = {
+          ...p,
+          atualizadoPorImportacaoEm: agora
+        };
+        if (u.situacao) novo.situacao = u.situacao;
+        if (u.dataFaturamento) novo.dataFaturamento = u.dataFaturamento;
+        if (u.nf) {
+          novo.nfNumero = u.nf;
+          if (p.pedidoStatus !== "Faturado") {
+            novo.pedidoStatus = "Faturado";
+            novo.valorFaturado = p.total;
+            novo.divergencia = 0;
+          }
+        }
+        return novo;
+      });
+      setPedidosEspelho([...atualizadosLista, ...novos]);
+    }
     const vinculados = novos.filter(p => p.clienteId).length;
     const nAmostras = novos.filter(p => p.status === "Amostra").length;
     const total = novos.reduce((a, p) => a + (Number(p.total) || 0), 0);
-    return `${novos.length} pedido(s) importado(s)${novos.length ? ` (${brl(total)}; ${vinculados} ligado(s) a cliente cadastrado)` : ""}${nAmostras ? ` · ${nAmostras} como Amostra` : ""}${cancelados ? ` · ${cancelados} cancelado(s) não importado(s)` : ""}${jaExistiam ? ` · ${jaExistiam} já existia(m) no sistema e foram ignorados` : ""}${semCliente ? ` · ${semCliente} linha(s) sem cliente puladas` : ""}.`;
+    return `${novos.length} pedido(s) importado(s)${novos.length ? ` (${brl(total)}; ${vinculados} ligado(s) a cliente cadastrado)` : ""}${nAmostras ? ` · ${nAmostras} como Amostra` : ""}${atualizados ? ` · ${atualizados} já existente(s) atualizado(s)${faturadosAgora ? ` (${faturadosAgora} faturado(s) desde a última importação)` : ""}` : ""}${canceladosExistentes ? ` · ${canceladosExistentes} cancelado(s) pela fábrica foram excluído(s) do Hub` : ""}${cancelados ? ` · ${cancelados} cancelado(s) não importado(s)` : ""}${jaExistiam ? ` · ${jaExistiam} já existia(m) sem mudança` : ""}${semCliente ? ` · ${semCliente} linha(s) sem cliente puladas` : ""}.`;
   };
   const fabricasAtivas = (representadasCadastro || []).filter(r => !r.excluida);
   return React.createElement("div", {
@@ -16090,7 +16151,12 @@ function ImportadorMapeavel({
           setMsg("Essa planilha está vazia.");
           return;
         }
-        const cols = Object.keys(rows[0]);
+        const vistos = new Set();
+        rows.forEach(r => Object.keys(r).forEach(k => vistos.add(k)));
+        const cabecalho = (XLSX.utils.sheet_to_json(sheet, {
+          header: 1
+        })[0] || []).map(h => h == null ? "" : String(h));
+        const cols = [...cabecalho.filter(h => vistos.has(h)), ...[...vistos].filter(k => !cabecalho.includes(k))];
         const guess = {};
         campos.forEach(c => {
           const candidatos = [c.label, ...(c.sinonimos || [])];

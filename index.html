@@ -4087,8 +4087,10 @@ function Dashboard({
   }).filter(Boolean).sort((a, b) => b.dias - a.dias);
   const hoje = new Date();
   const pedidosMes = pedidosAtivos.filter(p => {
-    if (!p.dataEmissao) return false;
-    const d = new Date(p.dataEmissao + "T00:00:00");
+    if (p.status && p.status !== "Pedido") return false;
+    const dataRef = p.dataEmissao || (p.criadoEm ? p.criadoEm.slice(0, 10) : null);
+    if (!dataRef) return false;
+    const d = new Date(dataRef + "T00:00:00");
     return d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear();
   });
   const totalVendidoMes = pedidosMes.reduce((a, p) => a + (p.total || 0), 0);

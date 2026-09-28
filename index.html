@@ -19663,9 +19663,9 @@ function GraficoFinanceiroPorTipo({
   }, "Receitas e despesas por tipo"), React.createElement("div", {
     className: "flex items-center gap-3 ml-3"
   }, React.createElement("span", {
-    className: "text-[11px] font-semibold text-emerald-700"
+    className: "text-sm font-black text-emerald-700"
   }, brl(totalEntrada)), React.createElement("span", {
-    className: "text-[11px] font-semibold text-red-700"
+    className: "text-sm font-black text-red-700"
   }, brl(totalSaida)), React.createElement("span", {
     className: "text-slate-400 text-xs"
   }, aberto ? "▲" : "▼"))), aberto && React.createElement("div", {
@@ -19718,6 +19718,7 @@ function FluxoCaixa({
   const [filtroMes, setFiltroMes] = useState(() => new Date().toISOString().slice(0, 7));
   const [verTudo, setVerTudo] = useState(false);
   const [ordemLista, setOrdemLista] = useState("data");
+  const [verLancamentos, setVerLancamentos] = useState(true);
   const [editandoId, setEditandoId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const descricaoFinal = categoria === "Outro" ? descricaoOutro.trim() : categoria;
@@ -19914,7 +19915,10 @@ function FluxoCaixa({
   }, ordemLista === "az" ? "A–Z ✓" : "A–Z"), React.createElement("button", {
     onClick: () => setOrdemLista(o => o === "valor-desc" ? "valor-asc" : "valor-desc"),
     className: `text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-md border ${ordemLista === "valor-desc" || ordemLista === "valor-asc" ? "bg-violet-50 text-violet-800 border-violet-300" : "border-slate-200 text-slate-500"}`
-  }, ordemLista === "valor-desc" ? "Valor ↓" : ordemLista === "valor-asc" ? "Valor ↑" : "Valor")), fluxoCaixa.length === 0 ? React.createElement(EmptyState, {
+  }, ordemLista === "valor-desc" ? "Valor ↓" : ordemLista === "valor-asc" ? "Valor ↑" : "Valor"), React.createElement("button", {
+    onClick: () => setVerLancamentos(v => !v),
+    className: `text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-md border ml-auto ${verLancamentos ? "border-slate-200 text-slate-500" : "bg-slate-100 text-slate-700 border-slate-300"}`
+  }, verLancamentos ? "Ocultar ▲" : "Ver lista ▼")), verLancamentos && (fluxoCaixa.length === 0 ? React.createElement(EmptyState, {
     text: "Nenhum lan\xE7amento no fluxo de caixa ainda."
   }) : lancamentosFiltrados.length === 0 ? React.createElement(EmptyState, {
     text: "Nenhum lan\xE7amento nesse m\xEAs. Troque o m\xEAs acima ou clique em \"Ver todos os per\xEDodos\"."
@@ -20027,7 +20031,7 @@ function FluxoCaixa({
         background: ROYAL
       }
     }, "Salvar altera\xE7\xE3o")));
-  }))));
+  })))));
 }
 function statusConta(c, campoStatusOk) {
   if (c.status === campoStatusOk) return c.status;

@@ -11695,7 +11695,8 @@ function ImportarHistoricoPedidos({
     label: "Indústria — Razão social"
   }, {
     id: "vendedorNome",
-    label: "Vendedor — Nome"
+    label: "Vendedor — Nome",
+    sinonimos: ["representante", "rep", "vendedor", "vendedor - nome", "nome do vendedor"]
   }, {
     id: "vendedorEmail",
     label: "Vendedor — E-mail"
@@ -11705,7 +11706,8 @@ function ImportarHistoricoPedidos({
     sinonimos: ["valor total", "total", "valor do pedido", "total do pedido"]
   }, {
     id: "quantidadeItens",
-    label: "Quantidade de itens"
+    label: "Quantidade de itens",
+    sinonimos: ["quantidade de itens", "quantidade solicitada", "qtd solicitada", "qtd. solicitada", "quantidade", "qtd", "itens"]
   }, {
     id: "tipo",
     label: "Tipo (status do pedido)",
@@ -11731,7 +11733,8 @@ function ImportarHistoricoPedidos({
     sinonimos: ["cond. pagamento", "cond pagamento", "condição pagamento", "condicao pagamento", "cond. pgto"]
   }, {
     id: "ordemCompra",
-    label: "Ordem de compra"
+    label: "Ordem de compra",
+    sinonimos: ["ordem de compra", "o.c.", "oc", "order"]
   }, {
     id: "notaFiscal",
     label: "Nota fiscal",
@@ -11802,7 +11805,9 @@ function ImportarHistoricoPedidos({
         return null;
       }
       if (chave) chavesExistentes.add(chave);
-      const vendedor = vendedores.find(v => row.vendedorEmail && norm(v.email) === norm(row.vendedorEmail) || row.vendedorNome && norm(v.nome) === norm(row.vendedorNome));
+      const vendedorNomeRaw = String(row.vendedorNome || "").trim();
+      const vendedorNomeSemCodigo = vendedorNomeRaw.replace(/^\d+\s*[-–]\s*/, "").trim();
+      const vendedor = vendedores.find(v => row.vendedorEmail && norm(v.email) === norm(row.vendedorEmail) || vendedorNomeRaw && norm(v.nome) === norm(vendedorNomeRaw) || vendedorNomeSemCodigo && norm(v.nome) === norm(vendedorNomeSemCodigo));
       const valor = typeof row.valor === "number" ? row.valor : parseValorPlanilha(row.valor);
       const qtdItens = Number(row.quantidadeItens) || 1;
       seq++;
@@ -11873,28 +11878,36 @@ function ImportarHistoricoPedidos({
   return React.createElement("div", {
     className: "space-y-6"
   }, React.createElement(Card, {
-    title: "F\xE1brica do relat\xF3rio",
-    subtitle: "Relat\xF3rio exportado do portal de uma f\xE1brica (ex.: Kalipso, Brinox) normalmente n\xE3o tem coluna de ind\xFAstria \u2014 escolha aqui de qual f\xE1brica \xE9 o arquivo antes de importar. Se a planilha tiver a coluna de ind\xFAstria, ela tem prioridade."
+    title: "\u2460 Escolha a f\xE1brica do relat\xF3rio",
+    subtitle: "Cada f\xE1brica tem um formato de arquivo diferente. Escolha aqui ANTES de importar \u2014 isso define a qual representada os pedidos pertencem."
+  }, React.createElement("div", {
+    className: "flex flex-col gap-2"
   }, React.createElement("select", {
     value: fabricaFixa,
     onChange: e => setFabricaFixa(e.target.value),
-    className: "w-full md:w-80 border rounded-md px-3 py-2 text-sm",
+    className: "w-full md:w-80 border-2 rounded-md px-3 py-2 text-sm font-semibold",
     style: {
-      borderColor: LINE
+      borderColor: fabricaFixa ? "#22C55E" : "#F59E0B",
+      background: fabricaFixa ? undefined : "#FFFBEB"
     }
   }, React.createElement("option", {
     value: ""
-  }, "Nenhuma (usar a coluna da planilha)"), fabricasAtivas.map(r => React.createElement("option", {
+  }, "\u26A0\uFE0F Nenhuma selecionada (usa coluna da planilha)"), fabricasAtivas.map(r => React.createElement("option", {
     key: r.id,
     value: r.nome
-  }, r.nome))), fabricasAtivas.length === 0 && React.createElement("p", {
+  }, r.nome))), !fabricaFixa && React.createElement("p", {
+    className: "text-[11px] font-bold text-amber-600"
+  }, "\u26A0\uFE0F Selecione a f\xE1brica antes de importar \u2014 sem ela, os pedidos ficam sem representada."), fabricasAtivas.length === 0 && React.createElement("p", {
     className: "text-[11px] text-amber-600 mt-1"
-  }, "Nenhuma representada cadastrada ainda \u2014 cadastre em Painel ADM \u2192 Representadas.")), React.createElement(ImportadorMapeavel, {
-    titulo: "Importar hist\xF3rico de pedidos",
-    subtitle: "Como a planilha n\xE3o traz itens individuais, cada pedido entra com um \xFAnico item resumido \u2014 edite manualmente se precisar do detalhamento por produto.",
+  }, "Nenhuma representada cadastrada ainda \u2014 cadastre em Painel ADM \u2192 Representadas."))), React.createElement(Card, {
+    title: "\u2461 Importe o arquivo",
+    subtitle: "Como a planilha n\xE3o traz itens individuais, cada pedido entra com um \xFAnico item resumido \u2014 edite manualmente se precisar do detalhamento por produto."
+  }, React.createElement(ImportadorMapeavel, {
+    titulo: "",
+    subtitle: "",
     campos: CAMPOS_PEDIDO_HISTORICO_IMPORT,
     onConfirmar: importarMapeado
-  }));
+  })));
 }
 function CentralPedidos({
   clientes,
@@ -17466,6 +17479,12 @@ function blankRepresentada() {
     website: "",
     observacoes: "",
     emailCopiaPedidos: "",
+    codigoRepresentante: "",
+    contatoNome: "",
+    contatoTelefone: "",
+    loginUsuario: "",
+    loginSenha: "",
+    links: [],
     casasDecimaisPreco: 2,
     casasDecimaisQuantidade: 0,
     numeracaoAtual: 1,
@@ -17905,6 +17924,137 @@ function RepresentadasCadastro({
     }
   })), React.createElement("p", {
     className: "text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2"
+  }, "Meus dados como representante"), React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-3 mb-4"
+  }, React.createElement(Field, {
+    label: "Meu c\xF3digo de representante"
+  }, React.createElement("input", {
+    value: form.codigoRepresentante || "",
+    onChange: set("codigoRepresentante"),
+    placeholder: "ex: 641",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), React.createElement(Field, {
+    label: "Contato na f\xE1brica \u2014 nome"
+  }, React.createElement("input", {
+    value: form.contatoNome || "",
+    onChange: set("contatoNome"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), React.createElement(Field, {
+    label: "Contato na f\xE1brica \u2014 telefone/WhatsApp"
+  }, React.createElement("input", {
+    value: form.contatoTelefone || "",
+    onChange: set("contatoTelefone"),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), React.createElement(Field, {
+    label: "Login (usu\xE1rio/e-mail)"
+  }, React.createElement("input", {
+    value: form.loginUsuario || "",
+    onChange: set("loginUsuario"),
+    placeholder: "seu login no portal",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), React.createElement(Field, {
+    label: "Senha do portal"
+  }, React.createElement("div", {
+    className: "relative"
+  }, React.createElement("input", {
+    type: form._mostrarSenha ? "text" : "password",
+    value: form.loginSenha || "",
+    onChange: set("loginSenha"),
+    placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
+    className: "w-full border rounded-md px-3 py-2 text-sm pr-16",
+    style: {
+      borderColor: LINE
+    }
+  }), React.createElement("button", {
+    type: "button",
+    onClick: () => setForm(f => ({
+      ...f,
+      _mostrarSenha: !f._mostrarSenha
+    })),
+    className: "absolute right-2 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-400 hover:text-slate-700"
+  }, form._mostrarSenha ? "Ocultar" : "Mostrar")))), React.createElement("div", {
+    className: "mb-4"
+  }, React.createElement("div", {
+    className: "flex items-center justify-between mb-2"
+  }, React.createElement("p", {
+    className: "text-[11px] font-bold uppercase tracking-wide text-slate-400"
+  }, "Links e portais"), React.createElement("button", {
+    type: "button",
+    onClick: () => setForm(f => ({
+      ...f,
+      links: [...(f.links || []), {
+        id: uid(),
+        label: "",
+        url: ""
+      }]
+    })),
+    className: "text-[11px] font-bold px-3 py-1 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, "+ Adicionar link")), (form.links || []).length === 0 && React.createElement("p", {
+    className: "text-xs text-slate-400 mb-2"
+  }, "Nenhum link \u2014 adicione portais, cat\xE1logos, sistema de pedidos\u2026"), (form.links || []).map((lk, i) => React.createElement("div", {
+    key: lk.id || i,
+    className: "flex gap-2 items-center mb-2"
+  }, React.createElement("input", {
+    value: lk.label,
+    onChange: e => setForm(f => ({
+      ...f,
+      links: f.links.map((l, j) => j === i ? {
+        ...l,
+        label: e.target.value
+      } : l)
+    })),
+    placeholder: "Nome (ex: Portal de Pedidos)",
+    className: "w-40 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), React.createElement("input", {
+    value: lk.url,
+    onChange: e => setForm(f => ({
+      ...f,
+      links: f.links.map((l, j) => j === i ? {
+        ...l,
+        url: e.target.value
+      } : l)
+    })),
+    placeholder: "https://...",
+    className: "flex-1 border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), lk.url && React.createElement("a", {
+    href: lk.url,
+    target: "_blank",
+    rel: "noreferrer",
+    className: "text-[11px] font-bold px-3 py-2 rounded-md",
+    style: {
+      color: ROYAL
+    }
+  }, "\u2197 Abrir"), React.createElement("button", {
+    type: "button",
+    onClick: () => setForm(f => ({
+      ...f,
+      links: f.links.filter((_, j) => j !== i)
+    })),
+    className: "text-[11px] font-semibold text-slate-400 hover:text-red-600 px-2"
+  }, "\u2715")))), React.createElement("p", {
+    className: "text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2"
   }, "Configura\xE7\xF5es"), React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-2 gap-3"
   }, React.createElement(Field, {
@@ -18046,14 +18196,27 @@ function RepresentadasCadastro({
       borderColor: LINE,
       opacity: r.excluida ? 0.5 : 1
     }
-  }, React.createElement("div", null, React.createElement("p", {
+  }, React.createElement("div", {
+    className: "flex-1 min-w-0"
+  }, React.createElement("p", {
     className: "text-sm font-bold",
     style: {
       color: NAVY
     }
   }, r.codigo ? `${r.codigo} - ` : "", r.nome), React.createElement("p", {
     className: "text-[11px] text-slate-400"
-  }, r.emailCopiaPedidos || "sem e-mail cadastrado", " \xB7 pedido m\xEDn. ", brl(Number(r.valorPedidoMinimo) || 0))), r.excluida ? React.createElement("button", {
+  }, r.codigoRepresentante ? `Meu cód.: ${r.codigoRepresentante} · ` : "", r.emailCopiaPedidos || "sem e-mail", " \xB7 pedido m\xEDn. ", brl(Number(r.valorPedidoMinimo) || 0)), (r.links || []).filter(lk => lk.url).length > 0 && React.createElement("div", {
+    className: "flex flex-wrap gap-2 mt-1"
+  }, (r.links || []).filter(lk => lk.url).map((lk, i) => React.createElement("a", {
+    key: i,
+    href: lk.url,
+    target: "_blank",
+    rel: "noreferrer",
+    className: "text-[11px] font-bold underline",
+    style: {
+      color: ROYAL
+    }
+  }, lk.label || lk.url, " \u2197")))), r.excluida ? React.createElement("button", {
     onClick: () => restaurar(r.id),
     className: "text-[11px] font-semibold text-blue-600 hover:underline"
   }, "Restaurar") : React.createElement("div", {

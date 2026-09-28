@@ -12037,7 +12037,11 @@ function CentralPedidos({
     onIrICMS: () => setSub("icms")
   }), sub === "lista" && React.createElement(ListaPedidosEspelho, {
     pedidosEspelho: pedidosEspelho,
-    setPedidosEspelho: setPedidosEspelho
+    setPedidosEspelho: setPedidosEspelho,
+    clientes: clientes,
+    vendedores: vendedores,
+    representadasCadastro: representadasCadastro,
+    condicoesPagamentoCadastro: condicoesPagamentoCadastro
   }));
 }
 function TabelaICMS({
@@ -12905,9 +12909,16 @@ function Orcamentos({
     className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
   }, "Excluir")))))));
 }
+const SITUACOES_PEDIDO_PADRAO = ["Pendente", "Concluído", "Separado", "Faturado", "Entregue", "Pago"];
+const STATUS_PEDIDO_OPCOES = ["Pedido", "Orçamento", "Bonificação", "Troca"];
+const pedidoEhImportado = p => String(p.origem || "").startsWith("Importado");
 function ListaPedidosEspelho({
   pedidosEspelho,
-  setPedidosEspelho
+  setPedidosEspelho,
+  clientes = [],
+  vendedores = [],
+  representadasCadastro = [],
+  condicoesPagamentoCadastro = []
 }) {
   const [faturamentoInput, setFaturamentoInput] = useState({});
   const [tipoData, setTipoData] = useState("dataEmissao");
@@ -12915,8 +12926,20 @@ function ListaPedidosEspelho({
   const [ate, setAte] = useState("");
   const [exibirExcluidos, setExibirExcluidos] = useState(false);
   const [exibirFaturados, setExibirFaturados] = useState(true);
+  const [busca, setBusca] = useState("");
+  const [filtroRep, setFiltroRep] = useState("");
+  const [limite, setLimite] = useState(50);
+  const [editandoId, setEditandoId] = useState(null);
+  const [form, setForm] = useState(null);
+  const [loteAberto, setLoteAberto] = useState(false);
+  const [lote, setLote] = useState({
+    representada: "",
+    vendedorId: "",
+    situacao: ""
+  });
+  const [msgLote, setMsgLote] = useState("");
   const registrarFaturamento = id => {
-    const valor = Number(faturamentoInput[id]);
+    const valor = parseValorBR(faturamentoInput[id]);
     if (!valor) return;
     setPedidosEspelho(pedidosEspelho.map(p => {
       if (p.id !== id) return p;
@@ -12937,17 +12960,170 @@ function ListaPedidosEspelho({
     ...p,
     excluido: false
   } : p));
+  const repsAtivas = (representadasCadastro || []).filter(r => !r.excluida).map(r => r.nome);
+  const opcoesRep = [...new Set([...repsAtivas, ...pedidosEspelho.map(p => p.representada).filter(Boolean)])].sort((a, b) => a.localeCompare(b));
+  const vendedoresAtivos = (vendedores || []).filter(v => !v.excluido);
+  const clientesOrdenados = (clientes || []).filter(c => !c.excluido).slice().sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || "")));
+  const situacoesConhecidas = [...new Set([...SITUACOES_PEDIDO_PADRAO, ...pedidosEspelho.map(p => p.situacao).filter(Boolean)])];
+  const semRepCount = pedidosEspelho.filter(p => !p.excluido && !p.representada).length;
+  const termo = norm(busca);
   const filtrados = pedidosEspelho.filter(p => {
     if (p.excluido && !exibirExcluidos) return false;
     if (!p.excluido && p.pedidoStatus === "Faturado" && !exibirFaturados) return false;
+    if (filtroRep === "__sem__" && p.representada) return false;
+    if (filtroRep && filtroRep !== "__sem__" && p.representada !== filtroRep) return false;
     const dataRef = p[tipoData];
     if (de && (!dataRef || dataRef < de)) return false;
     if (ate && (!dataRef || dataRef > ate)) return false;
+    if (termo && ![p.clienteNome, p.protocolo, p.numeroNaIndustria, p.nfNumero, p.ordemCompra, p.vendedorNome].some(v => norm(v).includes(termo))) return false;
     return true;
   });
+  const visiveis = filtrados.slice().reverse().slice(0, limite);
+  const abrirEdicao = p => {
+    setEditandoId(p.id);
+    setForm({
+      representada: p.representada || "",
+      clienteId: p.clienteId || "",
+      clienteNome: p.clienteNome || "",
+      vendedorId: p.vendedorId || "",
+      vendedorNome: p.vendedorNome || "",
+      status: p.status || "Pedido",
+      situacao: p.situacao || "",
+      pedidoStatus: p.pedidoStatus || "Aguardando Faturamento",
+      dataEmissao: p.dataEmissao || "",
+      dataFaturamento: p.dataFaturamento || "",
+      dataEntrega: p.dataEntrega || "",
+      condicaoPagamento: p.condicaoPagamento || "",
+      ordemCompra: p.ordemCompra || "",
+      numeroNaIndustria: p.numeroNaIndustria || "",
+      nfNumero: p.nfNumero || "",
+      total: p.total == null ? "" : String(p.total).replace(".", ","),
+      valorFaturado: p.valorFaturado == null ? "" : String(p.valorFaturado).replace(".", ","),
+      obsCliente: p.obsCliente || ""
+    });
+  };
+  const fecharEdicao = () => {
+    setEditandoId(null);
+    setForm(null);
+  };
+  const setF = campo => e => setForm(f => ({
+    ...f,
+    [campo]: e.target.value
+  }));
+  const salvarEdicao = () => {
+    if (!form) return;
+    setPedidosEspelho(pedidosEspelho.map(p => {
+      if (p.id !== editandoId) return p;
+      const novo = {
+        ...p,
+        representada: form.representada.trim(),
+        clienteId: form.clienteId,
+        clienteNome: form.clienteNome.trim() || p.clienteNome,
+        vendedorId: form.vendedorId,
+        vendedorNome: form.vendedorNome || "Venda direta (Ponte)",
+        status: form.status,
+        situacao: form.situacao.trim(),
+        pedidoStatus: form.pedidoStatus,
+        dataEmissao: form.dataEmissao,
+        dataFaturamento: form.dataFaturamento,
+        dataEntrega: form.dataEntrega,
+        condicaoPagamento: form.condicaoPagamento,
+        ordemCompra: form.ordemCompra.trim(),
+        numeroNaIndustria: form.numeroNaIndustria.trim(),
+        nfNumero: form.nfNumero.trim(),
+        obsCliente: form.obsCliente,
+        editadoEm: new Date().toISOString()
+      };
+      if (pedidoEhImportado(p)) {
+        const total = parseValorBR(form.total);
+        const itens = p.itens || [];
+        const primeiro = itens[0];
+        const qtd = primeiro ? Number(primeiro.quantidade) || 1 : 1;
+        novo.total = total;
+        novo.subtotalBruto = total;
+        novo.precoLiquido = total;
+        novo.itens = primeiro ? [{
+          ...primeiro,
+          precoUnitario: qtd > 0 ? total / qtd : total
+        }, ...itens.slice(1)] : itens;
+      }
+      if (form.pedidoStatus === "Faturado") {
+        const vf = form.valorFaturado === "" ? novo.total : parseValorBR(form.valorFaturado);
+        novo.valorFaturado = vf;
+        novo.divergencia = vf - novo.total;
+      } else {
+        novo.valorFaturado = null;
+        novo.divergencia = null;
+      }
+      return novo;
+    }));
+    fecharEdicao();
+  };
+  const alvosLote = filtrados.filter(p => !p.excluido);
+  const loteTemAlteracao = lote.representada || lote.vendedorId || lote.situacao.trim();
+  const aplicarLote = () => {
+    if (!loteTemAlteracao || alvosLote.length === 0) return;
+    const ids = new Set(alvosLote.map(p => p.id));
+    const vend = lote.vendedorId && lote.vendedorId !== "__direta__" ? vendedoresAtivos.find(v => v.id === lote.vendedorId) : null;
+    setPedidosEspelho(pedidosEspelho.map(p => {
+      if (!ids.has(p.id)) return p;
+      const novo = {
+        ...p,
+        editadoEm: new Date().toISOString()
+      };
+      if (lote.representada) novo.representada = lote.representada;
+      if (lote.vendedorId === "__direta__") {
+        novo.vendedorId = "";
+        novo.vendedorNome = "Venda direta (Ponte)";
+      } else if (vend) {
+        novo.vendedorId = vend.id;
+        novo.vendedorNome = vend.nome;
+      }
+      if (lote.situacao.trim()) novo.situacao = lote.situacao.trim();
+      return novo;
+    }));
+    setMsgLote(`✅ ${alvosLote.length} pedido(s) atualizado(s).`);
+    setLote({
+      representada: "",
+      vendedorId: "",
+      situacao: ""
+    });
+  };
+  const inputCls = "w-full border rounded-md px-3 py-2 text-sm";
+  const estiloLinha = {
+    borderColor: LINE
+  };
   return React.createElement("div", {
     className: "space-y-4"
   }, React.createElement(Card, null, React.createElement("div", {
+    className: "flex flex-col gap-3"
+  }, React.createElement("div", {
+    className: "flex flex-wrap items-center gap-3"
+  }, React.createElement("input", {
+    value: busca,
+    onChange: e => {
+      setBusca(e.target.value);
+      setLimite(50);
+    },
+    placeholder: "\uD83D\uDD0E Buscar cliente, n\xBA do pedido, NF, ordem de compra\u2026",
+    className: "flex-1 min-w-[220px] border rounded-md px-3 py-2 text-sm",
+    style: estiloLinha
+  }), React.createElement("select", {
+    value: filtroRep,
+    onChange: e => {
+      setFiltroRep(e.target.value);
+      setLimite(50);
+    },
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: estiloLinha
+  }, React.createElement("option", {
+    value: ""
+  }, "Todas as representadas"), semRepCount > 0 && React.createElement("option", {
+    value: "__sem__"
+  }, "\u26A0\uFE0F Sem representada (", semRepCount, ")"), opcoesRep.map(r => React.createElement("option", {
+    key: r,
+    value: r
+  }, r)))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-4"
   }, React.createElement("div", {
     className: "flex items-center gap-3"
@@ -12965,9 +13141,7 @@ function ListaPedidosEspelho({
     value: de,
     onChange: e => setDe(e.target.value),
     className: "border rounded-md px-2 py-1 text-xs",
-    style: {
-      borderColor: LINE
-    }
+    style: estiloLinha
   }), React.createElement("span", {
     className: "text-xs text-slate-400"
   }, "at\xE9"), React.createElement("input", {
@@ -12975,9 +13149,7 @@ function ListaPedidosEspelho({
     value: ate,
     onChange: e => setAte(e.target.value),
     className: "border rounded-md px-2 py-1 text-xs",
-    style: {
-      borderColor: LINE
-    }
+    style: estiloLinha
   })), React.createElement("label", {
     className: "flex items-center gap-1.5 text-xs font-semibold text-slate-600"
   }, React.createElement("input", {
@@ -12990,9 +13162,95 @@ function ListaPedidosEspelho({
     type: "checkbox",
     checked: exibirFaturados,
     onChange: e => setExibirFaturados(e.target.checked)
-  }), "Exibir pedidos faturados"))), filtrados.length === 0 ? React.createElement(Card, null, React.createElement(EmptyState, {
+  }), "Exibir pedidos faturados")), React.createElement("div", {
+    className: "flex flex-wrap items-center justify-between gap-2 pt-2 border-t",
+    style: estiloLinha
+  }, React.createElement("p", {
+    className: "text-xs font-semibold text-slate-500"
+  }, filtrados.length, " pedido(s) encontrado(s) \xB7 ", brl(filtrados.filter(p => !p.excluido).reduce((a, p) => a + (Number(p.total) || 0), 0))), React.createElement("button", {
+    onClick: () => {
+      setLoteAberto(v => !v);
+      setMsgLote("");
+    },
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, "\u270F\uFE0F Editar em lote ", loteAberto ? "▲" : "▼")), loteAberto && React.createElement("div", {
+    className: "rounded-md border-2 p-3 space-y-3",
+    style: {
+      borderColor: ROYAL,
+      background: "#F5F8FF"
+    }
+  }, React.createElement("p", {
+    className: "text-xs text-slate-600"
+  }, "Aplica as mudan\xE7as em ", React.createElement("b", null, "todos os ", alvosLote.length, " pedido(s) do filtro atual"), " (n\xE3o s\xF3 os que aparecem na tela). Campos em branco n\xE3o s\xE3o alterados. Dica: filtre por \u201CSem representada\u201D pra corrigir os importados sem marca."), React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-3"
+  }, React.createElement(Field, {
+    label: "Representada"
+  }, React.createElement("select", {
+    value: lote.representada,
+    onChange: e => setLote(l => ({
+      ...l,
+      representada: e.target.value
+    })),
+    className: inputCls,
+    style: estiloLinha
+  }, React.createElement("option", {
+    value: ""
+  }, "\u2014 n\xE3o alterar \u2014"), opcoesRep.map(r => React.createElement("option", {
+    key: r,
+    value: r
+  }, r)))), React.createElement(Field, {
+    label: "Vendedor"
+  }, React.createElement("select", {
+    value: lote.vendedorId,
+    onChange: e => setLote(l => ({
+      ...l,
+      vendedorId: e.target.value
+    })),
+    className: inputCls,
+    style: estiloLinha
+  }, React.createElement("option", {
+    value: ""
+  }, "\u2014 n\xE3o alterar \u2014"), React.createElement("option", {
+    value: "__direta__"
+  }, "Venda direta (Ponte)"), vendedoresAtivos.map(v => React.createElement("option", {
+    key: v.id,
+    value: v.id
+  }, v.nome)))), React.createElement(Field, {
+    label: "Situa\xE7\xE3o"
+  }, React.createElement("input", {
+    list: "situacoes-pedido-lista",
+    value: lote.situacao,
+    onChange: e => setLote(l => ({
+      ...l,
+      situacao: e.target.value
+    })),
+    placeholder: "\u2014 n\xE3o alterar \u2014",
+    className: inputCls,
+    style: estiloLinha
+  }))), React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, React.createElement("button", {
+    onClick: aplicarLote,
+    disabled: !loteTemAlteracao || alvosLote.length === 0,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#047857",
+      opacity: !loteTemAlteracao || alvosLote.length === 0 ? 0.5 : 1
+    }
+  }, "Aplicar em ", alvosLote.length, " pedido(s)"), msgLote && React.createElement("span", {
+    className: "text-xs font-bold text-emerald-700"
+  }, msgLote)))), React.createElement("datalist", {
+    id: "situacoes-pedido-lista"
+  }, situacoesConhecidas.map(s => React.createElement("option", {
+    key: s,
+    value: s
+  })))), filtrados.length === 0 ? React.createElement(Card, null, React.createElement(EmptyState, {
     text: "Nenhum pedido encontrado com esses filtros."
-  })) : filtrados.slice().reverse().map(p => React.createElement(Card, {
+  })) : visiveis.map(p => React.createElement(Card, {
     key: p.id,
     className: p.excluido ? "opacity-50" : ""
   }, React.createElement("div", {
@@ -13004,9 +13262,11 @@ function ListaPedidosEspelho({
     }
   }, p.protocolo, " \u2014 ", p.clienteNome), React.createElement("p", {
     className: "text-[11px] text-slate-500"
-  }, p.representada || "—", " \xB7 ", (p.itens || []).length, " item(ns) \xB7 ", p.condicaoPagamento || "—", " \xB7 ", p.frete || "—", " \xB7 Total: ", brl(p.total)), React.createElement("p", {
+  }, p.representada ? p.representada : React.createElement("span", {
+    className: "font-bold text-red-600"
+  }, "\u26A0\uFE0F sem representada"), " \xB7 ", p.numeroNaIndustria ? `nº ${p.numeroNaIndustria} · ` : "", (p.itens || []).length, " item(ns) \xB7 ", p.condicaoPagamento || "—", " \xB7 ", p.frete || "—", " \xB7 Total: ", brl(p.total)), React.createElement("p", {
     className: "text-[11px] text-slate-400"
-  }, "Vendedor: ", p.vendedorNome || "—", " \xB7 Emiss\xE3o: ", p.dataEmissao || "—")), React.createElement("div", {
+  }, "Vendedor: ", p.vendedorNome || "—", " \xB7 Emiss\xE3o: ", p.dataEmissao || "—", p.situacao ? ` · Situação: ${p.situacao}` : "", p.nfNumero ? ` · NF ${p.nfNumero}` : "")), React.createElement("div", {
     className: "flex flex-col items-end gap-1"
   }, React.createElement("span", {
     className: "text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border whitespace-nowrap",
@@ -13018,13 +13278,214 @@ function ListaPedidosEspelho({
   }, p.excluido ? "Excluído" : p.pedidoStatus), p.excluido ? React.createElement("button", {
     onClick: () => restaurarPedido(p.id),
     className: "text-[11px] font-semibold text-blue-600 hover:underline"
-  }, "Restaurar") : React.createElement("button", {
+  }, "Restaurar") : React.createElement("div", {
+    className: "flex gap-3"
+  }, React.createElement("button", {
+    onClick: () => editandoId === p.id ? fecharEdicao() : abrirEdicao(p),
+    className: "text-[11px] font-semibold text-slate-500 hover:text-blue-600"
+  }, editandoId === p.id ? "Fechar" : "Editar"), React.createElement("button", {
     onClick: () => excluirPedido(p.id),
     className: "text-[11px] font-semibold text-slate-400 hover:text-red-600"
-  }, "Excluir"))), !p.excluido && (p.pedidoStatus === "Aguardando Faturamento" ? React.createElement("div", {
+  }, "Excluir")))), editandoId === p.id && form && React.createElement("div", {
+    className: "mt-3 rounded-md border-2 p-3 space-y-3",
+    style: {
+      borderColor: ROYAL,
+      background: "#F5F8FF"
+    }
+  }, React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-3"
+  }, React.createElement(Field, {
+    label: "Representada"
+  }, React.createElement("select", {
+    value: form.representada,
+    onChange: setF("representada"),
+    className: inputCls,
+    style: {
+      borderColor: form.representada ? LINE : "#EF4444",
+      background: form.representada ? undefined : "#FFF5F5"
+    }
+  }, React.createElement("option", {
+    value: ""
+  }, "\u26A0\uFE0F Selecione..."), opcoesRep.map(r => React.createElement("option", {
+    key: r,
+    value: r
+  }, r)))), React.createElement(Field, {
+    label: "Cliente"
+  }, React.createElement("select", {
+    value: form.clienteId,
+    onChange: e => {
+      const c = clientesOrdenados.find(x => x.id === e.target.value);
+      setForm(f => ({
+        ...f,
+        clienteId: e.target.value,
+        clienteNome: c ? c.nome : f.clienteNome
+      }));
+    },
+    className: inputCls,
+    style: estiloLinha
+  }, React.createElement("option", {
+    value: ""
+  }, form.clienteNome || "—", " (sem cadastro)"), clientesOrdenados.map(c => React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome))), !form.clienteId && React.createElement("input", {
+    value: form.clienteNome,
+    onChange: setF("clienteNome"),
+    placeholder: "Nome do cliente",
+    className: `${inputCls} mt-1`,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "Vendedor"
+  }, React.createElement("select", {
+    value: form.vendedorId,
+    onChange: e => {
+      const v = vendedoresAtivos.find(x => x.id === e.target.value);
+      setForm(f => ({
+        ...f,
+        vendedorId: e.target.value,
+        vendedorNome: v ? v.nome : "Venda direta (Ponte)"
+      }));
+    },
+    className: inputCls,
+    style: estiloLinha
+  }, React.createElement("option", {
+    value: ""
+  }, "Venda direta (Ponte)"), vendedoresAtivos.map(v => React.createElement("option", {
+    key: v.id,
+    value: v.id
+  }, v.nome)))), React.createElement(Field, {
+    label: "Tipo"
+  }, React.createElement("select", {
+    value: form.status,
+    onChange: setF("status"),
+    className: inputCls,
+    style: estiloLinha
+  }, STATUS_PEDIDO_OPCOES.map(s => React.createElement("option", {
+    key: s
+  }, s)))), React.createElement(Field, {
+    label: "Situa\xE7\xE3o (da f\xE1brica)"
+  }, React.createElement("input", {
+    list: "situacoes-pedido-lista",
+    value: form.situacao,
+    onChange: setF("situacao"),
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "Faturamento"
+  }, React.createElement("select", {
+    value: form.pedidoStatus,
+    onChange: setF("pedidoStatus"),
+    className: inputCls,
+    style: estiloLinha
+  }, React.createElement("option", null, "Aguardando Faturamento"), React.createElement("option", null, "Faturado"))), React.createElement(Field, {
+    label: "Emiss\xE3o"
+  }, React.createElement("input", {
+    type: "date",
+    value: form.dataEmissao,
+    onChange: setF("dataEmissao"),
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "Data de faturamento"
+  }, React.createElement("input", {
+    type: "date",
+    value: form.dataFaturamento,
+    onChange: setF("dataFaturamento"),
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "Data de entrega"
+  }, React.createElement("input", {
+    type: "date",
+    value: form.dataEntrega,
+    onChange: setF("dataEntrega"),
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "N\xBA do pedido na f\xE1brica"
+  }, React.createElement("input", {
+    value: form.numeroNaIndustria,
+    onChange: setF("numeroNaIndustria"),
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "Nota fiscal"
+  }, React.createElement("input", {
+    value: form.nfNumero,
+    onChange: setF("nfNumero"),
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "Ordem de compra"
+  }, React.createElement("input", {
+    value: form.ordemCompra,
+    onChange: setF("ordemCompra"),
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "Condi\xE7\xE3o de pagamento"
+  }, React.createElement("input", {
+    list: "condicoes-pedido-lista",
+    value: form.condicaoPagamento,
+    onChange: setF("condicaoPagamento"),
+    className: inputCls,
+    style: estiloLinha
+  }), React.createElement("datalist", {
+    id: "condicoes-pedido-lista"
+  }, (condicoesPagamentoCadastro || []).map(c => React.createElement("option", {
+    key: c.id || c.nome,
+    value: c.nome
+  })))), React.createElement(Field, {
+    label: "Total do pedido (R$)"
+  }, pedidoEhImportado(p) ? React.createElement("input", {
+    value: form.total,
+    onChange: setF("total"),
+    inputMode: "decimal",
+    className: inputCls,
+    style: estiloLinha
+  }) : React.createElement("p", {
+    className: "text-sm font-bold py-2",
+    style: {
+      color: NAVY
+    }
+  }, brl(p.total), " ", React.createElement("span", {
+    className: "text-[10px] font-normal text-slate-400"
+  }, "(vem dos itens)"))), form.pedidoStatus === "Faturado" && React.createElement(Field, {
+    label: "Valor faturado (R$)"
+  }, React.createElement("input", {
+    value: form.valorFaturado,
+    onChange: setF("valorFaturado"),
+    inputMode: "decimal",
+    placeholder: "igual ao total",
+    className: inputCls,
+    style: estiloLinha
+  }))), React.createElement(Field, {
+    label: "Observa\xE7\xE3o"
+  }, React.createElement("textarea", {
+    value: form.obsCliente,
+    onChange: setF("obsCliente"),
+    rows: 2,
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement("div", {
+    className: "flex gap-2"
+  }, React.createElement("button", {
+    onClick: salvarEdicao,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#047857"
+    }
+  }, "Salvar altera\xE7\xF5es"), React.createElement("button", {
+    onClick: fecharEdicao,
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, "Cancelar"))), !p.excluido && editandoId !== p.id && (p.pedidoStatus === "Aguardando Faturamento" ? React.createElement("div", {
     className: "mt-3 flex gap-2"
   }, React.createElement("input", {
-    type: "number",
+    inputMode: "decimal",
     placeholder: "Valor faturado pela ind\xFAstria (R$)",
     value: faturamentoInput[p.id] || "",
     onChange: e => setFaturamentoInput({
@@ -13032,9 +13493,7 @@ function ListaPedidosEspelho({
       [p.id]: e.target.value
     }),
     className: "flex-1 border rounded-md px-3 py-2 text-sm",
-    style: {
-      borderColor: LINE
-    }
+    style: estiloLinha
   }), React.createElement("button", {
     onClick: () => registrarFaturamento(p.id),
     className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
@@ -13042,8 +13501,18 @@ function ListaPedidosEspelho({
       background: NAVY
     }
   }, "Registrar NF e Auditar")) : React.createElement("div", {
-    className: `mt-3 rounded-md border px-3 py-2 text-xs font-bold ${Math.abs(p.divergencia) < 0.01 ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-red-50 border-red-300 text-red-700"}`
-  }, Math.abs(p.divergencia) < 0.01 ? "✅ Auditoria OK — valores conferem" : `⚠️ Divergência de ${brl(Math.abs(p.divergencia))} (faturado: ${brl(p.valorFaturado)}, travado: ${brl(p.total)})`)))));
+    className: `mt-3 rounded-md border px-3 py-2 text-xs font-bold ${Math.abs(p.divergencia || 0) < 0.01 ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-red-50 border-red-300 text-red-700"}`
+  }, Math.abs(p.divergencia || 0) < 0.01 ? "✅ Auditoria OK — valores conferem" : `⚠️ Divergência de ${brl(Math.abs(p.divergencia))} (faturado: ${brl(p.valorFaturado)}, travado: ${brl(p.total)})`)))), filtrados.length > limite && React.createElement("div", {
+    className: "flex justify-center"
+  }, React.createElement("button", {
+    onClick: () => setLimite(l => l + 50),
+    className: "text-xs font-bold uppercase tracking-wide px-5 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: NAVY,
+      background: "white"
+    }
+  }, "Mostrar mais (", filtrados.length - limite, " restantes)")));
 }
 const MOTIVOS_DEVOLUCAO = ["Avaria / produto danificado", "Produto errado (troca)", "Divergência de pedido", "Desistência do cliente", "Vencimento / validade", "Outro"];
 function parseNFeXML(xmlText) {

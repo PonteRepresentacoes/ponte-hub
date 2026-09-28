@@ -2607,6 +2607,28 @@ const excelDateToISO = value => {
 const uid = () => Math.random().toString(36).slice(2, 10);
 const SINTEGRA_ENDPOINT = "/api/sintegra";
 const STORAGE_KEY = "ponte-hub-data";
+const TIPOS_PEDIDO = ["Pedido", "Amostra", "Bonificação", "Troca", "Orçamento"];
+const TIPO_PEDIDO_ROTULO = {
+  "Pedido": "Pedido de venda",
+  "Amostra": "Amostra",
+  "Bonificação": "Bonificação",
+  "Troca": "Troca",
+  "Orçamento": "Orçamento"
+};
+const TIPO_PEDIDO_COR = {
+  "Amostra": "#7C3AED",
+  "Bonificação": "#0E7490",
+  "Troca": "#B45309",
+  "Orçamento": "#64748B"
+};
+const pedidoEhVenda = p => !!p && !p.excluido && (!p.status || p.status === "Pedido");
+const CLIENTES_AMOSTRA_PADRAO = ["CARLOS ALBERTO PINTO DA SILVA"];
+const normNomePessoa = s => norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const situacaoEhCancelado = s => ["cancelado", "cancelada"].includes(normNomePessoa(s));
+const ehClienteAmostra = (nomes, clientesAmostra) => {
+  const alvos = (clientesAmostra || []).map(normNomePessoa).filter(Boolean);
+  return alvos.length > 0 && (nomes || []).map(normNomePessoa).some(n => n && alvos.includes(n));
+};
 const STORAGE_KEY_PEDIDOS = "ponte-hub-pedidos";
 const PREFIXO_COMPRIMIDO = "DEFLATE64:";
 async function lerStream(readable) {
@@ -2702,6 +2724,7 @@ function PonteHub({
   const [devolucoesNFD, setDevolucoesNFD] = useState([]);
   const [leadsTelevendas, setLeadsTelevendas] = useState([]);
   const [taxaImposto, setTaxaImposto] = useState(15.5);
+  const [clientesAmostra, setClientesAmostra] = useState(CLIENTES_AMOSTRA_PADRAO);
   const [tema, setTema] = useState(() => typeof localStorage !== "undefined" && localStorage.getItem("ponte-hub-tema") || "claro");
   useEffect(() => {
     if (typeof localStorage !== "undefined") localStorage.setItem("ponte-hub-tema", tema);
@@ -2724,7 +2747,11 @@ function PonteHub({
         }
         if (res && res.value) {
           const data = JSON.parse(res.value);
-          if (pedidosSeparados) data.pedidosEspelho = pedidosSeparados;
+          if (pedidosSeparados) {
+            const idsSeparados = new Set(pedidosSeparados.map(p => p.id));
+            const soNoPrincipal = (data.pedidosEspelho || []).filter(p => p && p.id && !idsSeparados.has(p.id));
+            data.pedidosEspelho = [...pedidosSeparados, ...soNoPrincipal];
+          }
           setVendedores(data.vendedores || []);
           setClientes(data.clientes || []);
           setLancamentos(data.lancamentos || []);
@@ -2754,6 +2781,7 @@ function PonteHub({
           setDevolucoesNFD(data.devolucoesNFD || []);
           setLeadsTelevendas(data.leadsTelevendas || []);
           setTaxaImposto(typeof data.taxaImposto === "number" ? data.taxaImposto : 15.5);
+          setClientesAmostra(Array.isArray(data.clientesAmostra) ? data.clientesAmostra : CLIENTES_AMOSTRA_PADRAO);
         }
       } catch (e) {
         const msg = e && e.message ? e.message : "Erro desconhecido";
@@ -2797,7 +2825,8 @@ function PonteHub({
           checklistVisitaModelo,
           devolucoesNFD,
           leadsTelevendas,
-          taxaImposto
+          taxaImposto,
+          clientesAmostra
         }, pedidosEspelho);
         if (ok) {
           setSaveState("saved");
@@ -2812,7 +2841,7 @@ function PonteHub({
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, produtos, condicoesPagamentoCadastro, representadasCadastro, transportadorasCadastro, contasPagar, contasReceber, negociosFunil, filaAtendimento, metas, interacoes, compromissos, camposOcultos, checklistVisitaModelo, devolucoesNFD, leadsTelevendas, taxaImposto, loaded, loadFailed]);
+  }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, produtos, condicoesPagamentoCadastro, representadasCadastro, transportadorasCadastro, contasPagar, contasReceber, negociosFunil, filaAtendimento, metas, interacoes, compromissos, camposOcultos, checklistVisitaModelo, devolucoesNFD, leadsTelevendas, taxaImposto, clientesAmostra, loaded, loadFailed]);
   const forcarSync = async () => {
     if (!loaded || loadFailed) return;
     setSaveState("saving");
@@ -2842,7 +2871,8 @@ function PonteHub({
         checklistVisitaModelo,
         devolucoesNFD,
         leadsTelevendas,
-        taxaImposto
+        taxaImposto,
+        clientesAmostra
       }, pedidosEspelho);
       if (ok) {
         setSaveState("saved");
@@ -3034,6 +3064,8 @@ function PonteHub({
     setDevolucoesNFD: setDevolucoesNFD
   }), area === "adm" && tab === "pedidos" && React.createElement(PedidosADM, {
     key: "pedidos",
+    clientesAmostra: clientesAmostra,
+    setClientesAmostra: setClientesAmostra,
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
     clientes: clientes,
@@ -3043,6 +3075,8 @@ function PonteHub({
   }), area === "adm" && tab === "importar-historico" && React.createElement(PedidosADM, {
     key: "importar",
     subInicial: "importar",
+    clientesAmostra: clientesAmostra,
+    setClientesAmostra: setClientesAmostra,
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
     clientes: clientes,
@@ -11307,7 +11341,7 @@ function RelatoriosPedidos({
   clientes
 }) {
   const [aberto, setAberto] = useState(false);
-  const ativos = pedidosEspelho.filter(p => !p.excluido);
+  const ativos = pedidosEspelho.filter(pedidoEhVenda);
   const vendaGeral = () => {
     const rows = ativos.map(p => [p.protocolo, p.clienteNome, p.dataEmissao || "", p.representada || "", brl(p.total)]);
     downloadCSV("venda-geral.csv", "Protocolo,Cliente,Emissão,Representada,Total", rows);
@@ -11422,7 +11456,7 @@ function AcompanhamentoVendas({
     setAno(novoAno);
   };
   const doMes = pedidosEspelho.filter(p => {
-    if (p.excluido) return false;
+    if (!pedidoEhVenda(p)) return false;
     if (!p.dataEmissao) return false;
     const d = new Date(p.dataEmissao + "T00:00:00");
     if (d.getMonth() !== mes || d.getFullYear() !== ano) return false;
@@ -11738,8 +11772,41 @@ function ImportarHistoricoPedidos({
   setPedidosEspelho,
   clientes,
   vendedores,
-  representadasCadastro
+  representadasCadastro,
+  clientesAmostra = CLIENTES_AMOSTRA_PADRAO,
+  setClientesAmostra
 }) {
+  const [novoNomeAmostra, setNovoNomeAmostra] = useState("");
+  const [msgAmostra, setMsgAmostra] = useState("");
+  const pedidosReclassificaveis = pedidosEspelho.filter(p => !p.excluido && (!p.status || p.status === "Pedido") && ehClienteAmostra([p.clienteNome], clientesAmostra));
+  const reclassificarAmostras = () => {
+    const ids = new Set(pedidosReclassificaveis.map(p => p.id));
+    if (ids.size === 0) return;
+    setPedidosEspelho(pedidosEspelho.map(p => ids.has(p.id) ? {
+      ...p,
+      status: "Amostra",
+      editadoEm: new Date().toISOString()
+    } : p));
+    setMsgAmostra(`✅ ${ids.size} pedido(s) marcado(s) como Amostra.`);
+  };
+  const canceladosNoSistema = pedidosEspelho.filter(p => !p.excluido && situacaoEhCancelado(p.situacao));
+  const [msgCancelados, setMsgCancelados] = useState("");
+  const excluirCanceladosExistentes = () => {
+    const ids = new Set(canceladosNoSistema.map(p => p.id));
+    if (ids.size === 0) return;
+    setPedidosEspelho(pedidosEspelho.map(p => ids.has(p.id) ? {
+      ...p,
+      excluido: true,
+      editadoEm: new Date().toISOString()
+    } : p));
+    setMsgCancelados(`✅ ${ids.size} pedido(s) cancelado(s) excluído(s) — dá pra ver/restaurar em "Exibir pedidos excluídos".`);
+  };
+  const addNomeAmostra = () => {
+    const n = novoNomeAmostra.trim();
+    if (!n || !setClientesAmostra) return;
+    if (!(clientesAmostra || []).some(x => normNomePessoa(x) === normNomePessoa(n))) setClientesAmostra([...(clientesAmostra || []), n]);
+    setNovoNomeAmostra("");
+  };
   const [fabricaFixa, setFabricaFixa] = useState("");
   const CAMPOS_PEDIDO_HISTORICO_IMPORT = [{
     id: "clienteCnpj",
@@ -11857,7 +11924,12 @@ function ImportarHistoricoPedidos({
     const chavesExistentes = new Set(pedidosEspelho.filter(p => !p.excluido).map(p => chavePedido(p.representada, p.numeroNaIndustria, p.nfNumero)).filter(Boolean));
     let jaExistiam = 0;
     let semCliente = 0;
+    let cancelados = 0;
     const novos = linhas.map(row => {
+      if (situacaoEhCancelado(row.statusDoPedido)) {
+        cancelados++;
+        return null;
+      }
       const cnpjLinha = String(row.clienteCnpj ?? "").replace(/\D/g, "");
       const nomesLinha = [row.clienteNome, row.clienteRazaoSocial].map(normNome).filter(Boolean);
       const cliente = clientes.find(c => cnpjLinha && String(c.cnpj || "").replace(/\D/g, "") === cnpjLinha || row.clienteCodigo && norm(c.codigo) === norm(row.clienteCodigo)) || (nomesLinha.length ? clientes.find(c => [c.nome, c.razaoSocial].map(normNome).some(n => n && nomesLinha.includes(n))) : null);
@@ -11891,7 +11963,7 @@ function ImportarHistoricoPedidos({
         consumidorFinal: false,
         vendedorId: vendedor ? vendedor.id : "",
         vendedorNome: vendedor ? vendedor.nome : "Venda direta (Ponte)",
-        status: row.tipo || "Pedido",
+        status: row.tipo || (ehClienteAmostra([clienteNome, row.clienteNome, row.clienteRazaoSocial], clientesAmostra) ? "Amostra" : "Pedido"),
         situacao: row.statusDoPedido || "",
         dataEmissao: excelDateToISO(row.dataVenda),
         dataFaturamento: excelDateToISO(row.dataDeFatura),
@@ -11939,15 +12011,16 @@ function ImportarHistoricoPedidos({
     }).filter(Boolean);
     if (novos.length) setPedidosEspelho([...pedidosEspelho, ...novos]);
     const vinculados = novos.filter(p => p.clienteId).length;
+    const nAmostras = novos.filter(p => p.status === "Amostra").length;
     const total = novos.reduce((a, p) => a + (Number(p.total) || 0), 0);
-    return `${novos.length} pedido(s) importado(s)${novos.length ? ` (${brl(total)}; ${vinculados} ligado(s) a cliente cadastrado)` : ""}${jaExistiam ? ` · ${jaExistiam} já existia(m) no sistema e foram ignorados` : ""}${semCliente ? ` · ${semCliente} linha(s) sem cliente puladas` : ""}.`;
+    return `${novos.length} pedido(s) importado(s)${novos.length ? ` (${brl(total)}; ${vinculados} ligado(s) a cliente cadastrado)` : ""}${nAmostras ? ` · ${nAmostras} como Amostra` : ""}${cancelados ? ` · ${cancelados} cancelado(s) não importado(s)` : ""}${jaExistiam ? ` · ${jaExistiam} já existia(m) no sistema e foram ignorados` : ""}${semCliente ? ` · ${semCliente} linha(s) sem cliente puladas` : ""}.`;
   };
   const fabricasAtivas = (representadasCadastro || []).filter(r => !r.excluida);
   return React.createElement("div", {
     className: "space-y-6"
   }, React.createElement(Card, {
     title: "\u2460 Escolha a f\xE1brica do relat\xF3rio",
-    subtitle: "Cada f\xE1brica tem um formato de arquivo diferente. Escolha aqui ANTES de importar \u2014 isso define a qual representada os pedidos pertencem."
+    subtitle: "Cada f\xE1brica tem um formato de arquivo diferente. Escolha aqui ANTES de importar \u2014 isso define a qual representada os pedidos pertencem. Pedidos com situa\xE7\xE3o \u201CCancelado\u201D n\xE3o s\xE3o importados."
   }, React.createElement("div", {
     className: "flex flex-col gap-2"
   }, React.createElement("select", {
@@ -11968,6 +12041,71 @@ function ImportarHistoricoPedidos({
   }, "\u26A0\uFE0F Selecione a f\xE1brica antes de importar \u2014 sem ela, os pedidos ficam sem representada."), fabricasAtivas.length === 0 && React.createElement("p", {
     className: "text-[11px] text-amber-600 mt-1"
   }, "Nenhuma representada cadastrada ainda \u2014 cadastre em Painel ADM \u2192 Representadas."))), React.createElement(Card, {
+    title: "Amostras \u2014 pedidos em nome destes clientes",
+    subtitle: "Pedidos com esses nomes como cliente entram como Amostra (n\xE3o contam como venda). Vale para as pr\xF3ximas importa\xE7\xF5es; para os pedidos que j\xE1 est\xE3o no sistema, use o bot\xE3o abaixo."
+  }, React.createElement("div", {
+    className: "flex flex-wrap gap-2 mb-3"
+  }, (clientesAmostra || []).length === 0 && React.createElement("span", {
+    className: "text-xs text-slate-400"
+  }, "Nenhum nome cadastrado."), (clientesAmostra || []).map(n => React.createElement("span", {
+    key: n,
+    className: "inline-flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border",
+    style: {
+      borderColor: "#C4B5FD",
+      color: "#6D28D9",
+      background: "#F5F3FF"
+    }
+  }, n, React.createElement("button", {
+    type: "button",
+    onClick: () => setClientesAmostra && setClientesAmostra(clientesAmostra.filter(x => x !== n)),
+    className: "text-slate-400 hover:text-red-600"
+  }, "\u2715")))), React.createElement("div", {
+    className: "flex flex-wrap gap-2"
+  }, React.createElement("input", {
+    value: novoNomeAmostra,
+    onChange: e => setNovoNomeAmostra(e.target.value),
+    onKeyDown: e => {
+      if (e.key === "Enter") addNomeAmostra();
+    },
+    placeholder: "Nome do cliente como vem no relat\xF3rio",
+    className: "flex-1 min-w-[220px] border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), React.createElement("button", {
+    type: "button",
+    onClick: addNomeAmostra,
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: NAVY
+    }
+  }, "+ Adicionar"), React.createElement("button", {
+    type: "button",
+    onClick: reclassificarAmostras,
+    disabled: pedidosReclassificaveis.length === 0,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#7C3AED",
+      opacity: pedidosReclassificaveis.length === 0 ? 0.5 : 1
+    }
+  }, "Marcar ", pedidosReclassificaveis.length, " pedido(s) j\xE1 importado(s) como Amostra")), msgAmostra && React.createElement("p", {
+    className: "text-xs font-bold text-emerald-700 mt-2"
+  }, msgAmostra)), (canceladosNoSistema.length > 0 || msgCancelados) && React.createElement(Card, {
+    title: "Pedidos cancelados j\xE1 no sistema",
+    subtitle: "Pedidos com situa\xE7\xE3o \"Cancelado\" n\xE3o entram mais na importa\xE7\xE3o. Estes vieram antes dessa regra."
+  }, React.createElement("div", {
+    className: "flex flex-wrap items-center gap-3"
+  }, canceladosNoSistema.length > 0 && React.createElement("button", {
+    type: "button",
+    onClick: excluirCanceladosExistentes,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#B91C1C"
+    }
+  }, "Excluir ", canceladosNoSistema.length, " pedido(s) cancelado(s)"), msgCancelados && React.createElement("span", {
+    className: "text-xs font-bold text-emerald-700"
+  }, msgCancelados))), React.createElement(Card, {
     title: "\u2461 Importe o arquivo",
     subtitle: "Como a planilha n\xE3o traz itens individuais, cada pedido entra com um \xFAnico item resumido \u2014 edite manualmente se precisar do detalhamento por produto."
   }, React.createElement(ImportadorMapeavel, {
@@ -11984,13 +12122,19 @@ function PedidosADM({
   vendedores,
   representadasCadastro,
   condicoesPagamentoCadastro,
-  subInicial
+  subInicial,
+  clientesAmostra,
+  setClientesAmostra
 }) {
   const [sub, setSub] = useState(subInicial || "lista");
   const ativos = pedidosEspelho.filter(p => !p.excluido);
   const semRep = ativos.filter(p => !p.representada).length;
   const aguardandoNF = ativos.filter(p => p.pedidoStatus === "Aguardando Faturamento").length;
-  const totalGeral = ativos.reduce((a, p) => a + (Number(p.total) || 0), 0);
+  const somaTipo = f => ativos.filter(f).reduce((a, p) => a + (Number(p.total) || 0), 0);
+  const vendas = ativos.filter(pedidoEhVenda);
+  const totalVendas = somaTipo(pedidoEhVenda);
+  const amostras = ativos.filter(p => p.status === "Amostra");
+  const bonificacoes = ativos.filter(p => p.status === "Bonificação");
   return React.createElement("div", {
     className: "space-y-6"
   }, React.createElement("div", {
@@ -12006,13 +12150,19 @@ function PedidosADM({
     pedidosEspelho: pedidosEspelho,
     clientes: clientes
   })), React.createElement("div", {
-    className: "grid grid-cols-2 md:grid-cols-4 gap-3"
+    className: "grid grid-cols-2 md:grid-cols-5 gap-3"
   }, React.createElement(Stat, {
-    label: "Pedidos",
-    value: ativos.length
+    label: `Vendas (${vendas.length})`,
+    value: brl(totalVendas),
+    tone: "emerald"
   }), React.createElement(Stat, {
-    label: "Valor total",
-    value: brl(totalGeral)
+    label: `Amostras (${amostras.length})`,
+    value: brl(somaTipo(p => p.status === "Amostra")),
+    tone: "royal"
+  }), React.createElement(Stat, {
+    label: `Bonificações (${bonificacoes.length})`,
+    value: brl(somaTipo(p => p.status === "Bonificação")),
+    tone: "royal"
   }), React.createElement(Stat, {
     label: "Aguardando NF",
     value: aguardandoNF,
@@ -12040,6 +12190,8 @@ function PedidosADM({
     representadasCadastro: representadasCadastro,
     condicoesPagamentoCadastro: condicoesPagamentoCadastro
   }), sub === "importar" && React.createElement(ImportarHistoricoPedidos, {
+    clientesAmostra: clientesAmostra,
+    setClientesAmostra: setClientesAmostra,
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
     clientes: clientes,
@@ -12504,7 +12656,7 @@ function NovoPedidoEspelho({
     style: {
       borderColor: LINE
     }
-  }, React.createElement("option", null, "Pedido"), React.createElement("option", null, "Or\xE7amento"), React.createElement("option", null, "Bonifica\xE7\xE3o"), React.createElement("option", null, "Troca"))), React.createElement(Field, {
+  }, React.createElement("option", null, "Pedido"), React.createElement("option", null, "Amostra"), React.createElement("option", null, "Or\xE7amento"), React.createElement("option", null, "Bonifica\xE7\xE3o"), React.createElement("option", null, "Troca"))), React.createElement(Field, {
     label: "Situa\xE7\xE3o"
   }, React.createElement("select", {
     value: situacao,
@@ -12997,7 +13149,7 @@ function Orcamentos({
   }, "Excluir")))))));
 }
 const SITUACOES_PEDIDO_PADRAO = ["Pendente", "Concluído", "Separado", "Faturado", "Entregue", "Pago"];
-const STATUS_PEDIDO_OPCOES = ["Pedido", "Orçamento", "Bonificação", "Troca"];
+const STATUS_PEDIDO_OPCOES = TIPOS_PEDIDO;
 const pedidoEhImportado = p => String(p.origem || "").startsWith("Importado");
 function ListaPedidosEspelho({
   pedidosEspelho,
@@ -13016,6 +13168,7 @@ function ListaPedidosEspelho({
   const [exibirFaturados, setExibirFaturados] = useState(true);
   const [busca, setBusca] = useState("");
   const [filtroRep, setFiltroRep] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("");
   const [limite, setLimite] = useState(50);
   const [editandoId, setEditandoId] = useState(null);
   const [form, setForm] = useState(null);
@@ -13023,7 +13176,8 @@ function ListaPedidosEspelho({
   const [lote, setLote] = useState({
     representada: "",
     vendedorId: "",
-    situacao: ""
+    situacao: "",
+    tipo: ""
   });
   const [msgLote, setMsgLote] = useState("");
   const registrarFaturamento = id => {
@@ -13058,6 +13212,7 @@ function ListaPedidosEspelho({
   const filtrados = pedidosEspelho.filter(p => {
     if (p.excluido && !exibirExcluidos) return false;
     if (!p.excluido && p.pedidoStatus === "Faturado" && !exibirFaturados) return false;
+    if (filtroTipo && (p.status || "Pedido") !== filtroTipo) return false;
     if (filtroRep === "__sem__" && p.representada) return false;
     if (filtroRep && filtroRep !== "__sem__" && p.representada !== filtroRep) return false;
     const dataRef = p[tipoData];
@@ -13148,7 +13303,7 @@ function ListaPedidosEspelho({
     fecharEdicao();
   };
   const alvosLote = filtrados.filter(p => !p.excluido);
-  const loteTemAlteracao = lote.representada || lote.vendedorId || lote.situacao.trim();
+  const loteTemAlteracao = lote.representada || lote.vendedorId || lote.situacao.trim() || lote.tipo;
   const aplicarLote = () => {
     if (!loteTemAlteracao || alvosLote.length === 0) return;
     const ids = new Set(alvosLote.map(p => p.id));
@@ -13168,13 +13323,15 @@ function ListaPedidosEspelho({
         novo.vendedorNome = vend.nome;
       }
       if (lote.situacao.trim()) novo.situacao = lote.situacao.trim();
+      if (lote.tipo) novo.status = lote.tipo;
       return novo;
     }));
     setMsgLote(`✅ ${alvosLote.length} pedido(s) atualizado(s).`);
     setLote({
       representada: "",
       vendedorId: "",
-      situacao: ""
+      situacao: "",
+      tipo: ""
     });
   };
   const inputCls = "w-full border rounded-md px-3 py-2 text-sm";
@@ -13211,7 +13368,20 @@ function ListaPedidosEspelho({
   }, "\u26A0\uFE0F Sem representada (", semRepCount, ")"), opcoesRep.map(r => React.createElement("option", {
     key: r,
     value: r
-  }, r)))), React.createElement("div", {
+  }, r))), React.createElement("select", {
+    value: filtroTipo,
+    onChange: e => {
+      setFiltroTipo(e.target.value);
+      setLimite(50);
+    },
+    className: "border rounded-md px-3 py-2 text-sm",
+    style: estiloLinha
+  }, React.createElement("option", {
+    value: ""
+  }, "Todos os tipos"), TIPOS_PEDIDO.map(t => React.createElement("option", {
+    key: t,
+    value: t
+  }, TIPO_PEDIDO_ROTULO[t], " (", pedidosEspelho.filter(p => !p.excluido && (p.status || "Pedido") === t).length, ")")))), React.createElement("div", {
     className: "flex flex-wrap items-center gap-4"
   }, React.createElement("div", {
     className: "flex items-center gap-3"
@@ -13255,7 +13425,7 @@ function ListaPedidosEspelho({
     style: estiloLinha
   }, React.createElement("p", {
     className: "text-xs font-semibold text-slate-500"
-  }, filtrados.length, " pedido(s) encontrado(s) \xB7 ", brl(filtrados.filter(p => !p.excluido).reduce((a, p) => a + (Number(p.total) || 0), 0))), !somenteLeitura && React.createElement("button", {
+  }, filtrados.length, " pedido(s) encontrado(s) \xB7 vendas ", brl(filtrados.filter(pedidoEhVenda).reduce((a, p) => a + (Number(p.total) || 0), 0))), !somenteLeitura && React.createElement("button", {
     onClick: () => {
       setLoteAberto(v => !v);
       setMsgLote("");
@@ -13274,8 +13444,23 @@ function ListaPedidosEspelho({
   }, React.createElement("p", {
     className: "text-xs text-slate-600"
   }, "Aplica as mudan\xE7as em ", React.createElement("b", null, "todos os ", alvosLote.length, " pedido(s) do filtro atual"), " (n\xE3o s\xF3 os que aparecem na tela). Campos em branco n\xE3o s\xE3o alterados. Dica: filtre por \u201CSem representada\u201D pra corrigir os importados sem marca."), React.createElement("div", {
-    className: "grid grid-cols-1 md:grid-cols-3 gap-3"
+    className: "grid grid-cols-1 md:grid-cols-4 gap-3"
   }, React.createElement(Field, {
+    label: "Tipo"
+  }, React.createElement("select", {
+    value: lote.tipo,
+    onChange: e => setLote(l => ({
+      ...l,
+      tipo: e.target.value
+    })),
+    className: inputCls,
+    style: estiloLinha
+  }, React.createElement("option", {
+    value: ""
+  }, "\u2014 n\xE3o alterar \u2014"), TIPOS_PEDIDO.map(t => React.createElement("option", {
+    key: t,
+    value: t
+  }, TIPO_PEDIDO_ROTULO[t])))), React.createElement(Field, {
     label: "Representada"
   }, React.createElement("select", {
     value: lote.representada,
@@ -13348,7 +13533,12 @@ function ListaPedidosEspelho({
     style: {
       color: NAVY
     }
-  }, p.protocolo, " \u2014 ", p.clienteNome), React.createElement("p", {
+  }, p.protocolo, " \u2014 ", p.clienteNome, p.status && p.status !== "Pedido" && React.createElement("span", {
+    className: "ml-2 align-middle text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full text-white",
+    style: {
+      background: TIPO_PEDIDO_COR[p.status] || "#64748B"
+    }
+  }, TIPO_PEDIDO_ROTULO[p.status] || p.status)), React.createElement("p", {
     className: "text-[11px] text-slate-500"
   }, p.representada ? p.representada : React.createElement("span", {
     className: "font-bold text-red-600"
@@ -13449,8 +13639,9 @@ function ListaPedidosEspelho({
     className: inputCls,
     style: estiloLinha
   }, STATUS_PEDIDO_OPCOES.map(s => React.createElement("option", {
-    key: s
-  }, s)))), React.createElement(Field, {
+    key: s,
+    value: s
+  }, TIPO_PEDIDO_ROTULO[s] || s)))), React.createElement(Field, {
     label: "Situa\xE7\xE3o (da f\xE1brica)"
   }, React.createElement("input", {
     list: "situacoes-pedido-lista",
@@ -14770,7 +14961,7 @@ function RelatoriosClientes({
   pedidosEspelho
 }) {
   const [aberto, setAberto] = useState(false);
-  const ativos = (pedidosEspelho || []).filter(p => !p.excluido);
+  const ativos = (pedidosEspelho || []).filter(pedidoEhVenda);
   const dadosCadastrais = () => {
     const rows = clientes.map(c => [c.nome, c.cnpj || "", c.razaoSocial || "", c.cidade || c.municipio || "", c.estado || "", c.telefone || "", c.ie || ""]);
     downloadCSV("clientes-dados-cadastrais.csv", "Nome,CNPJ,Razão Social,Cidade,UF,Telefone,IE", rows);
@@ -16739,7 +16930,7 @@ function Produtos({
   const clientesQueCompraram = produto => {
     const nomes = new Set();
     (pedidosEspelho || []).forEach(ped => {
-      if (ped.excluido) return;
+      if (!pedidoEhVenda(ped)) return;
       (ped.itens || []).forEach(i => {
         if (norm(i.produto) === norm(produto.nome)) nomes.add(ped.clienteNome);
       });
@@ -16792,7 +16983,7 @@ function Produtos({
     const rows = filtrados.map(p => [p.codigo, p.nome, p.embalagem, p.custo, margemProduto(p).toFixed(1) + "%", p.vendaPreco, p.categoria, p.marca, p.representada, p.ecommerce ? "Sim" : "Não", p.estoqueAtual, p.estoqueMinimo, p.validade]);
     downloadCSV("produtos.csv", header, rows);
   };
-  const ativosPedidos = (pedidosEspelho || []).filter(ped => !ped.excluido);
+  const ativosPedidos = (pedidosEspelho || []).filter(pedidoEhVenda);
   const relVendaPorProdutoABC = () => {
     const porProduto = {};
     ativosPedidos.forEach(ped => (ped.itens || []).forEach(i => {
@@ -19484,7 +19675,7 @@ function Metas({
   const remover = id => setMetas(metas.filter(m => m.id !== id));
   const vendidoPorVendedorNoPeriodo = meta => {
     const resultado = {};
-    const ativos = pedidosEspelho.filter(p => !p.excluido && p.dataEmissao && p.dataEmissao >= meta.periodoInicio && p.dataEmissao <= meta.periodoFim);
+    const ativos = pedidosEspelho.filter(p => pedidoEhVenda(p) && p.dataEmissao && p.dataEmissao >= meta.periodoInicio && p.dataEmissao <= meta.periodoFim);
     ativos.forEach(p => {
       if (meta.representada !== "Todas" && p.representada !== meta.representada) return;
       const chave = p.vendedorId || "direto";

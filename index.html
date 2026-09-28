@@ -2607,6 +2607,58 @@ const excelDateToISO = value => {
 const uid = () => Math.random().toString(36).slice(2, 10);
 const SINTEGRA_ENDPOINT = "/api/sintegra";
 const STORAGE_KEY = "ponte-hub-data";
+const STORAGE_KEY_PEDIDOS = "ponte-hub-pedidos";
+const PREFIXO_COMPRIMIDO = "DEFLATE64:";
+async function lerStream(readable) {
+  const partes = [];
+  const reader = readable.getReader();
+  for (;;) {
+    const {
+      done,
+      value
+    } = await reader.read();
+    if (done) break;
+    partes.push(value);
+  }
+  const total = partes.reduce((a, p) => a + p.length, 0);
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const p of partes) {
+    out.set(p, off);
+    off += p.length;
+  }
+  return out;
+}
+async function comprimirTexto(texto) {
+  const cs = new CompressionStream("deflate-raw");
+  const writer = cs.writable.getWriter();
+  writer.write(new TextEncoder().encode(texto));
+  writer.close();
+  const bytes = await lerStream(cs.readable);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 8192) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+  return PREFIXO_COMPRIMIDO + btoa(bin);
+}
+async function descomprimirTexto(texto) {
+  if (!texto || !texto.startsWith(PREFIXO_COMPRIMIDO)) return texto;
+  const bin = atob(texto.slice(PREFIXO_COMPRIMIDO.length));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const ds = new DecompressionStream("deflate-raw");
+  const writer = ds.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  return new TextDecoder().decode(await lerStream(ds.readable));
+}
+async function gravarHub(dadosPrincipais, pedidosEspelho) {
+  const pedidosComprimidos = await comprimirTexto(JSON.stringify(pedidosEspelho || []));
+  if (pedidosComprimidos.length > 1000000) throw new Error("Pedidos passaram de 1 MB mesmo comprimidos — avise o suporte.");
+  await window.storage.set(STORAGE_KEY_PEDIDOS, pedidosComprimidos, false);
+  const principal = JSON.stringify(dadosPrincipais);
+  if (principal.length > 1000000) throw new Error(`Dados principais com ${(principal.length / 1048576).toFixed(2)} MB — acima do limite de 1 MB do banco.`);
+  const ok = await window.storage.set(STORAGE_KEY, principal, false);
+  return !!ok;
+}
 function PonteHub({
   sessao,
   onLogout
@@ -2663,8 +2715,16 @@ function PonteHub({
     (async () => {
       try {
         const res = await window.storage.get(STORAGE_KEY, false);
+        let pedidosSeparados = null;
+        try {
+          const resPed = await window.storage.get(STORAGE_KEY_PEDIDOS, false);
+          if (resPed && resPed.value) pedidosSeparados = JSON.parse(await descomprimirTexto(resPed.value));
+        } catch (ePed) {
+          if (!(ePed && ePed.message === "not found")) throw ePed;
+        }
         if (res && res.value) {
           const data = JSON.parse(res.value);
+          if (pedidosSeparados) data.pedidosEspelho = pedidosSeparados;
           setVendedores(data.vendedores || []);
           setClientes(data.clientes || []);
           setLancamentos(data.lancamentos || []);
@@ -2712,7 +2772,7 @@ function PonteHub({
     const t = setTimeout(async () => {
       setSaveState("saving");
       try {
-        const payload = JSON.stringify({
+        const ok = await gravarHub({
           vendedores,
           clientes,
           lancamentos,
@@ -2721,7 +2781,6 @@ function PonteHub({
           produtosGiro,
           analisesPreditivas,
           chamadosLRA,
-          pedidosEspelho,
           tabelaICMS,
           produtos,
           condicoesPagamentoCadastro,
@@ -2739,8 +2798,7 @@ function PonteHub({
           devolucoesNFD,
           leadsTelevendas,
           taxaImposto
-        });
-        const ok = await window.storage.set(STORAGE_KEY, payload, false);
+        }, pedidosEspelho);
         if (ok) {
           setSaveState("saved");
           setSaveError("");
@@ -2759,7 +2817,7 @@ function PonteHub({
     if (!loaded || loadFailed) return;
     setSaveState("saving");
     try {
-      const payload = JSON.stringify({
+      const ok = await gravarHub({
         vendedores,
         clientes,
         lancamentos,
@@ -2768,7 +2826,6 @@ function PonteHub({
         produtosGiro,
         analisesPreditivas,
         chamadosLRA,
-        pedidosEspelho,
         tabelaICMS,
         produtos,
         condicoesPagamentoCadastro,
@@ -2786,8 +2843,7 @@ function PonteHub({
         devolucoesNFD,
         leadsTelevendas,
         taxaImposto
-      });
-      const ok = await window.storage.set(STORAGE_KEY, payload, false);
+      }, pedidosEspelho);
       if (ok) {
         setSaveState("saved");
         setSaveError("");
@@ -17586,14 +17642,18 @@ function RepresentadasCadastro({
   };
   const salvar = () => {
     if (!form.nome.trim()) return;
+    const {
+      _mostrarSenha,
+      ...dados
+    } = form;
     if (editandoId) {
       setRepresentadas(representadas.map(r => r.id === editandoId ? {
-        ...form,
+        ...dados,
         id: editandoId
       } : r));
     } else {
       setRepresentadas([...representadas, {
-        ...form,
+        ...dados,
         id: uid()
       }]);
     }

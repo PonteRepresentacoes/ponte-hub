@@ -3032,12 +3032,23 @@ function PonteHub({
     clientes: clientes,
     devolucoesNFD: devolucoesNFD,
     setDevolucoesNFD: setDevolucoesNFD
-  }), area === "adm" && tab === "importar-historico" && React.createElement(ImportarHistoricoPedidos, {
+  }), area === "adm" && tab === "pedidos" && React.createElement(PedidosADM, {
+    key: "pedidos",
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
     clientes: clientes,
     vendedores: vendedores,
-    representadasCadastro: representadasCadastro
+    representadasCadastro: representadasCadastro,
+    condicoesPagamentoCadastro: condicoesPagamentoCadastro
+  }), area === "adm" && tab === "importar-historico" && React.createElement(PedidosADM, {
+    key: "importar",
+    subInicial: "importar",
+    pedidosEspelho: pedidosEspelho,
+    setPedidosEspelho: setPedidosEspelho,
+    clientes: clientes,
+    vendedores: vendedores,
+    representadasCadastro: representadasCadastro,
+    condicoesPagamentoCadastro: condicoesPagamentoCadastro
   }), area === "adm" && tab === "personalizar" && React.createElement(ConfiguracaoCampos, {
     camposOcultos: camposOcultos,
     setCamposOcultos: setCamposOcultos
@@ -3109,6 +3120,7 @@ function PonteHub({
     checklistVisitaModelo: checklistVisitaModelo,
     setChecklistVisitaModelo: setChecklistVisitaModelo
   }), area === "vendas" && tab === "vendas-pedidos" && React.createElement(CentralPedidos, {
+    somenteLeitura: restritoAVendas,
     clientes: clientes,
     vendedores: vendedores,
     pedidosEspelho: pedidosEspelho,
@@ -3797,6 +3809,9 @@ function Sidebar({
     id: "linha-tempo",
     label: "Linha do Tempo"
   }, {
+    id: "pedidos",
+    label: "Pedidos"
+  }, {
     id: "produtos",
     label: "Produtos"
   }, {
@@ -3823,9 +3838,6 @@ function Sidebar({
   }, {
     id: "devolucoes",
     label: "Devoluções"
-  }, {
-    id: "importar-historico",
-    label: "Importar Histórico"
   }, {
     id: "personalizar",
     label: "Personalizar"
@@ -4311,13 +4323,13 @@ function Dashboard({
     valor: pedidosAguardando,
     icon: "\uD83E\uDDFE",
     tone: pedidosAguardando > 0 ? "amber" : "verde",
-    onClick: () => onNavigate && onNavigate("vendas", "vendas-pedidos")
+    onClick: () => onNavigate && onNavigate("adm", "pedidos")
   }), React.createElement(AlertaCard, {
     titulo: "Diverg\xEAncias de auditoria",
     valor: pedidosComDivergencia,
     icon: "\uD83D\uDD0D",
     tone: pedidosComDivergencia > 0 ? "vermelho" : "verde",
-    onClick: () => onNavigate && onNavigate("vendas", "vendas-pedidos")
+    onClick: () => onNavigate && onNavigate("adm", "pedidos")
   }), React.createElement(AlertaCard, {
     titulo: "Chamados L.R.A abertos",
     valor: chamadosAbertos.length,
@@ -11965,7 +11977,81 @@ function ImportarHistoricoPedidos({
     onConfirmar: importarMapeado
   })));
 }
+function PedidosADM({
+  pedidosEspelho,
+  setPedidosEspelho,
+  clientes,
+  vendedores,
+  representadasCadastro,
+  condicoesPagamentoCadastro,
+  subInicial
+}) {
+  const [sub, setSub] = useState(subInicial || "lista");
+  const ativos = pedidosEspelho.filter(p => !p.excluido);
+  const semRep = ativos.filter(p => !p.representada).length;
+  const aguardandoNF = ativos.filter(p => p.pedidoStatus === "Aguardando Faturamento").length;
+  const totalGeral = ativos.reduce((a, p) => a + (Number(p.total) || 0), 0);
+  return React.createElement("div", {
+    className: "space-y-6"
+  }, React.createElement("div", {
+    className: "flex items-start justify-between gap-3 flex-wrap"
+  }, React.createElement("div", null, React.createElement("h2", {
+    className: "text-xl font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Pedidos"), React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "Carga dos relat\xF3rios das f\xE1bricas, corre\xE7\xE3o e auditoria de todos os pedidos.")), React.createElement(RelatoriosPedidos, {
+    pedidosEspelho: pedidosEspelho,
+    clientes: clientes
+  })), React.createElement("div", {
+    className: "grid grid-cols-2 md:grid-cols-4 gap-3"
+  }, React.createElement(Stat, {
+    label: "Pedidos",
+    value: ativos.length
+  }), React.createElement(Stat, {
+    label: "Valor total",
+    value: brl(totalGeral)
+  }), React.createElement(Stat, {
+    label: "Aguardando NF",
+    value: aguardandoNF,
+    tone: aguardandoNF ? "amber" : "emerald"
+  }), React.createElement(Stat, {
+    label: "Sem representada",
+    value: semRep,
+    tone: semRep ? "amber" : "emerald"
+  })), React.createElement("div", {
+    className: "flex gap-2 flex-wrap"
+  }, React.createElement(ToggleBtn, {
+    active: sub === "lista",
+    onClick: () => setSub("lista")
+  }, "Pedidos & Edi\xE7\xE3o (", ativos.length, ")"), React.createElement(ToggleBtn, {
+    active: sub === "importar",
+    onClick: () => setSub("importar")
+  }, "\uD83D\uDCE5 Importar relat\xF3rio da f\xE1brica"), React.createElement(ToggleBtn, {
+    active: sub === "tabela",
+    onClick: () => setSub("tabela")
+  }, "Tabela completa")), sub === "lista" && React.createElement(ListaPedidosEspelho, {
+    pedidosEspelho: pedidosEspelho,
+    setPedidosEspelho: setPedidosEspelho,
+    clientes: clientes,
+    vendedores: vendedores,
+    representadasCadastro: representadasCadastro,
+    condicoesPagamentoCadastro: condicoesPagamentoCadastro
+  }), sub === "importar" && React.createElement(ImportarHistoricoPedidos, {
+    pedidosEspelho: pedidosEspelho,
+    setPedidosEspelho: setPedidosEspelho,
+    clientes: clientes,
+    vendedores: vendedores,
+    representadasCadastro: representadasCadastro
+  }), sub === "tabela" && React.createElement(TabelaPedidos, {
+    pedidosEspelho: pedidosEspelho,
+    clientes: clientes
+  }));
+}
 function CentralPedidos({
+  somenteLeitura = false,
   clientes,
   vendedores,
   pedidosEspelho,
@@ -12036,6 +12122,7 @@ function CentralPedidos({
     onSalvo: () => setSub("lista"),
     onIrICMS: () => setSub("icms")
   }), sub === "lista" && React.createElement(ListaPedidosEspelho, {
+    somenteLeitura: somenteLeitura,
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
     clientes: clientes,
@@ -12918,7 +13005,8 @@ function ListaPedidosEspelho({
   clientes = [],
   vendedores = [],
   representadasCadastro = [],
-  condicoesPagamentoCadastro = []
+  condicoesPagamentoCadastro = [],
+  somenteLeitura = false
 }) {
   const [faturamentoInput, setFaturamentoInput] = useState({});
   const [tipoData, setTipoData] = useState("dataEmissao");
@@ -13167,7 +13255,7 @@ function ListaPedidosEspelho({
     style: estiloLinha
   }, React.createElement("p", {
     className: "text-xs font-semibold text-slate-500"
-  }, filtrados.length, " pedido(s) encontrado(s) \xB7 ", brl(filtrados.filter(p => !p.excluido).reduce((a, p) => a + (Number(p.total) || 0), 0))), React.createElement("button", {
+  }, filtrados.length, " pedido(s) encontrado(s) \xB7 ", brl(filtrados.filter(p => !p.excluido).reduce((a, p) => a + (Number(p.total) || 0), 0))), !somenteLeitura && React.createElement("button", {
     onClick: () => {
       setLoteAberto(v => !v);
       setMsgLote("");
@@ -13177,7 +13265,7 @@ function ListaPedidosEspelho({
       borderColor: LINE,
       color: NAVY
     }
-  }, "\u270F\uFE0F Editar em lote ", loteAberto ? "▲" : "▼")), loteAberto && React.createElement("div", {
+  }, "\u270F\uFE0F Editar em lote ", loteAberto ? "▲" : "▼")), !somenteLeitura && loteAberto && React.createElement("div", {
     className: "rounded-md border-2 p-3 space-y-3",
     style: {
       borderColor: ROYAL,
@@ -13275,7 +13363,7 @@ function ListaPedidosEspelho({
       background: p.pedidoStatus === "Faturado" ? "#ECFDF5" : "#FFFBEB",
       borderColor: p.pedidoStatus === "Faturado" ? "#A7F3D0" : "#FDE68A"
     }
-  }, p.excluido ? "Excluído" : p.pedidoStatus), p.excluido ? React.createElement("button", {
+  }, p.excluido ? "Excluído" : p.pedidoStatus), somenteLeitura ? null : p.excluido ? React.createElement("button", {
     onClick: () => restaurarPedido(p.id),
     className: "text-[11px] font-semibold text-blue-600 hover:underline"
   }, "Restaurar") : React.createElement("div", {
@@ -13482,7 +13570,7 @@ function ListaPedidosEspelho({
       borderColor: LINE,
       color: NAVY
     }
-  }, "Cancelar"))), !p.excluido && editandoId !== p.id && (p.pedidoStatus === "Aguardando Faturamento" ? React.createElement("div", {
+  }, "Cancelar"))), !p.excluido && editandoId !== p.id && (p.pedidoStatus === "Aguardando Faturamento" ? somenteLeitura ? null : React.createElement("div", {
     className: "mt-3 flex gap-2"
   }, React.createElement("input", {
     inputMode: "decimal",

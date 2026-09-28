@@ -2755,6 +2755,51 @@ function PonteHub({
     }, 400);
     return () => clearTimeout(t);
   }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, produtos, condicoesPagamentoCadastro, representadasCadastro, transportadorasCadastro, contasPagar, contasReceber, negociosFunil, filaAtendimento, metas, interacoes, compromissos, camposOcultos, checklistVisitaModelo, devolucoesNFD, leadsTelevendas, taxaImposto, loaded, loadFailed]);
+  const forcarSync = async () => {
+    if (!loaded || loadFailed) return;
+    setSaveState("saving");
+    try {
+      const payload = JSON.stringify({
+        vendedores,
+        clientes,
+        lancamentos,
+        fluxoCaixa,
+        oportunidades,
+        produtosGiro,
+        analisesPreditivas,
+        chamadosLRA,
+        pedidosEspelho,
+        tabelaICMS,
+        produtos,
+        condicoesPagamentoCadastro,
+        representadasCadastro,
+        transportadorasCadastro,
+        contasPagar,
+        contasReceber,
+        negociosFunil,
+        filaAtendimento,
+        metas,
+        interacoes,
+        compromissos,
+        camposOcultos,
+        checklistVisitaModelo,
+        devolucoesNFD,
+        leadsTelevendas,
+        taxaImposto
+      });
+      const ok = await window.storage.set(STORAGE_KEY, payload, false);
+      if (ok) {
+        setSaveState("saved");
+        setSaveError("");
+      } else {
+        setSaveState("error");
+        setSaveError("Não foi possível confirmar a gravação.");
+      }
+    } catch (e) {
+      setSaveState("error");
+      setSaveError(e && e.message ? e.message : "Erro desconhecido.");
+    }
+  };
   const totalBruto = lancamentos.reduce((a, l) => a + l.valorBruto, 0);
   const totalImposto = lancamentos.reduce((a, l) => a + l.imposto, 0);
   const totalRepasse = lancamentos.reduce((a, l) => a + l.repasse, 0);
@@ -2791,6 +2836,7 @@ function PonteHub({
     setTab: setTab,
     saveState: saveState,
     saveError: saveError,
+    onForcarSync: forcarSync,
     tema: tema,
     setTema: setTema,
     sessao: sessao,
@@ -3672,6 +3718,7 @@ function Sidebar({
   setTab,
   saveState,
   saveError,
+  onForcarSync,
   tema,
   setTema,
   sessao,
@@ -3878,6 +3925,8 @@ function Sidebar({
       color: "#93A5C9"
     }
   }, sessao.nome), React.createElement("div", {
+    className: "flex flex-col gap-1.5"
+  }, React.createElement("div", {
     className: "flex items-center justify-between gap-2"
   }, React.createElement(SaveIndicator, {
     state: saveState,
@@ -3889,7 +3938,15 @@ function Sidebar({
       borderColor: "#2A3A5C",
       color: "#93A5C9"
     }
-  }, "Sair")))));
+  }, "Sair")), saveState === "error" && React.createElement("button", {
+    onClick: onForcarSync,
+    className: "w-full text-[11px] font-bold px-2.5 py-1.5 rounded-md border",
+    style: {
+      borderColor: "#F87171",
+      color: "#F87171",
+      background: "rgba(248,113,113,0.08)"
+    }
+  }, "\uD83D\uDD04 Tentar sincronizar novamente")))));
 }
 function AreaButton({
   active,
@@ -4436,7 +4493,8 @@ function DiagnosticoComercial({
   const taxaConversao = ganhos + perdidos > 0 ? ganhos / (ganhos + perdidos) * 100 : null;
   const porRepresentada = {};
   pedidosFiltrados.forEach(p => {
-    const nome = p.representada || "Sem representada";
+    const nome = p.representada;
+    if (!nome) return;
     porRepresentada[nome] = (porRepresentada[nome] || 0) + (p.total || 0);
   });
   const mixLista = Object.entries(porRepresentada).map(([nome, valor]) => ({
@@ -12224,22 +12282,25 @@ function NovoPedidoEspelho({
   }, aba === "cabecalho" && React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-2 gap-3"
   }, React.createElement(Field, {
-    label: "Empresa / Representada"
+    label: "Empresa / Representada *"
   }, React.createElement("select", {
     value: representada,
     onChange: e => setRepresentada(e.target.value),
-    className: "w-full border rounded-md px-3 py-2 text-sm",
+    className: "w-full border-2 rounded-md px-3 py-2 text-sm",
     style: {
-      borderColor: LINE
+      borderColor: representada ? LINE : "#EF4444",
+      background: representada ? undefined : "#FFF5F5"
     }
   }, React.createElement("option", {
     value: ""
-  }, "Selecione..."), (representadasCadastro || []).filter(r => !r.excluida).map(r => React.createElement("option", {
+  }, "\u26A0\uFE0F Selecione a representada..."), (representadasCadastro || []).filter(r => !r.excluida).map(r => React.createElement("option", {
     key: r.id,
     value: r.nome
   }, r.nome)), representada && !(representadasCadastro || []).some(r => r.nome === representada) && React.createElement("option", {
     value: representada
-  }, representada, " (avulso)"))), React.createElement(Field, {
+  }, representada, " (avulso)")), !representada && React.createElement("p", {
+    className: "text-[11px] font-bold text-red-600 mt-1"
+  }, "\u26A0\uFE0F Obrigat\xF3rio \u2014 selecione antes de calcular")), React.createElement(Field, {
     label: "Cliente"
   }, React.createElement("select", {
     value: clienteId,

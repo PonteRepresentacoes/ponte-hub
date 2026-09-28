@@ -19577,6 +19577,7 @@ function ImportarExtratoFluxoCaixa({
 function GraficoFinanceiroPorTipo({
   lancamentos
 }) {
+  const [aberto, setAberto] = useState(true);
   const agrupar = (lista, usarValorAbsoluto) => {
     const porCategoria = {};
     lista.forEach(f => {
@@ -19641,11 +19642,37 @@ function GraficoFinanceiroPorTipo({
       width: `${item.valor / max * 100}%`
     }
   }))))));
-  return React.createElement(Card, {
-    title: "Receitas e despesas por tipo",
-    subtitle: "Mesmo per\xEDodo mostrado na lista de lan\xE7amentos abaixo"
+  return React.createElement("div", {
+    className: "rounded-lg border",
+    style: {
+      borderColor: LINE
+    }
+  }, React.createElement("button", {
+    onClick: () => setAberto(v => !v),
+    className: "w-full flex items-center justify-between px-4 py-3 text-left",
+    style: {
+      background: "transparent"
+    }
+  }, React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: NAVY
+    }
+  }, "Receitas e despesas por tipo"), React.createElement("div", {
+    className: "flex items-center gap-3 ml-3"
+  }, React.createElement("span", {
+    className: "text-[11px] font-semibold text-emerald-700"
+  }, brl(totalEntrada)), React.createElement("span", {
+    className: "text-[11px] font-semibold text-red-700"
+  }, brl(totalSaida)), React.createElement("span", {
+    className: "text-slate-400 text-xs"
+  }, aberto ? "▲" : "▼"))), aberto && React.createElement("div", {
+    className: "px-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-6 border-t",
+    style: {
+      borderColor: LINE
+    }
   }, React.createElement("div", {
-    className: "grid grid-cols-1 md:grid-cols-2 gap-6"
+    className: "pt-4"
   }, React.createElement(Coluna, {
     titulo: "Receitas",
     cor: "#047857",
@@ -19655,7 +19682,9 @@ function GraficoFinanceiroPorTipo({
     total: totalEntrada,
     max: maxEntrada,
     vazio: "Nenhuma receita nesse per\xEDodo."
-  }), React.createElement(Coluna, {
+  })), React.createElement("div", {
+    className: "pt-4"
+  }, React.createElement(Coluna, {
     titulo: "Despesas",
     cor: "#B91C1C",
     corFundo: "bg-red-100",
@@ -19664,7 +19693,7 @@ function GraficoFinanceiroPorTipo({
     total: totalSaida,
     max: maxSaida,
     vazio: "Nenhuma despesa nesse per\xEDodo."
-  })));
+  }))));
 }
 function FluxoCaixa({
   fluxoCaixa,

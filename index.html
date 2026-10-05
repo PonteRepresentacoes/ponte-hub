@@ -715,16 +715,12 @@ async function buscarInscricaoEstadual(cnpjDigits, uf, chave) {
   };
   let resp;
   try {
-    resp = await fetch(SINTEGRA_BRASIL_URL + cnpjDigits, {
-      headers: {
-        "X-Api-Key": chave
-      }
-    });
+    resp = await fetch(SINTEGRA_BRASIL_URL + cnpjDigits + "?api_key=" + encodeURIComponent(chave));
   } catch (e) {
     return {
       ok: false,
       codigo: "rede",
-      mensagem: "Não consegui falar com o serviço de IE agora (internet ou serviço fora do ar)."
+      mensagem: "Não consegui falar com o serviço de IE (internet, bloqueio do navegador ou serviço fora do ar). Use \"Testar chave\" em Clientes → Busca de Inscrição Estadual para ver o motivo."
     };
   }
   if (resp.status === 401) return {
@@ -4437,6 +4433,7 @@ function FichaRapida({
       }));
     }
     setIeMsg(r.mensagem || "");
+    if (automatico) setBuscaMsg(m => (m ? m + " " : "") + "IE: " + (r.mensagem || ""));
   };
   const buscarCNPJ = async () => {
     const digits = cnpjInput.replace(/\D/g, "");
@@ -14177,6 +14174,8 @@ function BuscaIEConfig({
   const [rodando, setRodando] = useState(false);
   const [prog, setProg] = useState(null);
   const [msg, setMsg] = useState("");
+  const [teste, setTeste] = useState("");
+  const [testando, setTestando] = useState(false);
   const vivo = useRef(true);
   const parar = useRef(false);
   useEffect(() => {
@@ -14189,6 +14188,13 @@ function BuscaIEConfig({
   const elegiveis = (clientes || []).filter(c => !c.excluido && cnpjDigitos(c).length === 14 && !String(c.ie || "").trim() && !c.ieConsulta);
   const jaConsultadosSemIE = (clientes || []).filter(c => !c.excluido && !String(c.ie || "").trim() && c.ieConsulta).length;
   const esperar = ms => new Promise(r => setTimeout(r, ms));
+  const testarChave = async () => {
+    setTestando(true);
+    setTeste("Testando…");
+    const r = await buscarInscricaoEstadual("00000000000191", "DF", chave);
+    setTestando(false);
+    setTeste(r.ok ? "✓ Chave válida e serviço respondendo — " + r.mensagem : r.codigo === "sem-chave" ? "Cole a chave primeiro." : "✗ " + r.mensagem);
+  };
   const rodar = async () => {
     if (!chave) {
       setMsg("Cole a chave primeiro.");
@@ -14292,7 +14298,21 @@ function BuscaIEConfig({
   }), React.createElement("button", {
     onClick: () => setMostrar(m => !m),
     className: "text-xs underline text-slate-500"
-  }, mostrar ? "ocultar" : "mostrar")), React.createElement("p", {
+  }, mostrar ? "ocultar" : "mostrar"), React.createElement("button", {
+    onClick: testarChave,
+    disabled: testando || !chave,
+    className: "text-white text-[10px] font-bold uppercase px-3 py-2 rounded-md",
+    style: {
+      background: ROYAL,
+      opacity: testando || !chave ? 0.5 : 1
+    }
+  }, "Testar chave")), teste && React.createElement("p", {
+    className: "text-[11px] font-semibold",
+    style: {
+      color: teste.startsWith("✓") ? "#047857" : "var(--mudo)"
+    },
+    "data-testid": "ie-teste"
+  }, teste), React.createElement("p", {
     className: "text-[10px] text-slate-400"
   }, "A chave fica salva no Hub e \xE9 usada por todos os acessos (vendedores s\xF3 usam, n\xE3o veem esta tela). Por ser gratuita e de baixo risco, n\xE3o \xE9 tratada como senha."), React.createElement("div", {
     className: "rounded-lg border p-3 space-y-2",

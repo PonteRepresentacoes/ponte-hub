@@ -1205,7 +1205,8 @@ function PonteHub({
     representadasCadastro: representadasCadastro
   }), area === "adm" && tab === "representadas" && React.createElement(RepresentadasCadastro, {
     representadas: representadasCadastro,
-    setRepresentadas: setRepresentadasCadastro
+    setRepresentadas: setRepresentadasCadastro,
+    chaveSintegra: chaveSintegra
   }), area === "adm" && tab === "transportadoras" && React.createElement(TransportadorasCadastro, {
     transportadoras: transportadorasCadastro,
     setTransportadoras: setTransportadorasCadastro
@@ -19418,7 +19419,8 @@ function blankRepresentada() {
 }
 function RepresentadasCadastro({
   representadas,
-  setRepresentadas
+  setRepresentadas,
+  chaveSintegra
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
@@ -19428,6 +19430,17 @@ function RepresentadasCadastro({
   const [buscandoCnpj, setBuscandoCnpj] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [msgBusca, setMsgBusca] = useState("");
+  const buscarIE = async (cnpjDigits, uf) => {
+    if (!chaveSintegra) return "IE não veio junto — configure a chave grátis em Clientes → Busca de Inscrição Estadual (uma vez só, vale pra Representadas também).";
+    const r = await buscarInscricaoEstadual(cnpjDigits, uf, chaveSintegra);
+    if (r.ok && r.ie) {
+      setForm(f => ({
+        ...f,
+        ie: f.ie || r.ie
+      }));
+    }
+    return "IE: " + (r.mensagem || "");
+  };
   const buscarCNPJ = async () => {
     const digits = (form.cnpj || "").replace(/\D/g, "");
     if (digits.length !== 14) {
@@ -19452,7 +19465,8 @@ function RepresentadasCadastro({
         telefone: data.ddd_telefone_1 || f.telefone,
         email: data.email || f.email
       }));
-      setMsgBusca("Dados encontrados na Receita Federal.");
+      const msgIE = await buscarIE(digits, data.uf || "");
+      setMsgBusca("Dados encontrados na Receita Federal." + (msgIE ? " " + msgIE : ""));
     } catch (e) {
       try {
         const respC = await fetch(`https://open.cnpja.com/office/${digits}`);
@@ -19470,7 +19484,8 @@ function RepresentadasCadastro({
           telefone: c.phones?.[0] ? `${c.phones[0].area || ""}${c.phones[0].number || ""}` : f.telefone,
           email: c.emails?.[0]?.address || f.email
         }));
-        setMsgBusca("Dados encontrados (via CNPJá — a Receita Federal não respondeu agora).");
+        const msgIE = await buscarIE(digits, c.address?.state || "");
+        setMsgBusca("Dados encontrados (via CNPJá — a Receita Federal não respondeu agora)." + (msgIE ? " " + msgIE : ""));
       } catch (e2) {
         setMsgBusca("Não consegui buscar automaticamente — preencha manualmente.");
       }

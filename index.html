@@ -11483,6 +11483,128 @@ function nfeCompararOrcamento(orc, historico, cfg) {
     }
   };
 }
+const PDF_UNIDADES = /^(UN|UND|UNID|UNIDADE|PC|PCS|PÇ|PÇS|PR|PAR|CX|CJ|JG|KIT|KG|G|M|M2|M3|MT|ML|L|LT|DZ|FD|PCT|PT|RL|SC|GL|BD|TB|N|S)$/i;
+function pdfDetectarDecimal(linhas) {
+  let br = 0,
+    us = 0;
+  linhas.forEach(l => l.split(/\s+/).forEach(t => {
+    t = t.replace(/^R\$/, "");
+    if (/^\d{1,3}(\.\d{3})*,\d{1,4}$/.test(t)) br++;else if (/^\d{1,3}(,\d{3})*\.\d{1,4}$/.test(t)) us++;
+  }));
+  return br >= us ? "," : ".";
+}
+function pdfNumero(tok, dec) {
+  const t = String(tok).replace(/^R\$/, "");
+  if (dec === ",") {
+    if (!/^-?(\d{1,3}(\.\d{3})+|\d+)(,\d+)?$/.test(t)) return null;
+    return Number(t.replace(/\./g, "").replace(",", "."));
+  }
+  if (!/^-?(\d{1,3}(,\d{3})+|\d+)(\.\d+)?$/.test(t)) return null;
+  return Number(t.replace(/,/g, ""));
+}
+const pdfEhCodigo = (t, dec) => /^[A-Za-z0-9][A-Za-z0-9._\-\/]{1,24}$/.test(t) && /\d/.test(t) && !(pdfNumero(t, dec) !== null && /[.,]\d{1,2}$/.test(t));
+function pdfLinhaItem(linha, dec, peso) {
+  const toks = linha.replace(/R\$\s*/g, "").trim().split(/\s+/).filter(Boolean);
+  if (toks.length < 4) return null;
+  let ci = 0;
+  if (/^\d{1,3}$/.test(toks[0]) && toks[1] && pdfEhCodigo(toks[1], dec)) ci = 1;
+  const codigo = toks[ci];
+  if (!pdfEhCodigo(codigo, dec)) return null;
+  const nums = [];
+  toks.forEach((t, k) => {
+    if (k <= ci) return;
+    const n = pdfNumero(t, dec);
+    if (n !== null && n < 1e9) nums.push({
+      k,
+      n
+    });
+  });
+  const cands = [];
+  for (let c = 2; c < nums.length; c++) {
+    const tot = nums[c].n;
+    if (!(tot > 0) && !peso) continue;
+    for (let a = 0; a < c; a++) for (let b = a + 1; b < c; b++) {
+      let q = nums[a].n,
+        p = nums[b].n;
+      if (!(q > 0) || q > 1e6 || p > 1e6) continue;
+      if (!peso && !(p > 0)) continue;
+      if (Math.abs(q * p - tot) > Math.max(0.011, tot * 0.0005)) continue;
+      if (!Number.isInteger(q) && Number.isInteger(p)) [q, p] = [p, q];
+      cands.push({
+        q,
+        p,
+        t: tot,
+        k: nums[a].k,
+        span: nums[c].k - nums[a].k,
+        c: nums[c].k
+      });
+    }
+  }
+  const validos = cands.some(x => x.q !== 1) ? cands.filter(x => x.q !== 1) : cands;
+  validos.sort((x, y) => x.span - y.span || x.c - y.c);
+  const achado = validos[0] || null;
+  if (!achado) return null;
+  let desc = toks.slice(ci + 1, achado.k);
+  while (desc.length && /^\d{4}\.\d{2}\.\d{2}$|^\d{8}$|^[NS]$/.test(desc[desc.length - 1])) desc.pop();
+  if (desc.length && (PDF_UNIDADES.test(desc[desc.length - 1]) || /^\d{1,5}$/.test(desc[desc.length - 1]))) desc.pop();
+  if (desc.length && /^\d+(\.\d+){2,}$/.test(desc[0])) desc.shift();
+  const rep = desc.indexOf(codigo);
+  if (rep > 0) desc = desc.slice(0, rep);
+  return {
+    codigo,
+    descricao: desc.join(" "),
+    qtd: achado.q,
+    preco: peso ? 0 : achado.p,
+    total: peso ? 0 : achado.t
+  };
+}
+function lerItensPdfCotacao(linhas) {
+  const tas = parseOrcamentoTaschibra(linhas);
+  if (tas.itens.length) {
+    return {
+      formato: "Taschibra",
+      itens: tas.itens.map(i => ({
+        codigo: i.codigo,
+        descricao: i.descricao,
+        qtd: i.qtd,
+        preco: i.preco,
+        total: nfeArred(i.preco * i.qtd)
+      })),
+      semPreco: false
+    };
+  }
+  const dec = pdfDetectarDecimal(linhas);
+  const peso = linhas.some(l => /unit\s*\(kg\)|peso\s+unit/i.test(l));
+  const itens = [];
+  const usadas = new Set();
+  const ehTexto = l => l && /[A-Za-zÀ-ú]{2,}/.test(l) && !/c[oó]d\.?\s*bar|^\s*ean\b|descri[cç][aã]o|produto|p[aá]gina|emitido em|total/i.test(l) && l.split(/\s+/).length <= 8;
+  linhas.forEach((l, idx) => {
+    const it = pdfLinhaItem(l, dec, peso);
+    if (!it) return;
+    usadas.add(idx);
+    if (it.descricao.length < 3) {
+      const ant = linhas[idx - 1],
+        prox = linhas[idx + 1];
+      const partes = [];
+      if (ehTexto(ant) && !usadas.has(idx - 1) && !pdfLinhaItem(ant, dec, peso)) {
+        partes.push(ant.trim());
+        usadas.add(idx - 1);
+      }
+      if (it.descricao) partes.push(it.descricao);
+      if (ehTexto(prox) && !pdfLinhaItem(prox, dec, peso) && prox.trim().split(/\s+/).length <= 3) {
+        partes.push(prox.trim());
+        usadas.add(idx + 1);
+      }
+      it.descricao = partes.join(" ").replace(/-\s+/g, "-").trim();
+    }
+    itens.push(it);
+  });
+  return {
+    formato: peso ? "genérico (sem preço — colunas de peso)" : "genérico",
+    itens,
+    semPreco: peso
+  };
+}
 const fmtN = n => String(nfeArred(n)).replace(".", ",");
 function NFeComparadorADM({
   pedidosEspelho,
@@ -12498,56 +12620,83 @@ function NovoPedidoEspelho({
   const [importandoCotacao, setImportandoCotacao] = useState(false);
   const [msgCotacao, setMsgCotacao] = useState("");
   const [itensNaoIdentificados, setItensNaoIdentificados] = useState([]);
-  const importarCotacao = e => {
+  const adicionarLinhasCotacao = (linhas, precoDoArquivo) => {
+    const novosItens = [];
+    const semMatch = [];
+    linhas.forEach(({
+      nome,
+      codigo,
+      qtd,
+      preco
+    }) => {
+      const nomePedido = String(nome || "").trim();
+      const codigoPedido = String(codigo || "").trim();
+      if (!nomePedido && !codigoPedido) return;
+      const codNorm = nfeCodigoNorm(codigoPedido);
+      const produtoCatalogo = (produtos || []).find(p => !p.excluido && (codigoPedido && (norm(p.codigo) === norm(codigoPedido) || nfeCodigoNorm(p.codigo) === codNorm) || nomePedido && norm(p.nome) === norm(nomePedido) || nomePedido && nomePedido.length > 5 && norm(p.nome).includes(norm(nomePedido))));
+      if (produtoCatalogo) {
+        novosItens.push({
+          id: uid(),
+          produto: produtoCatalogo.nome,
+          quantidade: qtd,
+          precoUnitario: precoDoArquivo && preco > 0 ? preco : Number(produtoCatalogo.vendaPreco) || preco || 0
+        });
+      } else {
+        novosItens.push({
+          id: uid(),
+          produto: codigoPedido && nomePedido ? `${codigoPedido} ${nomePedido}` : nomePedido || codigoPedido,
+          quantidade: qtd,
+          precoUnitario: preco || 0
+        });
+        semMatch.push(codigoPedido && nomePedido ? `${codigoPedido} ${nomePedido}` : nomePedido || codigoPedido);
+      }
+    });
+    setItens(prev => [...prev, ...novosItens]);
+    setItensNaoIdentificados(semMatch);
+    return novosItens;
+  };
+  const importarCotacao = async e => {
     const file = e.target.files[0];
+    e.target.value = "";
     if (!file) return;
     setImportandoCotacao(true);
     setMsgCotacao("");
     setItensNaoIdentificados([]);
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const wb = XLSX.read(new Uint8Array(ev.target.result), {
-          type: "array"
-        });
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-        const novosItens = [];
-        const semMatch = [];
-        rows.forEach(row => {
-          const nomePedido = String(pickField(row, ["produto", "item", "descricao", "descrição", "nome"]) || "").trim();
-          const codigoPedido = String(pickField(row, ["codigo", "código", "cod"]) || "").trim();
-          const qtd = Number(pickField(row, ["quantidade", "qtd", "qtde"])) || 1;
-          const precoSugerido = Number(pickField(row, ["preco", "preço", "valor", "valor unitario", "valor unitário"])) || 0;
-          if (!nomePedido && !codigoPedido) return;
-          const produtoCatalogo = (produtos || []).find(p => !p.excluido && (codigoPedido && norm(p.codigo) === norm(codigoPedido) || norm(p.nome) === norm(nomePedido) || nomePedido && norm(p.nome).includes(norm(nomePedido))));
-          if (produtoCatalogo) {
-            novosItens.push({
-              id: uid(),
-              produto: produtoCatalogo.nome,
-              quantidade: qtd,
-              precoUnitario: Number(produtoCatalogo.vendaPreco) || precoSugerido || 0
-            });
-          } else {
-            novosItens.push({
-              id: uid(),
-              produto: nomePedido || codigoPedido,
-              quantidade: qtd,
-              precoUnitario: precoSugerido
-            });
-            semMatch.push(nomePedido || codigoPedido);
-          }
-        });
-        setItens(prev => [...prev, ...novosItens]);
-        setItensNaoIdentificados(semMatch);
-        setMsgCotacao(`${novosItens.length} item(ns) lido(s) do arquivo. Revise os preços e quantidades antes de salvar.`);
-      } catch (err) {
-        setMsgCotacao("Não consegui ler o arquivo. Confira se é um .xlsx/.csv válido.");
-      } finally {
-        setImportandoCotacao(false);
+    const ehPdf = /\.pdf$/i.test(file.name) || file.type === "application/pdf";
+    try {
+      if (ehPdf) {
+        const linhasPdf = await pdfParaLinhas(await file.arrayBuffer());
+        const lido = lerItensPdfCotacao(linhasPdf);
+        if (!lido.itens.length) {
+          setMsgCotacao("Não encontrei itens nesse PDF (preciso de código, quantidade, preço e total na mesma linha). Se for um PDF escaneado (imagem), peça o arquivo original à fábrica.");
+          return;
+        }
+        const novos = adicionarLinhasCotacao(lido.itens.map(i => ({
+          codigo: i.codigo,
+          nome: i.descricao,
+          qtd: i.qtd,
+          preco: i.preco
+        })), true);
+        const totalDoc = lido.itens.reduce((a, i) => a + (i.total || 0), 0);
+        setMsgCotacao(`PDF lido (${lido.formato}): ${novos.length} item(ns)${lido.semPreco ? " — o PDF não traz preço, preencha antes de salvar" : ` · total dos itens ${brl(totalDoc)}`}. Confira com o documento e revise preços e quantidades antes de salvar.`);
+        return;
       }
-    };
-    reader.readAsArrayBuffer(file);
-    e.target.value = "";
+      const wb = XLSX.read(new Uint8Array(await file.arrayBuffer()), {
+        type: "array"
+      });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      const novos = adicionarLinhasCotacao(rows.map(row => ({
+        nome: pickField(row, ["produto", "item", "descricao", "descrição", "nome"]),
+        codigo: pickField(row, ["codigo", "código", "cod"]),
+        qtd: Number(pickField(row, ["quantidade", "qtd", "qtde"])) || 1,
+        preco: Number(pickField(row, ["preco", "preço", "valor", "valor unitario", "valor unitário"])) || 0
+      })), false);
+      setMsgCotacao(`${novos.length} item(ns) lido(s) do arquivo. Revise os preços e quantidades antes de salvar.`);
+    } catch (err) {
+      setMsgCotacao(ehPdf ? `Não consegui ler o PDF: ${String(err && err.message || err)}` : "Não consegui ler o arquivo. Confira se é um .xlsx/.csv válido.");
+    } finally {
+      setImportandoCotacao(false);
+    }
   };
   const subtotalBruto = itens.reduce((a, i) => a + i.quantidade * i.precoUnitario, 0);
   const calcular = () => {
@@ -12879,9 +13028,10 @@ function NovoPedidoEspelho({
     className: "text-sm font-bold text-blue-800 mb-1"
   }, "\uD83D\uDCE5 Importar cota\xE7\xE3o ou ordem de compra do cliente"), React.createElement("p", {
     className: "text-xs text-blue-700 mb-2"
-  }, "Sobe o arquivo (Excel/CSV) que o cliente te mandou \u2014 colunas esperadas: Produto (ou C\xF3digo), Quantidade, Pre\xE7o (opcional). O sistema casa com seu cat\xE1logo automaticamente; revise tudo antes de salvar."), React.createElement("input", {
+  }, "Sobe o arquivo que o cliente ou a f\xE1brica te mandou: Excel/CSV (colunas Produto ou C\xF3digo, Quantidade, Pre\xE7o opcional) ou PDF de or\xE7amento/pedido (Taschibra, Brinox/Coza, Kalipso e outros com c\xF3digo, quantidade, pre\xE7o e total na linha). O sistema casa com seu cat\xE1logo automaticamente; revise tudo antes de salvar."), React.createElement("input", {
+    "data-testid": "cotacao-input",
     type: "file",
-    accept: ".xlsx,.xls,.csv",
+    accept: ".xlsx,.xls,.csv,.pdf,application/pdf",
     onChange: importarCotacao,
     disabled: importandoCotacao,
     className: "text-xs"

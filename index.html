@@ -19454,7 +19454,26 @@ function RepresentadasCadastro({
       }));
       setMsgBusca("Dados encontrados na Receita Federal.");
     } catch (e) {
-      setMsgBusca("Não consegui buscar automaticamente — preencha manualmente.");
+      try {
+        const respC = await fetch(`https://open.cnpja.com/office/${digits}`);
+        if (!respC.ok) throw new Error("not-ok-cnpja");
+        const c = await respC.json();
+        setForm(f => ({
+          ...f,
+          razaoSocial: c.company?.name || f.razaoSocial,
+          nome: c.alias || c.company?.name || f.nome,
+          cep: c.address?.zip || f.cep,
+          endereco: c.address?.street || f.endereco,
+          bairro: c.address?.district || f.bairro,
+          estado: c.address?.state || f.estado,
+          cidade: c.address?.city || f.cidade,
+          telefone: c.phones?.[0] ? `${c.phones[0].area || ""}${c.phones[0].number || ""}` : f.telefone,
+          email: c.emails?.[0]?.address || f.email
+        }));
+        setMsgBusca("Dados encontrados (via CNPJá — a Receita Federal não respondeu agora).");
+      } catch (e2) {
+        setMsgBusca("Não consegui buscar automaticamente — preencha manualmente.");
+      }
     } finally {
       setBuscandoCnpj(false);
     }

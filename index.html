@@ -7127,6 +7127,7 @@ function blankNegocio() {
     vendedorId: "",
     status: "Aberto",
     criadoEm: new Date().toISOString(),
+    dataFechamento: "",
     observacao: "",
     pedidoFabrica: "",
     notaFiscal: ""
@@ -7171,6 +7172,7 @@ function FunilVendas({
   const [form, setForm] = useState(blankNegocio());
   const [arrastando, setArrastando] = useState(null);
   const [mostrarPerdidos, setMostrarPerdidos] = useState(false);
+  const [mostrarGanhosAntigos, setMostrarGanhosAntigos] = useState(false);
   const [perdendoId, setPerdendoId] = useState(null);
   const [motivoSelecionado, setMotivoSelecionado] = useState("");
   const [mostrarRelatorio, setMostrarRelatorio] = useState(false);
@@ -7229,7 +7231,8 @@ function FunilVendas({
   } : n));
   const marcarStatus = (id, status) => setNegocios(negocios.map(n => n.id === id ? {
     ...n,
-    status
+    status,
+    dataFechamento: status === "Ganho" ? n.dataFechamento || new Date().toISOString().slice(0, 10) : n.dataFechamento
   } : n));
   const confirmarPerdido = id => {
     if (!motivoSelecionado) return;
@@ -7352,6 +7355,7 @@ function FunilVendas({
         vencimento: l.previsao || l.dataEmissao,
         vendedorId: vend ? vend.id : "",
         status: l.status,
+        dataFechamento: l.status === "Ganho" ? l.dataEmissao || l.previsao || new Date().toISOString().slice(0, 10) : "",
         criadoEm: l.dataEmissao ? new Date(l.dataEmissao + "T12:00:00").toISOString() : new Date().toISOString(),
         pedidoFabrica: l.pedido,
         observacao: l.observacao,
@@ -7365,7 +7369,16 @@ function FunilVendas({
     setImportFabrica("");
     setImportMensagem("");
   };
-  const ativos = negocios.filter(n => mostrarPerdidos || n.status !== "Perdido");
+  const mesVigente = new Date().toISOString().slice(0, 7);
+  const ativos = negocios.filter(n => {
+    if (n.status === "Perdido") return mostrarPerdidos;
+    if (n.status === "Ganho") {
+      if (mostrarGanhosAntigos || !(Number(n.valor) > 0)) return true;
+      const dataRef = n.dataFechamento || n.vencimento || "";
+      return dataRef.slice(0, 7) === mesVigente;
+    }
+    return true;
+  });
   return React.createElement("div", {
     className: "space-y-6"
   }, React.createElement("div", {
@@ -7377,9 +7390,15 @@ function FunilVendas({
     }
   }, "Funil de Vendas"), React.createElement("p", {
     className: "text-sm text-slate-500"
-  }, "Arraste os cards entre as etapas, ou use o seletor dentro do card.")), React.createElement("div", {
+  }, "Arraste os cards entre as etapas, ou use o seletor dentro do card. Ganhos somem do quadro depois do m\xEAs em que fecharam (continuam nos relat\xF3rios) \u2014 exceto os com valor zerado.")), React.createElement("div", {
     className: "flex gap-2 items-center"
   }, React.createElement("label", {
+    className: "flex items-center gap-1.5 text-xs font-semibold text-slate-600"
+  }, React.createElement("input", {
+    type: "checkbox",
+    checked: mostrarGanhosAntigos,
+    onChange: e => setMostrarGanhosAntigos(e.target.checked)
+  }), "Exibir ganhos de meses anteriores"), React.createElement("label", {
     className: "flex items-center gap-1.5 text-xs font-semibold text-slate-600"
   }, React.createElement("input", {
     type: "checkbox",
@@ -7764,7 +7783,12 @@ function FunilVendas({
         style: {
           color: INK
         }
-      }, brl(Number(n.valor) || 0)), dias !== null && React.createElement("span", {
+      }, brl(Number(n.valor) || 0)), n.status === "Ganho" ? (n.dataFechamento || n.vencimento) && React.createElement("span", {
+        className: "text-[10px] font-semibold",
+        style: {
+          color: "#047857"
+        }
+      }, "Ganho em ", formatarDataBR(n.dataFechamento || n.vencimento)) : dias !== null && React.createElement("span", {
         className: "text-[10px] font-semibold",
         style: {
           color: dias < 0 ? "#B91C1C" : dias <= 3 ? "#B45309" : "#94A3B8"
@@ -11605,6 +11629,30 @@ function lerItensPdfCotacao(linhas) {
     semPreco: peso
   };
 }
+function pdfAcharClientePorCnpj(linhas, clientes) {
+  const texto = linhas.join("\n");
+  const cnpjsNoDoc = [...new Set((texto.match(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g) || []).map(c => c.replace(/\D/g, "")))];
+  const bateu = cnpjsNoDoc.map(cnpj => (clientes || []).find(c => String(c.cnpj || "").replace(/\D/g, "") === cnpj)).filter(Boolean);
+  const unicos = [...new Map(bateu.map(c => [c.id, c])).values()];
+  return {
+    cliente: unicos.length === 1 ? unicos[0] : null,
+    cnpjsNoDoc
+  };
+}
+function lerCabecalhoPdfCotacao(linhas) {
+  const texto = linhas.join("\n");
+  const pega = re => {
+    const m = texto.match(re);
+    return m ? m[1].trim() : "";
+  };
+  const dataIso = d => d ? d.split("/").reverse().join("-") : "";
+  return {
+    numero: pega(/(?:Or[çc]amento|Pedido):\s*([\d/]{4,})/),
+    data: dataIso(pega(/(?:Data de emiss[ãa]o\s+|Data(?: da venda)?:\s*)(\d{2}\/\d{2}\/\d{4})/)),
+    condicaoPagamento: pega(/(?:Condi[çc][ãa]o de pagto\s+|Vencimento:\s*)(.+?)\s*$/m).replace(/^\d+-\s*/, ""),
+    fornecedorNome: pega(/Raz[ãa]o social\s+(.+?)\s*$/m)
+  };
+}
 const fmtN = n => String(nfeArred(n)).replace(".", ",");
 function NFeComparadorADM({
   pedidosEspelho,
@@ -12570,11 +12618,13 @@ function NovoPedidoEspelho({
   const [status, setStatus] = useState("Pedido");
   const [situacao, setSituacao] = useState("");
   const [dataEmissao, setDataEmissao] = useState(() => new Date().toISOString().slice(0, 10));
+  const dataEmissaoInicialRef = useRef(dataEmissao);
   const [dataFaturamento, setDataFaturamento] = useState("");
   const [dataEntrega, setDataEntrega] = useState("");
   const [condicaoPagamento, setCondicaoPagamento] = useState("À vista");
   const [formaPagamento, setFormaPagamento] = useState("");
   const [ordemCompra, setOrdemCompra] = useState("");
+  const [numeroNaIndustria, setNumeroNaIndustria] = useState("");
   const [origem, setOrigem] = useState("");
   const [rotaAtendimento, setRotaAtendimento] = useState("");
   const [tabelaPreco, setTabelaPreco] = useState("");
@@ -12678,7 +12728,41 @@ function NovoPedidoEspelho({
           preco: i.preco
         })), true);
         const totalDoc = lido.itens.reduce((a, i) => a + (i.total || 0), 0);
-        setMsgCotacao(`PDF lido (${lido.formato}): ${novos.length} item(ns)${lido.semPreco ? " — o PDF não traz preço, preencha antes de salvar" : ` · total dos itens ${brl(totalDoc)}`}. Confira com o documento e revise preços e quantidades antes de salvar.`);
+        const preenchidos = [];
+        if (!consumidorFinal && !clienteId) {
+          const {
+            cliente: clienteAchado,
+            cnpjsNoDoc
+          } = pdfAcharClientePorCnpj(linhasPdf, clientes);
+          if (clienteAchado) {
+            setClienteId(clienteAchado.id);
+            preenchidos.push(`cliente ${clienteAchado.nome}`);
+          } else if (cnpjsNoDoc.length) {
+            preenchidos.push(`cliente do PDF (CNPJ ${cnpjsNoDoc[0]}) não está no cadastro — selecione manualmente`);
+          }
+        }
+        const cab = lerCabecalhoPdfCotacao(linhasPdf);
+        if (!representada) {
+          const nomeFornecedor = lido.formato === "Taschibra" ? "Taschibra" : cab.fornecedorNome;
+          const repAchada = nomeFornecedor ? nfeAcharRepresentada({
+            emitenteNome: nomeFornecedor
+          }, representadasCadastro) : "";
+          if (repAchada) {
+            setRepresentada(repAchada);
+            preenchidos.push(`representada ${repAchada}`);
+          }
+        }
+        if (cab.condicaoPagamento && (!condicaoPagamento || condicaoPagamento === "À vista")) {
+          setCondicaoPagamento(cab.condicaoPagamento);
+          preenchidos.push(`condição de pagamento ${cab.condicaoPagamento}`);
+        }
+        if (cab.numero && !numeroNaIndustria) {
+          setNumeroNaIndustria(cab.numero);
+          preenchidos.push(`nº na fábrica ${cab.numero}`);
+        }
+        if (cab.data && dataEmissao === dataEmissaoInicialRef.current) setDataEmissao(cab.data);
+        const resumoCab = preenchidos.length ? ` Cabeçalho preenchido automaticamente: ${preenchidos.join("; ")}.` : "";
+        setMsgCotacao(`PDF lido (${lido.formato}): ${novos.length} item(ns)${lido.semPreco ? " — o PDF não traz preço, preencha antes de salvar" : ` · total dos itens ${brl(totalDoc)}`}.${resumoCab} Confira com o documento e revise preços e quantidades antes de salvar.`);
         return;
       }
       const wb = XLSX.read(new Uint8Array(await file.arrayBuffer()), {
@@ -12751,6 +12835,7 @@ function NovoPedidoEspelho({
       condicaoPagamento,
       formaPagamento,
       ordemCompra,
+      numeroNaIndustria,
       origem,
       nfNumero,
       rotaAtendimento,
@@ -12962,6 +13047,16 @@ function NovoPedidoEspelho({
       borderColor: LINE
     }
   })), React.createElement(Field, {
+    label: "N\xBA do or\xE7amento/pedido na f\xE1brica"
+  }, React.createElement("input", {
+    value: numeroNaIndustria,
+    onChange: e => setNumeroNaIndustria(e.target.value),
+    placeholder: "Preenchido automaticamente ao importar PDF",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), React.createElement(Field, {
     label: "Origem do pedido"
   }, React.createElement("input", {
     value: origem,
@@ -13028,7 +13123,7 @@ function NovoPedidoEspelho({
     className: "text-sm font-bold text-blue-800 mb-1"
   }, "\uD83D\uDCE5 Importar cota\xE7\xE3o ou ordem de compra do cliente"), React.createElement("p", {
     className: "text-xs text-blue-700 mb-2"
-  }, "Sobe o arquivo que o cliente ou a f\xE1brica te mandou: Excel/CSV (colunas Produto ou C\xF3digo, Quantidade, Pre\xE7o opcional) ou PDF de or\xE7amento/pedido (Taschibra, Brinox/Coza, Kalipso e outros com c\xF3digo, quantidade, pre\xE7o e total na linha). O sistema casa com seu cat\xE1logo automaticamente; revise tudo antes de salvar."), React.createElement("input", {
+  }, "Sobe o arquivo que o cliente ou a f\xE1brica te mandou: Excel/CSV (colunas Produto ou C\xF3digo, Quantidade, Pre\xE7o opcional) ou PDF de or\xE7amento/pedido (Taschibra, Brinox/Coza, Kalipso e outros com c\xF3digo, quantidade, pre\xE7o e total na linha). O sistema casa com seu cat\xE1logo automaticamente e, no PDF, tamb\xE9m tenta preencher cliente, representada, condi\xE7\xE3o de pagamento e n\xBA do pedido na f\xE1brica (aba Cabe\xE7alho) \u2014 revise tudo antes de salvar."), React.createElement("input", {
     "data-testid": "cotacao-input",
     type: "file",
     accept: ".xlsx,.xls,.csv,.pdf,application/pdf",

@@ -11,7 +11,7 @@
 // com as novas regras do banco (ver guia de configuração).
 // ------------------------------------------------------------
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Método não permitido." });
     return;

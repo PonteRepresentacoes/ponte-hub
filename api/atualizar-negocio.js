@@ -46,7 +46,7 @@ function hoje() {
   return new Date().toISOString().slice(0, 10);
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Método não permitido." });
     return;

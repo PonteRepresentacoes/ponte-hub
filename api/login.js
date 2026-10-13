@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const senhaMestre = process.env.PONTE_HUB_SENHA_MESTRE;
+  const senhaMestre = String(process.env.PONTE_HUB_SENHA_MESTRE || "").trim();
   if (!senhaMestre) {
     res.status(500).json({ error: "Login ainda não configurado — falta cadastrar a variável PONTE_HUB_SENHA_MESTRE na Vercel (ver guia de configuração)." });
     return;

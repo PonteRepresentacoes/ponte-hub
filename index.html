@@ -1396,7 +1396,8 @@ function PonteHub({
     clientes: clientes,
     setClientes: setClientes,
     vendedores: vendedores,
-    representadasCadastro: representadasCadastro
+    representadasCadastro: representadasCadastro,
+    pedidosEspelho: pedidosEspelho
   }), area === "vendas" && tab === "vendas-televendas" && React.createElement(Televendas, {
     leads: leadsTelevendas,
     setLeads: setLeadsTelevendas,
@@ -7611,7 +7612,8 @@ function FunilVendas({
   clientes,
   setClientes,
   vendedores,
-  representadasCadastro
+  representadasCadastro,
+  pedidosEspelho
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
@@ -7627,6 +7629,7 @@ function FunilVendas({
   const [importPreview, setImportPreview] = useState([]);
   const [importFabrica, setImportFabrica] = useState("");
   const [importMensagem, setImportMensagem] = useState("");
+  const [filtroCliente, setFiltroCliente] = useState("");
   const set = campo => e => setForm(f => ({
     ...f,
     [campo]: e.target.value
@@ -7819,6 +7822,7 @@ function FunilVendas({
   };
   const mesVigente = new Date().toISOString().slice(0, 7);
   const ativos = negocios.filter(n => {
+    if (filtroCliente && norm(n.clienteNome || "") !== norm(filtroCliente)) return false;
     if (n.status === "Perdido") return mostrarPerdidos;
     if (n.status === "Ganho") {
       if (mostrarGanhosAntigos || !(Number(n.valor) > 0)) return true;
@@ -7827,6 +7831,9 @@ function FunilVendas({
     }
     return true;
   });
+  const nomesClientesFunil = Array.from(new Set(negocios.map(n => (n.clienteNome || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const potencialFiltro = filtroCliente ? potencialCompraCliente(filtroCliente, pedidosEspelho) : null;
+  const pedidosDoFiltro = filtroCliente ? (pedidosEspelho || []).filter(p => !p.excluido && norm(p.clienteNome || "") === norm(filtroCliente)).sort((a, b) => (b.dataEmissao || "").localeCompare(a.dataEmissao || "")) : [];
   return React.createElement("div", {
     className: "space-y-6"
   }, React.createElement("div", {
@@ -7839,8 +7846,24 @@ function FunilVendas({
   }, "Funil de Vendas"), React.createElement("p", {
     className: "text-sm text-slate-500"
   }, "Arraste os cards entre as etapas, ou use o seletor dentro do card. Ganhos somem do quadro depois do m\xEAs em que fecharam (continuam nos relat\xF3rios) \u2014 exceto os com valor zerado.")), React.createElement("div", {
-    className: "flex gap-2 items-center"
-  }, React.createElement("label", {
+    className: "flex gap-2 items-center flex-wrap"
+  }, React.createElement("select", {
+    value: filtroCliente,
+    onChange: e => setFiltroCliente(e.target.value),
+    className: "border rounded-md px-2 py-2 text-xs font-semibold max-w-[220px]",
+    style: {
+      borderColor: LINE,
+      color: filtroCliente ? INK : "#94A3B8"
+    }
+  }, React.createElement("option", {
+    value: ""
+  }, "Filtrar por cliente..."), nomesClientesFunil.map(nome => React.createElement("option", {
+    key: nome,
+    value: nome
+  }, nome))), filtroCliente && React.createElement("button", {
+    onClick: () => setFiltroCliente(""),
+    className: "text-xs font-semibold text-slate-400 hover:text-red-600"
+  }, "\u2715 limpar"), React.createElement("label", {
     className: "flex items-center gap-1.5 text-xs font-semibold text-slate-600"
   }, React.createElement("input", {
     type: "checkbox",
@@ -7872,7 +7895,87 @@ function FunilVendas({
       borderColor: LINE,
       color: INK
     }
-  }, mostrarImportacao ? "Fechar importação" : "📥 Importar relatório"))), mostrarRelatorio && React.createElement(RelatorioFunil, {
+  }, mostrarImportacao ? "Fechar importação" : "📥 Importar relatório"))), filtroCliente && React.createElement(Card, {
+    title: `Histórico de pedidos reais — ${filtroCliente}`
+  }, React.createElement("div", {
+    className: "flex flex-wrap gap-5 mb-3"
+  }, React.createElement("div", null, React.createElement("p", {
+    className: "text-[10px] text-slate-400 uppercase font-bold tracking-wide"
+  }, "Potencial"), React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: (POTENCIAL_COMPRA_TONS[potencialFiltro.label] || {}).cor || INK
+    }
+  }, potencialFiltro.label)), React.createElement("div", null, React.createElement("p", {
+    className: "text-[10px] text-slate-400 uppercase font-bold tracking-wide"
+  }, "Pedidos"), React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: INK
+    }
+  }, potencialFiltro.totalPedidos)), React.createElement("div", null, React.createElement("p", {
+    className: "text-[10px] text-slate-400 uppercase font-bold tracking-wide"
+  }, "Valor total"), React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: INK
+    }
+  }, brl(potencialFiltro.valorTotal))), React.createElement("div", null, React.createElement("p", {
+    className: "text-[10px] text-slate-400 uppercase font-bold tracking-wide"
+  }, "Ticket m\xE9dio"), React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: INK
+    }
+  }, brl(potencialFiltro.ticketMedio))), React.createElement("div", null, React.createElement("p", {
+    className: "text-[10px] text-slate-400 uppercase font-bold tracking-wide"
+  }, "\xDAltima compra"), React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: INK
+    }
+  }, potencialFiltro.diasDesdeUltimaCompra != null ? `há ${potencialFiltro.diasDesdeUltimaCompra}d` : "—"))), pedidosDoFiltro.length === 0 ? React.createElement("p", {
+    className: "text-xs text-slate-400 py-2"
+  }, "Nenhum pedido registrado em Pedidos & Auditoria pra esse cliente ainda.") : React.createElement("div", {
+    className: "overflow-x-auto"
+  }, React.createElement("table", {
+    className: "w-full text-xs"
+  }, React.createElement("thead", null, React.createElement("tr", {
+    className: "text-left text-slate-400 uppercase text-[10px]"
+  }, React.createElement("th", {
+    className: "py-1 pr-3"
+  }, "Pedido"), React.createElement("th", {
+    className: "py-1 pr-3"
+  }, "Emiss\xE3o"), React.createElement("th", {
+    className: "py-1 pr-3"
+  }, "Representada"), React.createElement("th", {
+    className: "py-1 pr-3 text-right"
+  }, "Valor"), React.createElement("th", {
+    className: "py-1 pr-3"
+  }, "Tipo"), React.createElement("th", {
+    className: "py-1"
+  }, "Faturamento"))), React.createElement("tbody", null, pedidosDoFiltro.map(p => React.createElement("tr", {
+    key: p.id,
+    className: "border-t",
+    style: {
+      borderColor: LINE
+    }
+  }, React.createElement("td", {
+    className: "py-1.5 pr-3 font-mono"
+  }, p.protocolo), React.createElement("td", {
+    className: "py-1.5 pr-3"
+  }, p.dataEmissao ? formatarDataBR(p.dataEmissao) : "—"), React.createElement("td", {
+    className: "py-1.5 pr-3"
+  }, p.representada || "—"), React.createElement("td", {
+    className: "py-1.5 pr-3 text-right font-mono"
+  }, brl(p.total || 0)), React.createElement("td", {
+    className: "py-1.5 pr-3"
+  }, p.status || "Pedido"), React.createElement("td", {
+    className: "py-1.5 font-semibold",
+    style: {
+      color: p.pedidoStatus === "Faturado" ? "#047857" : "#B45309"
+    }
+  }, p.pedidoStatus || "—"))))))), mostrarRelatorio && React.createElement(RelatorioFunil, {
     negocios: negocios
   }), mostrarForm && React.createElement(Card, {
     title: editandoId ? "Editar negócio" : "Novo negócio"

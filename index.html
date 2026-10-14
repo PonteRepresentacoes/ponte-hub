@@ -844,6 +844,18 @@ async function buscarInscricaoEstadual(cnpjDigits, uf, chave) {
     mensagem: "Nenhuma inscrição estadual cadastrada para esse CNPJ — pode ser isento ou não contribuinte."
   };
 }
+async function buscarDadosReceitaCNPJ(digits) {
+  try {
+    const resp = await fetch(`/api/cnpj?cnpj=${digits}`);
+    if (resp.ok) {
+      const data = await resp.json().catch(() => null);
+      if (data && !data.error) return data;
+    }
+  } catch (e) {}
+  const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+  if (!resp.ok) throw new Error("not-ok");
+  return await resp.json();
+}
 const STORAGE_KEY = "ponte-hub-data";
 const TIPOS_PEDIDO = ["Pedido", "Amostra", "Bonificação", "Troca", "Orçamento"];
 const TIPO_PEDIDO_ROTULO = {
@@ -1669,9 +1681,7 @@ function CadastroPublico() {
     setBuscando(true);
     setBuscaMsg("");
     try {
-      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-      if (!resp.ok) throw new Error("not-ok");
-      const data = await resp.json();
+      const data = await buscarDadosReceitaCNPJ(digits);
       setForm(f => ({
         ...f,
         cnpj: digits,
@@ -4681,9 +4691,7 @@ function FichaRapida({
     setBuscando(true);
     setBuscaMsg("");
     try {
-      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-      if (!resp.ok) throw new Error("not-ok");
-      const data = await resp.json();
+      const data = await buscarDadosReceitaCNPJ(digits);
       buscarIE(digits, data.uf || "", true);
       setFicha(f => ({
         ...f,
@@ -16456,9 +16464,7 @@ function Clientes({
     setBuscando(true);
     setBuscaMsg("");
     try {
-      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-      if (!resp.ok) throw new Error("not-ok");
-      const data = await resp.json();
+      const data = await buscarDadosReceitaCNPJ(digits);
       setNome(data.nome_fantasia || data.razao_social || "");
       setCidade(data.municipio || "");
       setEstado(data.uf || "");
@@ -20010,9 +20016,7 @@ function RepresentadasCadastro({
     setBuscandoCnpj(true);
     setMsgBusca("");
     try {
-      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-      if (!resp.ok) throw new Error("not-ok");
-      const data = await resp.json();
+      const data = await buscarDadosReceitaCNPJ(digits);
       setForm(f => ({
         ...f,
         razaoSocial: data.razao_social || f.razaoSocial,
@@ -20815,9 +20819,7 @@ function TransportadorasCadastro({
     setBuscandoCnpj(true);
     setMsg("");
     try {
-      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-      if (!resp.ok) throw new Error("not-ok");
-      const data = await resp.json();
+      const data = await buscarDadosReceitaCNPJ(digits);
       setForm(f => ({
         ...f,
         razaoSocial: data.razao_social || f.razaoSocial,

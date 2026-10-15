@@ -368,6 +368,7 @@ html[data-tema="escuro"] .text-violet-800{color:rgb(167,139,250)!important}
 
 </script>
 <script>
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const {
   useState,
   useEffect,
@@ -447,6 +448,10 @@ const brl = n => (isFinite(n) ? n : 0).toLocaleString("pt-BR", {
   style: "currency",
   currency: "BRL"
 });
+const formatarValorBR = n => (isFinite(n) ? n : 0).toLocaleString("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
 function parseValorBR(str) {
   if (typeof str === "number") return str;
   const limpo = (str || "").toString().trim();
@@ -461,6 +466,36 @@ function parseValorBR(str) {
   }
   const n = Number(normalizado);
   return isFinite(n) ? n : 0;
+}
+function InputValorBR({
+  value,
+  onChange,
+  placeholder,
+  ...rest
+}) {
+  const [focado, setFocado] = useState(false);
+  const [texto, setTexto] = useState("");
+  const exibicao = focado ? texto : value === "" || value == null ? "" : formatarValorBR(Number(value) || 0);
+  return React.createElement("input", _extends({
+    type: "text",
+    inputMode: "decimal",
+    placeholder: placeholder === undefined ? "0,00" : placeholder,
+    value: exibicao,
+    onFocus: () => {
+      setTexto(value === "" || value == null ? "" : String(value));
+      setFocado(true);
+    },
+    onChange: e => setTexto(e.target.value),
+    onBlur: () => {
+      setFocado(false);
+      const n = parseValorBR(texto);
+      onChange({
+        target: {
+          value: texto.trim() === "" ? "" : String(n)
+        }
+      });
+    }
+  }, rest));
 }
 function addMonthsClamped(dateStr, n) {
   const [y, m, d] = (dateStr || "").split("-").map(Number);
@@ -8000,10 +8035,7 @@ function FunilVendas({
     }
   })), React.createElement(Field, {
     label: "Valor (R$)"
-  }, React.createElement("input", {
-    type: "number",
-    step: "0.01",
-    min: "0",
+  }, React.createElement(InputValorBR, {
     value: form.valor,
     onChange: set("valor"),
     className: "w-full border rounded-md px-3 py-2 text-sm",
@@ -8623,10 +8655,7 @@ function Televendas({
     value: r.nome
   }, r.nome)))), React.createElement(Field, {
     label: "Valor estimado (R$)"
-  }, React.createElement("input", {
-    type: "number",
-    step: "0.01",
-    min: "0",
+  }, React.createElement(InputValorBR, {
     value: form.valor,
     onChange: set("valor"),
     className: "w-full border rounded-md px-3 py-2 text-sm",

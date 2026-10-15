@@ -4606,6 +4606,145 @@ const PERFIL_COMPRA_OPCOES = [{
   id: "D",
   label: "D — Qualidade"
 }];
+function baixarFichaCliente(cliente, vendedores) {
+  const ficha = {
+    ...blankFicha(),
+    ...(cliente || {})
+  };
+  if (typeof ficha.referenciasBancarias === "string") ficha.referenciasBancarias = [{
+    banco: ficha.referenciasBancarias
+  }];
+  if (typeof ficha.referenciasComerciais === "string") ficha.referenciasComerciais = [{
+    empresa: ficha.referenciasComerciais
+  }];
+  ["referenciasBancarias", "referenciasComerciais", "contatos"].forEach(k => {
+    if (!Array.isArray(ficha[k])) ficha[k] = [];
+  });
+  vendedores = vendedores || [];
+  const v = vendedores.find(v => v.id === ficha.vendedorId);
+  const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const val = s => s != null && String(s).trim() ? esc(String(s).trim()) : '<span class="vazio">—</span>';
+  const dig = s => String(s || "").replace(/\D/g, "");
+  const cnpjFmt = s => {
+    const d = dig(s);
+    if (d.length === 14) return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+    if (d.length === 11) return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+    return s || "";
+  };
+  const cepFmt = s => {
+    const d = dig(s);
+    return d.length === 8 ? d.replace(/^(\d{5})(\d{3})$/, "$1-$2") : s || "";
+  };
+  const endereco = p => {
+    const linha1 = [ficha[p + "Endereco"], ficha[p + "Numero"] || (ficha[p + "Endereco"] ? "s/n" : ""), ficha[p + "Complemento"]].filter(Boolean).join(", ");
+    const cidadeUf = [ficha[p + "Cidade"], ficha[p + "Estado"]].filter(Boolean).join("/");
+    const linha2 = [ficha[p + "Bairro"], cidadeUf, ficha[p + "Cep"] ? "CEP " + cepFmt(ficha[p + "Cep"]) : ""].filter(Boolean).join(" — ");
+    if (!linha1 && !linha2) return '<span class="vazio">—</span>';
+    return esc(linha1) + (linha2 ? "<br>" + esc(linha2) : "");
+  };
+  const campo = (rotulo, valorHtml, largura) => `<div class="campo${largura ? " " + largura : ""}"><div class="rot">${rotulo}</div><div class="val">${valorHtml}</div></div>`;
+  const SUFRAMA_SIT = {
+    ativa: "Ativa",
+    inativa: "Inativa / vencida",
+    nao_possui: "Não possui"
+  };
+  const hoje = new Date().toLocaleDateString("pt-BR");
+  const bancarias = (ficha.referenciasBancarias || []).filter(r => r && [r.banco, r.agencia, r.conta, r.gerente, r.telefone].some(x => x && String(x).trim()));
+  const comerciais = (ficha.referenciasComerciais || []).filter(r => r && [r.empresa, r.contato, r.telefone].some(x => x && String(x).trim()));
+  const papeis = [["Comercial", ficha.contatoComercial], ["Fiscal", ficha.contatoFiscal], ["Financeiro", ficha.contatoFinanceiro]].filter(([, c]) => c && (c.nome || c.email || c.telefone));
+  const outrosContatos = (ficha.contatos || []).filter(c => c && (c.nome || c.email || c.telefone1));
+  const tabela = (cabecalhos, linhas, vazioMsg) => linhas.length === 0 ? `<p class="aviso">${vazioMsg}</p>` : `<table><thead><tr>${cabecalhos.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${linhas.map(l => `<tr>${l.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  const html = `<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ficha Cadastral - ${esc(ficha.nome)}</title>
+<style>
+@page{size:A4;margin:14mm}
+*{box-sizing:border-box}
+body{font-family:"Segoe UI",Arial,sans-serif;color:#0B1220;background:#EEF2F7;margin:0;padding:24px;font-size:12.5px;line-height:1.4}
+.folha{max-width:820px;margin:0 auto;background:#fff;border-radius:10px;box-shadow:0 2px 12px rgba(15,23,42,.08);overflow:hidden}
+.topo{background:#0B1220;color:#fff;padding:20px 28px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.topo .marca{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93A5C9;font-weight:700}
+.topo h1{margin:4px 0 0;font-size:21px;font-weight:800}
+.topo .sub{color:#C7D2E8;font-size:12px;margin-top:2px}
+.topo .data{text-align:right;font-size:11px;color:#93A5C9}
+.topo .data b{display:block;color:#fff;font-size:13px}
+.faixa{height:4px;background:#1D4ED8}
+.corpo{padding:8px 28px 24px}
+h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#1D4ED8;margin:22px 0 10px;padding-bottom:6px;border-bottom:1.5px solid #DBE4F3}
+.grade{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 18px}
+.campo{min-width:0}
+.campo.l2{grid-column:span 2}.campo.l4{grid-column:span 4}
+.rot{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748B;margin-bottom:2px}
+.val{font-size:12.5px;font-weight:600;word-wrap:break-word}
+.vazio{color:#CBD5E1;font-weight:400}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:#64748B;background:#F1F5F9;padding:7px 9px;border-bottom:1px solid #E2E8F0}
+td{padding:8px 9px;border-bottom:1px solid #EEF2F7;vertical-align:top}
+.aviso{margin:0;padding:10px 12px;border:1px dashed #F59E0B;background:#FFFBEB;color:#92400E;border-radius:6px;font-size:12px}
+.rodape{margin-top:26px;padding-top:12px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;gap:12px;color:#94A3B8;font-size:10.5px}
+.acoes{max-width:820px;margin:0 auto 14px;display:flex;justify-content:flex-end}
+.acoes button{background:#1D4ED8;color:#fff;border:0;border-radius:6px;padding:9px 16px;font-weight:700;font-size:12px;cursor:pointer}
+@media (max-width:640px){body{padding:8px}.grade{grid-template-columns:repeat(2,1fr)}.campo.l4{grid-column:span 2}.topo{flex-direction:column;align-items:flex-start}.topo .data{text-align:left}}
+@media print{body{background:#fff;padding:0;font-size:11px}.topo{padding:12px 18px}.topo h1{font-size:17px}.corpo{padding:2px 18px 10px}h2{margin:12px 0 6px;padding-bottom:4px}.grade{gap:6px 14px}.val{font-size:11px}th{padding:4px 7px}td{padding:4px 7px;font-size:11px}.rodape{margin-top:12px;padding-top:6px}.folha{box-shadow:none;border-radius:0;max-width:none}.acoes{display:none}.topo,.faixa,th{-webkit-print-color-adjust:exact;print-color-adjust:exact}h2{break-after:avoid}table,.grade{break-inside:avoid}}
+</style></head><body>
+<div class="acoes"><button onclick="window.print()">🖨️ Imprimir / Salvar em PDF</button></div>
+<div class="folha">
+<div class="topo"><div><div class="marca">Ponte Representações · Ficha Cadastral de Cliente</div><h1>${esc(ficha.razaoSocial || ficha.nome)}</h1>${ficha.razaoSocial && ficha.nome && ficha.nome !== ficha.razaoSocial ? `<div class="sub">Nome fantasia: ${esc(ficha.nome)}</div>` : ""}</div><div class="data">Emitida em<b>${hoje}</b></div></div>
+<div class="faixa"></div>
+<div class="corpo">
+  <h2>Identificação</h2>
+  <div class="grade">
+    ${campo("Razão social", val(ficha.razaoSocial), "l2")}
+    ${campo("Nome fantasia", val(ficha.nome), "l2")}
+    ${campo(dig(ficha.cnpj).length === 11 ? "CPF" : "CNPJ", val(cnpjFmt(ficha.cnpj)))}
+    ${campo("Inscrição estadual", val(ficha.ie))}
+    ${campo("Inscrição municipal", val(ficha.inscricaoMunicipal))}
+    ${campo("Código do cliente", val(ficha.codigo))}
+    ${campo("Situação cadastral", val(ficha.situacao))}
+    ${campo("Data de abertura", val(ficha.dataAbertura ? formatarDataBR(ficha.dataAbertura) : ""))}
+    ${campo("Contribuinte ICMS", val(ficha.contribuinte))}
+    ${campo("Regime tributário", val(ficha.regimeTributario))}
+    ${campo("Inscrição SUFRAMA", val(ficha.suframaNumero ? ficha.suframaNumero + (SUFRAMA_SIT[ficha.suframaSituacao] ? " (" + SUFRAMA_SIT[ficha.suframaSituacao] + ")" : "") : ""), "l2")}
+    ${campo("Limite de crédito", val(ficha.limiteCredito ? brl(Number(ficha.limiteCredito)) : ""))}
+    ${campo("Segmento", val(ficha.segmento))}
+  </div>
+  <h2>Endereços</h2>
+  <div class="grade">
+    ${campo("Sede (cadastro)", ficha.cadastroEndereco || ficha.cadastroCidade ? endereco("cadastro") : val([ficha.municipio, ficha.estado].filter(Boolean).join("/")), "l4")}
+    ${campo("Cobrança", endereco("cobranca"), "l2")}
+    ${campo("Entrega", endereco("entrega"), "l2")}
+  </div>
+  <h2>Contato e e-mails</h2>
+  <div class="grade">
+    ${campo("Telefone", val(ficha.telefone || ficha.contatoComercial && ficha.contatoComercial.telefone))}
+    ${campo("WhatsApp", val(ficha.whatsapp))}
+    ${campo("E-mail principal", val(ficha.email), "l2")}
+    ${campo("E-mail para pedidos", val(ficha.emailPedido), "l2")}
+    ${campo("E-mail para NF-e / boleto", val(ficha.emailNFeBoleto), "l2")}
+  </div>
+  <h2>Responsáveis</h2>
+  ${tabela(["Área", "Nome", "E-mail", "Telefone"], papeis.map(([papel, c]) => [papel, val(c.nome), val(c.email), val(c.telefone)]).concat(outrosContatos.map(c => [val(c.departamento || c.cargo || "Contato"), val(c.nome), val(c.email), val(c.telefone1 || c.whatsapp)])), "Nenhum responsável informado.")}
+  <h2>Referências bancárias</h2>
+  ${tabela(["Banco", "Agência", "Conta", "Gerente", "Telefone"], bancarias.map(r => [val(r.banco), val(r.agencia), val(r.conta), val(r.gerente), val(r.telefone)]), "⚠️ Nenhuma referência bancária cadastrada — preencha em Clientes → Ficha completa antes de enviar à indústria.")}
+  <h2>Referências comerciais</h2>
+  ${tabela(["Empresa", "Contato", "Telefone"], comerciais.map(r => [val(r.empresa), val(r.contato), val(r.telefone)]), "Nenhuma referência comercial informada.")}
+  <h2>Representação</h2>
+  <div class="grade">
+    ${campo("Representante", "Ponte Representações", "l2")}
+    ${campo("Vendedor responsável", val(v ? v.nome : "Venda direta (Ponte)"), "l2")}
+  </div>
+  <div class="rodape"><span>Ficha gerada pelo Ponte Hub em ${hoje}.</span><span>Dados informados pelo cliente e/ou consultados na Receita Federal.</span></div>
+</div>
+</div>
+</body></html>`;
+  const blob = new Blob([html], {
+    type: "text/html;charset=utf-8;"
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ficha-${(ficha.nome || "cliente").replace(/\s+/g, "-").toLowerCase()}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 function fichaCompletude(f) {
   const temComercial = Array.isArray(f.referenciasComerciais) && f.referenciasComerciais.some(r => r.empresa && r.empresa.trim());
   const temBancaria = Array.isArray(f.referenciasBancarias) && f.referenciasBancarias.some(r => r.banco && r.banco.trim());
@@ -5107,131 +5246,7 @@ function FichaRapida({
       });
     }
   };
-  const baixarFicha = () => {
-    const v = vendedores.find(v => v.id === ficha.vendedorId);
-    const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    const val = s => s != null && String(s).trim() ? esc(String(s).trim()) : '<span class="vazio">—</span>';
-    const dig = s => String(s || "").replace(/\D/g, "");
-    const cnpjFmt = s => {
-      const d = dig(s);
-      if (d.length === 14) return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
-      if (d.length === 11) return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
-      return s || "";
-    };
-    const cepFmt = s => {
-      const d = dig(s);
-      return d.length === 8 ? d.replace(/^(\d{5})(\d{3})$/, "$1-$2") : s || "";
-    };
-    const endereco = p => {
-      const linha1 = [ficha[p + "Endereco"], ficha[p + "Numero"] || (ficha[p + "Endereco"] ? "s/n" : ""), ficha[p + "Complemento"]].filter(Boolean).join(", ");
-      const cidadeUf = [ficha[p + "Cidade"], ficha[p + "Estado"]].filter(Boolean).join("/");
-      const linha2 = [ficha[p + "Bairro"], cidadeUf, ficha[p + "Cep"] ? "CEP " + cepFmt(ficha[p + "Cep"]) : ""].filter(Boolean).join(" — ");
-      if (!linha1 && !linha2) return '<span class="vazio">—</span>';
-      return esc(linha1) + (linha2 ? "<br>" + esc(linha2) : "");
-    };
-    const campo = (rotulo, valorHtml, largura) => `<div class="campo${largura ? " " + largura : ""}"><div class="rot">${rotulo}</div><div class="val">${valorHtml}</div></div>`;
-    const SUFRAMA_SIT = {
-      ativa: "Ativa",
-      inativa: "Inativa / vencida",
-      nao_possui: "Não possui"
-    };
-    const hoje = new Date().toLocaleDateString("pt-BR");
-    const bancarias = (ficha.referenciasBancarias || []).filter(r => r && [r.banco, r.agencia, r.conta, r.gerente, r.telefone].some(x => x && String(x).trim()));
-    const comerciais = (ficha.referenciasComerciais || []).filter(r => r && [r.empresa, r.contato, r.telefone].some(x => x && String(x).trim()));
-    const papeis = [["Comercial", ficha.contatoComercial], ["Fiscal", ficha.contatoFiscal], ["Financeiro", ficha.contatoFinanceiro]].filter(([, c]) => c && (c.nome || c.email || c.telefone));
-    const outrosContatos = (ficha.contatos || []).filter(c => c && (c.nome || c.email || c.telefone1));
-    const tabela = (cabecalhos, linhas, vazioMsg) => linhas.length === 0 ? `<p class="aviso">${vazioMsg}</p>` : `<table><thead><tr>${cabecalhos.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${linhas.map(l => `<tr>${l.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-    const html = `<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ficha Cadastral - ${esc(ficha.nome)}</title>
-<style>
-  @page{size:A4;margin:14mm}
-  *{box-sizing:border-box}
-  body{font-family:"Segoe UI",Arial,sans-serif;color:#0B1220;background:#EEF2F7;margin:0;padding:24px;font-size:12.5px;line-height:1.4}
-  .folha{max-width:820px;margin:0 auto;background:#fff;border-radius:10px;box-shadow:0 2px 12px rgba(15,23,42,.08);overflow:hidden}
-  .topo{background:#0B1220;color:#fff;padding:20px 28px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
-  .topo .marca{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93A5C9;font-weight:700}
-  .topo h1{margin:4px 0 0;font-size:21px;font-weight:800}
-  .topo .sub{color:#C7D2E8;font-size:12px;margin-top:2px}
-  .topo .data{text-align:right;font-size:11px;color:#93A5C9}
-  .topo .data b{display:block;color:#fff;font-size:13px}
-  .faixa{height:4px;background:#1D4ED8}
-  .corpo{padding:8px 28px 24px}
-  h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#1D4ED8;margin:22px 0 10px;padding-bottom:6px;border-bottom:1.5px solid #DBE4F3}
-  .grade{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 18px}
-  .campo{min-width:0}
-  .campo.l2{grid-column:span 2}.campo.l4{grid-column:span 4}
-  .rot{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748B;margin-bottom:2px}
-  .val{font-size:12.5px;font-weight:600;word-wrap:break-word}
-  .vazio{color:#CBD5E1;font-weight:400}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:#64748B;background:#F1F5F9;padding:7px 9px;border-bottom:1px solid #E2E8F0}
-  td{padding:8px 9px;border-bottom:1px solid #EEF2F7;vertical-align:top}
-  .aviso{margin:0;padding:10px 12px;border:1px dashed #F59E0B;background:#FFFBEB;color:#92400E;border-radius:6px;font-size:12px}
-  .rodape{margin-top:26px;padding-top:12px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;gap:12px;color:#94A3B8;font-size:10.5px}
-  .acoes{max-width:820px;margin:0 auto 14px;display:flex;justify-content:flex-end}
-  .acoes button{background:#1D4ED8;color:#fff;border:0;border-radius:6px;padding:9px 16px;font-weight:700;font-size:12px;cursor:pointer}
-  @media (max-width:640px){body{padding:8px}.grade{grid-template-columns:repeat(2,1fr)}.campo.l4{grid-column:span 2}.topo{flex-direction:column;align-items:flex-start}.topo .data{text-align:left}}
-  @media print{body{background:#fff;padding:0;font-size:11px}.topo{padding:12px 18px}.topo h1{font-size:17px}.corpo{padding:2px 18px 10px}h2{margin:12px 0 6px;padding-bottom:4px}.grade{gap:6px 14px}.val{font-size:11px}th{padding:4px 7px}td{padding:4px 7px;font-size:11px}.rodape{margin-top:12px;padding-top:6px}.folha{box-shadow:none;border-radius:0;max-width:none}.acoes{display:none}.topo,.faixa,th{-webkit-print-color-adjust:exact;print-color-adjust:exact}h2{break-after:avoid}table,.grade{break-inside:avoid}}
-</style></head><body>
-<div class="acoes"><button onclick="window.print()">🖨️ Imprimir / Salvar em PDF</button></div>
-<div class="folha">
-  <div class="topo"><div><div class="marca">Ponte Representações · Ficha Cadastral de Cliente</div><h1>${esc(ficha.razaoSocial || ficha.nome)}</h1>${ficha.razaoSocial && ficha.nome && ficha.nome !== ficha.razaoSocial ? `<div class="sub">Nome fantasia: ${esc(ficha.nome)}</div>` : ""}</div><div class="data">Emitida em<b>${hoje}</b></div></div>
-  <div class="faixa"></div>
-  <div class="corpo">
-    <h2>Identificação</h2>
-    <div class="grade">
-      ${campo("Razão social", val(ficha.razaoSocial), "l2")}
-      ${campo("Nome fantasia", val(ficha.nome), "l2")}
-      ${campo(dig(ficha.cnpj).length === 11 ? "CPF" : "CNPJ", val(cnpjFmt(ficha.cnpj)))}
-      ${campo("Inscrição estadual", val(ficha.ie))}
-      ${campo("Inscrição municipal", val(ficha.inscricaoMunicipal))}
-      ${campo("Código do cliente", val(ficha.codigo))}
-      ${campo("Situação cadastral", val(ficha.situacao))}
-      ${campo("Data de abertura", val(ficha.dataAbertura ? formatarDataBR(ficha.dataAbertura) : ""))}
-      ${campo("Contribuinte ICMS", val(ficha.contribuinte))}
-      ${campo("Regime tributário", val(ficha.regimeTributario))}
-      ${campo("Inscrição SUFRAMA", val(ficha.suframaNumero ? ficha.suframaNumero + (SUFRAMA_SIT[ficha.suframaSituacao] ? " (" + SUFRAMA_SIT[ficha.suframaSituacao] + ")" : "") : ""), "l2")}
-      ${campo("Limite de crédito", val(ficha.limiteCredito ? brl(Number(ficha.limiteCredito)) : ""))}
-      ${campo("Segmento", val(ficha.segmento))}
-    </div>
-    <h2>Endereços</h2>
-    <div class="grade">
-      ${campo("Sede (cadastro)", ficha.cadastroEndereco || ficha.cadastroCidade ? endereco("cadastro") : val([ficha.municipio, ficha.estado].filter(Boolean).join("/")), "l4")}
-      ${campo("Cobrança", endereco("cobranca"), "l2")}
-      ${campo("Entrega", endereco("entrega"), "l2")}
-    </div>
-    <h2>Contato e e-mails</h2>
-    <div class="grade">
-      ${campo("Telefone", val(ficha.telefone || ficha.contatoComercial && ficha.contatoComercial.telefone))}
-      ${campo("WhatsApp", val(ficha.whatsapp))}
-      ${campo("E-mail principal", val(ficha.email), "l2")}
-      ${campo("E-mail para pedidos", val(ficha.emailPedido), "l2")}
-      ${campo("E-mail para NF-e / boleto", val(ficha.emailNFeBoleto), "l2")}
-    </div>
-    <h2>Responsáveis</h2>
-    ${tabela(["Área", "Nome", "E-mail", "Telefone"], papeis.map(([papel, c]) => [papel, val(c.nome), val(c.email), val(c.telefone)]).concat(outrosContatos.map(c => [val(c.departamento || c.cargo || "Contato"), val(c.nome), val(c.email), val(c.telefone1 || c.whatsapp)])), "Nenhum responsável informado.")}
-    <h2>Referências bancárias</h2>
-    ${tabela(["Banco", "Agência", "Conta", "Gerente", "Telefone"], bancarias.map(r => [val(r.banco), val(r.agencia), val(r.conta), val(r.gerente), val(r.telefone)]), "⚠️ Nenhuma referência bancária cadastrada — preencha em Clientes → Ficha completa antes de enviar à indústria.")}
-    <h2>Referências comerciais</h2>
-    ${tabela(["Empresa", "Contato", "Telefone"], comerciais.map(r => [val(r.empresa), val(r.contato), val(r.telefone)]), "Nenhuma referência comercial informada.")}
-    <h2>Representação</h2>
-    <div class="grade">
-      ${campo("Representante", "Ponte Representações", "l2")}
-      ${campo("Vendedor responsável", val(v ? v.nome : "Venda direta (Ponte)"), "l2")}
-    </div>
-    <div class="rodape"><span>Ficha gerada pelo Ponte Hub em ${hoje}.</span><span>Dados informados pelo cliente e/ou consultados na Receita Federal.</span></div>
-  </div>
-</div>
-</body></html>`;
-    const blob = new Blob([html], {
-      type: "text/html;charset=utf-8;"
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `ficha-${(ficha.nome || "cliente").replace(/\s+/g, "-").toLowerCase()}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const baixarFicha = () => baixarFichaCliente(ficha, vendedores);
   return React.createElement("div", {
     className: "space-y-6"
   }, React.createElement("div", null, React.createElement("h2", {
@@ -17012,6 +17027,10 @@ function Clientes({
       onClick: () => abrirFicha(c.id),
       className: "text-[11px] font-semibold text-blue-600 hover:underline"
     }, c.provisorio ? "Completar cadastro" : "Ver / Editar"), React.createElement("button", {
+      onClick: () => baixarFichaCliente(c, vendedores),
+      title: "Baixar a ficha cadastral (imprimir ou salvar em PDF) pra enviar \xE0 ind\xFAstria",
+      className: "text-[11px] font-semibold text-blue-600 hover:underline"
+    }, "\uD83D\uDCC4 Ficha"), React.createElement("button", {
       onClick: () => remove(c.id),
       className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
     }, "Remover")));

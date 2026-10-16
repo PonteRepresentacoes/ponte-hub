@@ -7501,6 +7501,7 @@ function MixClientes({
   setMixClientes = () => {}
 }) {
   const [representada, setRepresentada] = useState("");
+  const [clienteEscolhidoId, setClienteEscolhidoId] = useState("");
   const [preview, setPreview] = useState([]);
   const [naoIdentificados, setNaoIdentificados] = useState([]);
   const [msg, setMsg] = useState("");
@@ -7535,6 +7536,7 @@ function MixClientes({
           type: "array"
         });
         const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const clienteFixo = clienteEscolhidoId ? clientesAtivos.find(c => c.id === clienteEscolhidoId) : null;
         const ok = [];
         const semMatch = [];
         const vistos = new Set(mixClientes.map(m => chaveMix(m.clienteId, m.representada, m.produto)));
@@ -7558,11 +7560,11 @@ function MixClientes({
             });
             return;
           }
-          const cliente = acharCliente(clienteNome, cnpj, codCliente);
+          const cliente = clienteFixo || acharCliente(clienteNome, cnpj, codCliente);
           if (!cliente) {
             semMatch.push({
               rotulo,
-              motivo: "Cliente não encontrado no cadastro"
+              motivo: clienteNome || cnpj || codCliente ? "Cliente não encontrado no cadastro" : "Sem cliente — escolha o cliente acima ou use a coluna Cliente"
             });
             return;
           }
@@ -7652,10 +7654,28 @@ function MixClientes({
     className: "space-y-6"
   }, React.createElement(Card, {
     title: "Carregar o mix por planilha",
-    subtitle: "Colunas: Cliente (ou CNPJ), Produto e/ou C\xF3digo. A coluna Representada \xE9 opcional \u2014 sem ela vale a ind\xFAstria escolhida aqui."
+    subtitle: "Escolha o cliente e a ind\xFAstria aqui \u2014 a planilha precisa ter s\xF3 o Produto e/ou o C\xF3digo. Se o arquivo tiver colunas Cliente/CNPJ ou Representada, elas s\xF3 s\xE3o usadas quando voc\xEA deixa o seletor em branco."
   }, React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-2 gap-3 mb-3"
   }, React.createElement(Field, {
+    label: "Cliente da planilha"
+  }, React.createElement("select", {
+    value: clienteEscolhidoId,
+    onChange: e => {
+      setClienteEscolhidoId(e.target.value);
+      setPreview([]);
+      setNaoIdentificados([]);
+      setMsg("");
+    },
+    "aria-label": "Cliente do mix",
+    className: inputCls,
+    style: linha
+  }, React.createElement("option", {
+    value: ""
+  }, "Vem da coluna Cliente/CNPJ do arquivo"), clientesAtivos.slice().sort((a, b) => String(a.nome).localeCompare(String(b.nome))).map(c => React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome)))), React.createElement(Field, {
     label: "Ind\xFAstria (representada)"
   }, React.createElement("select", {
     value: representada,

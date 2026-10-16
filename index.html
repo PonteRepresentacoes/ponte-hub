@@ -13417,7 +13417,11 @@ function CentralPedidos({
     clientes: clientes
   }), sub === "orcamentos" && React.createElement(Orcamentos, {
     pedidosEspelho: pedidosEspelho,
-    setPedidosEspelho: setPedidosEspelho
+    setPedidosEspelho: setPedidosEspelho,
+    clientes: clientes,
+    vendedores: vendedores,
+    representadasCadastro: representadasCadastro,
+    condicoesPagamentoCadastro: condicoesPagamentoCadastro
   }), sub === "acompanhamento" && React.createElement(AcompanhamentoVendas, {
     pedidosEspelho: pedidosEspelho,
     vendedores: vendedores,
@@ -14403,8 +14407,14 @@ const TIPOS_DATA_FILTRO = [{
 }];
 function Orcamentos({
   pedidosEspelho,
-  setPedidosEspelho
+  setPedidosEspelho,
+  clientes = [],
+  vendedores = [],
+  representadasCadastro = [],
+  condicoesPagamentoCadastro = []
 }) {
+  const [editandoId, setEditandoId] = useState(null);
+  const [form, setForm] = useState(null);
   const orcamentos = pedidosEspelho.filter(p => !p.excluido && p.status === "Orçamento");
   const converterParaPedido = id => setPedidosEspelho(pedidosEspelho.map(p => p.id === id ? {
     ...p,
@@ -14427,6 +14437,56 @@ function Orcamentos({
     ...p,
     excluido: true
   } : p));
+  const repsAtivas = (representadasCadastro || []).filter(r => !r.excluida).map(r => r.nome);
+  const opcoesRep = [...new Set([...repsAtivas, ...pedidosEspelho.map(p => p.representada).filter(Boolean)])].sort((a, b) => a.localeCompare(b));
+  const vendedoresAtivos = (vendedores || []).filter(v => !v.excluido);
+  const clientesOrdenados = (clientes || []).filter(c => !c.excluido).slice().sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || "")));
+  const abrirEdicao = p => {
+    setEditandoId(p.id);
+    setForm({
+      representada: p.representada || "",
+      clienteId: p.clienteId || "",
+      clienteNome: p.clienteNome || "",
+      vendedorId: p.vendedorId || "",
+      vendedorNome: p.vendedorNome || "",
+      dataEmissao: p.dataEmissao || "",
+      condicaoPagamento: p.condicaoPagamento || "",
+      ordemCompra: p.ordemCompra || "",
+      obsCliente: p.obsCliente || ""
+    });
+  };
+  const fecharEdicao = () => {
+    setEditandoId(null);
+    setForm(null);
+  };
+  const setF = campo => e => setForm(f => ({
+    ...f,
+    [campo]: e.target.value
+  }));
+  const salvarEdicao = () => {
+    if (!form) return;
+    setPedidosEspelho(pedidosEspelho.map(p => {
+      if (p.id !== editandoId) return p;
+      return {
+        ...p,
+        representada: form.representada.trim(),
+        clienteId: form.clienteId,
+        clienteNome: form.clienteNome.trim() || p.clienteNome,
+        vendedorId: form.vendedorId,
+        vendedorNome: form.vendedorNome || "Venda direta (Ponte)",
+        dataEmissao: form.dataEmissao,
+        condicaoPagamento: form.condicaoPagamento,
+        ordemCompra: form.ordemCompra.trim(),
+        obsCliente: form.obsCliente,
+        editadoEm: new Date().toISOString()
+      };
+    }));
+    fecharEdicao();
+  };
+  const inputCls = "w-full border rounded-md px-3 py-2 text-sm";
+  const estiloLinha = {
+    borderColor: LINE
+  };
   return React.createElement("div", {
     className: "space-y-6"
   }, React.createElement("div", null, React.createElement("h2", {
@@ -14467,9 +14527,130 @@ function Orcamentos({
       color: INK
     }
   }, "Duplicar"), React.createElement("button", {
+    onClick: () => editandoId === p.id ? fecharEdicao() : abrirEdicao(p),
+    className: "text-[11px] font-semibold text-slate-500 hover:text-blue-600"
+  }, editandoId === p.id ? "Fechar" : "Editar"), React.createElement("button", {
     onClick: () => excluir(p.id),
     className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
-  }, "Excluir")))))));
+  }, "Excluir"))), editandoId === p.id && form && React.createElement("div", {
+    className: "mt-3 rounded-md border-2 p-3 space-y-3",
+    style: {
+      borderColor: ROYAL,
+      background: "#F5F8FF"
+    }
+  }, React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-3"
+  }, React.createElement(Field, {
+    label: "Representada"
+  }, React.createElement("select", {
+    value: form.representada,
+    onChange: setF("representada"),
+    className: inputCls,
+    style: {
+      borderColor: form.representada ? LINE : "#EF4444",
+      background: form.representada ? undefined : "#FFF5F5"
+    }
+  }, React.createElement("option", {
+    value: ""
+  }, "\u26A0\uFE0F Selecione..."), opcoesRep.map(r => React.createElement("option", {
+    key: r,
+    value: r
+  }, r)))), React.createElement(Field, {
+    label: "Cliente"
+  }, React.createElement("select", {
+    value: form.clienteId,
+    onChange: e => {
+      const c = clientesOrdenados.find(x => x.id === e.target.value);
+      setForm(f => ({
+        ...f,
+        clienteId: e.target.value,
+        clienteNome: c ? c.nome : f.clienteNome
+      }));
+    },
+    className: inputCls,
+    style: estiloLinha
+  }, React.createElement("option", {
+    value: ""
+  }, form.clienteNome || "—", " (sem cadastro)"), clientesOrdenados.map(c => React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome))), !form.clienteId && React.createElement("input", {
+    value: form.clienteNome,
+    onChange: setF("clienteNome"),
+    placeholder: "Nome do cliente",
+    className: `${inputCls} mt-1`,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "Vendedor"
+  }, React.createElement("select", {
+    value: form.vendedorId,
+    onChange: e => {
+      const v = vendedoresAtivos.find(x => x.id === e.target.value);
+      setForm(f => ({
+        ...f,
+        vendedorId: e.target.value,
+        vendedorNome: v ? v.nome : "Venda direta (Ponte)"
+      }));
+    },
+    className: inputCls,
+    style: estiloLinha
+  }, React.createElement("option", {
+    value: ""
+  }, "Venda direta (Ponte)"), vendedoresAtivos.map(v => React.createElement("option", {
+    key: v.id,
+    value: v.id
+  }, v.nome)))), React.createElement(Field, {
+    label: "Emiss\xE3o"
+  }, React.createElement("input", {
+    type: "date",
+    value: form.dataEmissao,
+    onChange: setF("dataEmissao"),
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement(Field, {
+    label: "Condi\xE7\xE3o de pagamento"
+  }, React.createElement("input", {
+    list: "condicoes-orcamento-lista",
+    value: form.condicaoPagamento,
+    onChange: setF("condicaoPagamento"),
+    className: inputCls,
+    style: estiloLinha
+  }), React.createElement("datalist", {
+    id: "condicoes-orcamento-lista"
+  }, (condicoesPagamentoCadastro || []).map(c => React.createElement("option", {
+    key: c.id || c.nome,
+    value: c.nome
+  })))), React.createElement(Field, {
+    label: "Ordem de compra"
+  }, React.createElement("input", {
+    value: form.ordemCompra,
+    onChange: setF("ordemCompra"),
+    className: inputCls,
+    style: estiloLinha
+  }))), React.createElement(Field, {
+    label: "Observa\xE7\xE3o"
+  }, React.createElement("textarea", {
+    value: form.obsCliente,
+    onChange: setF("obsCliente"),
+    rows: 2,
+    className: inputCls,
+    style: estiloLinha
+  })), React.createElement("div", {
+    className: "flex gap-2"
+  }, React.createElement("button", {
+    onClick: salvarEdicao,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: {
+      background: "#047857"
+    }
+  }, "Salvar altera\xE7\xF5es"), React.createElement("button", {
+    onClick: fecharEdicao,
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: INK
+    }
+  }, "Cancelar")))))));
 }
 const SITUACOES_PEDIDO_PADRAO = ["Pendente", "Concluído", "Separado", "Faturado", "Entregue", "Pago"];
 const STATUS_PEDIDO_OPCOES = TIPOS_PEDIDO;

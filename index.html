@@ -4651,8 +4651,22 @@ function baixarFichaCliente(cliente, vendedores) {
   const hoje = new Date().toLocaleDateString("pt-BR");
   const bancarias = (ficha.referenciasBancarias || []).filter(r => r && [r.banco, r.agencia, r.conta, r.gerente, r.telefone].some(x => x && String(x).trim()));
   const comerciais = (ficha.referenciasComerciais || []).filter(r => r && [r.empresa, r.contato, r.telefone].some(x => x && String(x).trim()));
-  const papeis = [["Comercial", ficha.contatoComercial], ["Fiscal", ficha.contatoFiscal], ["Financeiro", ficha.contatoFinanceiro]].filter(([, c]) => c && (c.nome || c.email || c.telefone));
+  const chaveContato = c => [c.nome, c.email, c.telefone].map(x => String(x || "").trim().toLowerCase()).join("|");
+  const papeis = [];
+  [["Comercial", ficha.contatoComercial], ["Fiscal", ficha.contatoFiscal], ["Financeiro", ficha.contatoFinanceiro]].forEach(([papel, c]) => {
+    if (!c || !(c.nome || c.email || c.telefone)) return;
+    const igual = papeis.find(p => chaveContato(p.c) === chaveContato(c));
+    if (igual) igual.areas.push(papel);else papeis.push({
+      areas: [papel],
+      c
+    });
+  });
   const outrosContatos = (ficha.contatos || []).filter(c => c && (c.nome || c.email || c.telefone1));
+  const normTel = x => dig(x);
+  const normMail = x => String(x || "").trim().toLowerCase();
+  const telsResp = papeis.map(p => normTel(p.c.telefone)).concat(outrosContatos.map(c => normTel(c.telefone1)));
+  const mailsResp = papeis.map(p => normMail(p.c.email)).concat(outrosContatos.map(c => normMail(c.email)));
+  const gerais = [["Telefone", ficha.telefone, x => !telsResp.includes(normTel(x))], ["WhatsApp", ficha.whatsapp, x => !telsResp.includes(normTel(x))], ["E-mail principal", ficha.email, x => !mailsResp.includes(normMail(x))], ["E-mail para pedidos", ficha.emailPedido, () => true], ["E-mail para NF-e / boleto", ficha.emailNFeBoleto, () => true]].filter(([, x, mostrar]) => x && String(x).trim() && mostrar(x));
   const tabela = (cabecalhos, linhas, vazioMsg) => linhas.length === 0 ? `<p class="aviso">${vazioMsg}</p>` : `<table><thead><tr>${cabecalhos.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${linhas.map(l => `<tr>${l.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
   const html = `<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ficha Cadastral - ${esc(ficha.nome)}</title>
 <style>
@@ -4712,16 +4726,9 @@ td{padding:8px 9px;border-bottom:1px solid #EEF2F7;vertical-align:top}
     ${campo("Cobrança", endereco("cobranca"), "l2")}
     ${campo("Entrega", endereco("entrega"), "l2")}
   </div>
-  <h2>Contato e e-mails</h2>
-  <div class="grade">
-    ${campo("Telefone", val(ficha.telefone || ficha.contatoComercial && ficha.contatoComercial.telefone))}
-    ${campo("WhatsApp", val(ficha.whatsapp))}
-    ${campo("E-mail principal", val(ficha.email), "l2")}
-    ${campo("E-mail para pedidos", val(ficha.emailPedido), "l2")}
-    ${campo("E-mail para NF-e / boleto", val(ficha.emailNFeBoleto), "l2")}
-  </div>
-  <h2>Responsáveis</h2>
-  ${tabela(["Área", "Nome", "E-mail", "Telefone"], papeis.map(([papel, c]) => [papel, val(c.nome), val(c.email), val(c.telefone)]).concat(outrosContatos.map(c => [val(c.departamento || c.cargo || "Contato"), val(c.nome), val(c.email), val(c.telefone1 || c.whatsapp)])), "Nenhum responsável informado.")}
+  <h2>Contatos</h2>
+  ${tabela(["Área", "Nome", "E-mail", "Telefone"], papeis.map(p => [p.areas.join(" / "), val(p.c.nome), val(p.c.email), val(p.c.telefone)]).concat(outrosContatos.map(c => [val(c.departamento || c.cargo || "Contato"), val(c.nome), val(c.email), val(c.telefone1 || c.whatsapp)])), "Nenhum responsável informado.")}
+  ${gerais.length ? `<div class="grade" style="margin-top:12px">${gerais.map(([rot, x]) => campo(rot, val(x), "l2")).join("")}</div>` : ""}
   <h2>Referências bancárias</h2>
   ${tabela(["Banco", "Agência", "Conta", "Gerente", "Telefone"], bancarias.map(r => [val(r.banco), val(r.agencia), val(r.conta), val(r.gerente), val(r.telefone)]), "⚠️ Nenhuma referência bancária cadastrada — preencha em Clientes → Ficha completa antes de enviar à indústria.")}
   <h2>Referências comerciais</h2>

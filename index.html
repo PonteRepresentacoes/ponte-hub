@@ -14405,6 +14405,17 @@ const TIPOS_DATA_FILTRO = [{
   id: "dataEntrega",
   label: "Entrega"
 }];
+function recalcularTotaisPedido(itens, p) {
+  const subtotalBruto = (itens || []).reduce((a, i) => a + (Number(i.quantidade) || 0) * (Number(i.precoUnitario) || 0), 0);
+  const v1 = subtotalBruto * (1 - (Number(p.descComercial) || 0) / 100);
+  const v2 = v1 * (1 - (Number(p.descPromocional) || 0) / 100);
+  const v3 = v2 * (1 - (Number(p.caixaMaster) || 0) / 100);
+  const total = p.aplicarSuframa ? v3 : v3 * (1 - (Number(p.icmsAliq) || 0) / 100);
+  return {
+    subtotalBruto,
+    total
+  };
+}
 function Orcamentos({
   pedidosEspelho,
   setPedidosEspelho,
@@ -14452,13 +14463,36 @@ function Orcamentos({
       dataEmissao: p.dataEmissao || "",
       condicaoPagamento: p.condicaoPagamento || "",
       ordemCompra: p.ordemCompra || "",
-      obsCliente: p.obsCliente || ""
+      obsCliente: p.obsCliente || "",
+      itens: (p.itens || []).map(i => ({
+        ...i
+      }))
     });
   };
   const fecharEdicao = () => {
     setEditandoId(null);
     setForm(null);
   };
+  const editarItem = (itemId, campo) => e => setForm(f => ({
+    ...f,
+    itens: f.itens.map(it => it.id === itemId ? {
+      ...it,
+      [campo]: campo === "produto" ? e.target.value : Number(e.target.value)
+    } : it)
+  }));
+  const removerItem = itemId => setForm(f => ({
+    ...f,
+    itens: f.itens.filter(it => it.id !== itemId)
+  }));
+  const ajustarQtd = (itemId, qtd) => setForm(f => ({
+    ...f,
+    itens: f.itens.map(it => it.id === itemId ? {
+      ...it,
+      quantidade: qtd
+    } : it)
+  }));
+  const pedidoEmEdicao = editandoId ? pedidosEspelho.find(x => x.id === editandoId) : null;
+  const totaisEdit = form && pedidoEmEdicao ? recalcularTotaisPedido(form.itens, pedidoEmEdicao) : null;
   const setF = campo => e => setForm(f => ({
     ...f,
     [campo]: e.target.value
@@ -14478,6 +14512,10 @@ function Orcamentos({
         condicaoPagamento: form.condicaoPagamento,
         ordemCompra: form.ordemCompra.trim(),
         obsCliente: form.obsCliente,
+        itens: form.itens,
+        subtotalBruto: recalcularTotaisPedido(form.itens, p).subtotalBruto,
+        precoLiquido: recalcularTotaisPedido(form.itens, p).total,
+        total: recalcularTotaisPedido(form.itens, p).total,
         editadoEm: new Date().toISOString()
       };
     }));
@@ -14627,7 +14665,71 @@ function Orcamentos({
     onChange: setF("ordemCompra"),
     className: inputCls,
     style: estiloLinha
-  }))), React.createElement(Field, {
+  }))), React.createElement("div", {
+    className: "space-y-2 pt-3 border-t",
+    style: estiloLinha
+  }, React.createElement("p", {
+    className: "text-xs font-bold uppercase tracking-wide text-slate-500"
+  }, "Itens (", form.itens.length, ")"), form.itens.length === 0 ? React.createElement("p", {
+    className: "text-xs text-slate-400"
+  }, "Sem itens neste or\xE7amento.") : form.itens.map(i => {
+    const qtdCx = Number(i.qtdCaixaMaster) || 0;
+    const qtdAtual = Number(i.quantidade) || 0;
+    const cxs = qtdCx > 0 ? qtdAtual / qtdCx : 0;
+    const restoCx = qtdCx > 0 ? qtdAtual % qtdCx : 0;
+    const arredondarCx = qtdCx > 0 ? Math.ceil(cxs) * qtdCx : 0;
+    return React.createElement("div", {
+      key: i.id,
+      className: "flex flex-wrap items-center justify-between gap-2 border rounded-md px-3 py-2 text-sm",
+      style: estiloLinha
+    }, React.createElement("input", {
+      value: i.produto || "",
+      onChange: editarItem(i.id, "produto"),
+      "aria-label": "Produto do or\xE7amento",
+      className: "font-bold border rounded-md px-2 py-1 text-sm w-full sm:w-auto sm:flex-1 min-w-0 sm:min-w-[140px]",
+      style: {
+        color: INK,
+        borderColor: LINE
+      }
+    }), React.createElement("div", {
+      className: "flex items-center gap-2 w-full sm:w-auto"
+    }, React.createElement("input", {
+      type: "number",
+      min: 1,
+      value: i.quantidade,
+      onChange: editarItem(i.id, "quantidade"),
+      "aria-label": "Quantidade do or\xE7amento",
+      className: "w-16 border rounded-md px-2 py-1 text-sm text-right",
+      style: estiloLinha
+    }), React.createElement("span", {
+      className: "text-slate-400"
+    }, "x"), React.createElement("input", {
+      type: "number",
+      value: i.precoUnitario,
+      onChange: editarItem(i.id, "precoUnitario"),
+      "aria-label": "Pre\xE7o do or\xE7amento",
+      className: "w-24 border rounded-md px-2 py-1 text-sm text-right",
+      style: estiloLinha
+    }), React.createElement("span", {
+      className: "text-slate-500 font-bold whitespace-nowrap"
+    }, "= ", brl(qtdAtual * (Number(i.precoUnitario) || 0))), qtdCx > 0 && React.createElement(React.Fragment, null, React.createElement("span", {
+      className: "text-[11px] font-semibold text-slate-400 whitespace-nowrap",
+      title: `Caixa master: ${qtdCx} un`
+    }, Number.isInteger(cxs) ? `${cxs} cx` : `${cxs.toFixed(1)} cx ⚠️`), restoCx !== 0 && React.createElement("button", {
+      onClick: () => ajustarQtd(i.id, arredondarCx),
+      className: "text-[10px] font-semibold text-amber-600 hover:text-amber-800 whitespace-nowrap",
+      title: "Arredondar pra caixa cheia"
+    }, "\u25B2 ", arredondarCx)), React.createElement("button", {
+      onClick: () => removerItem(i.id),
+      className: "ml-auto text-[11px] font-semibold text-slate-500 hover:text-red-600"
+    }, "Remover")));
+  }), totaisEdit && React.createElement("p", {
+    "data-testid": "orc-totais-edit",
+    className: "text-sm font-bold text-right",
+    style: {
+      color: INK
+    }
+  }, "Subtotal bruto: ", brl(totaisEdit.subtotalBruto), " \xB7 Total: ", brl(totaisEdit.total))), React.createElement(Field, {
     label: "Observa\xE7\xE3o"
   }, React.createElement("textarea", {
     value: form.obsCliente,

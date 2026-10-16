@@ -13421,7 +13421,8 @@ function CentralPedidos({
     clientes: clientes,
     vendedores: vendedores,
     representadasCadastro: representadasCadastro,
-    condicoesPagamentoCadastro: condicoesPagamentoCadastro
+    condicoesPagamentoCadastro: condicoesPagamentoCadastro,
+    produtos: produtos
   }), sub === "acompanhamento" && React.createElement(AcompanhamentoVendas, {
     pedidosEspelho: pedidosEspelho,
     vendedores: vendedores,
@@ -14187,7 +14188,7 @@ function NovoPedidoEspelho({
       ...it,
       [campo]: campo === "produto" ? e.target.value : Number(e.target.value)
     } : it));
-    const qtdCx = Number(i.qtdCaixaMaster) || 0;
+    const qtdCx = caixaMasterDoItem(i, produtosDaRepresentada);
     const cxs = qtdCx > 0 ? i.quantidade / qtdCx : 0;
     const restoCx = qtdCx > 0 ? i.quantidade % qtdCx : 0;
     const arredondarCx = qtdCx > 0 ? Math.ceil(cxs) * qtdCx : 0;
@@ -14231,7 +14232,7 @@ function NovoPedidoEspelho({
     }, "= ", brl(i.quantidade * i.precoUnitario)), qtdCx > 0 && React.createElement(React.Fragment, null, React.createElement("span", {
       className: "text-[11px] font-semibold text-slate-400 whitespace-nowrap",
       title: `Caixa master: ${qtdCx} un`
-    }, Number.isInteger(cxs) ? `${cxs} cx` : `${cxs.toFixed(1)} cx ⚠️`), restoCx !== 0 && React.createElement("button", {
+    }, `cx ${qtdCx} · `, Number.isInteger(cxs) ? `${cxs} cx` : `${cxs.toFixed(1)} cx ⚠️`), restoCx !== 0 && React.createElement("button", {
       onClick: () => setItens(prev => prev.map(it => it.id === i.id ? {
         ...it,
         quantidade: arredondarCx
@@ -14405,6 +14406,22 @@ const TIPOS_DATA_FILTRO = [{
   id: "dataEntrega",
   label: "Entrega"
 }];
+function rotuloProdutoCatalogo(p) {
+  return p.codigo ? `${p.codigo} — ${p.nome}` : p.nome;
+}
+function acharProdutoNoCatalogo(lista, valor) {
+  const n = x => norm(String(x || "").replace(/\s+/g, " "));
+  const v = n(valor);
+  if (!v) return null;
+  const L = lista || [];
+  return L.find(p => n(rotuloProdutoCatalogo(p)) === v) || L.find(p => p.codigo && n(p.codigo) === v) || L.find(p => p.codigo && n(`${p.codigo} ${p.nome}`) === v) || L.find(p => n(p.nome) === v) || null;
+}
+function caixaMasterDoItem(item, lista) {
+  const direto = Number(item.qtdCaixaMaster) || 0;
+  if (direto > 0) return direto;
+  const prod = item.produtoId && (lista || []).find(p => p.id === item.produtoId) || acharProdutoNoCatalogo(lista, item.produto);
+  return prod && Number(prod.qtdEmbalagem) > 0 ? Number(prod.qtdEmbalagem) : 0;
+}
 function recalcularTotaisPedido(itens, p) {
   const subtotalBruto = (itens || []).reduce((a, i) => a + (Number(i.quantidade) || 0) * (Number(i.precoUnitario) || 0), 0);
   const v1 = subtotalBruto * (1 - (Number(p.descComercial) || 0) / 100);
@@ -14422,10 +14439,16 @@ function Orcamentos({
   clientes = [],
   vendedores = [],
   representadasCadastro = [],
-  condicoesPagamentoCadastro = []
+  condicoesPagamentoCadastro = [],
+  produtos = []
 }) {
   const [editandoId, setEditandoId] = useState(null);
   const [form, setForm] = useState(null);
+  const [novoItem, setNovoItem] = useState({
+    produto: "",
+    qtd: 1,
+    preco: ""
+  });
   const orcamentos = pedidosEspelho.filter(p => !p.excluido && p.status === "Orçamento");
   const converterParaPedido = id => setPedidosEspelho(pedidosEspelho.map(p => p.id === id ? {
     ...p,
@@ -14468,10 +14491,20 @@ function Orcamentos({
         ...i
       }))
     });
+    setNovoItem({
+      produto: "",
+      qtd: 1,
+      preco: ""
+    });
   };
   const fecharEdicao = () => {
     setEditandoId(null);
     setForm(null);
+    setNovoItem({
+      produto: "",
+      qtd: 1,
+      preco: ""
+    });
   };
   const editarItem = (itemId, campo) => e => setForm(f => ({
     ...f,
@@ -14493,6 +14526,42 @@ function Orcamentos({
   }));
   const pedidoEmEdicao = editandoId ? pedidosEspelho.find(x => x.id === editandoId) : null;
   const totaisEdit = form && pedidoEmEdicao ? recalcularTotaisPedido(form.itens, pedidoEmEdicao) : null;
+  const tabelaDoPedido = pedidoEmEdicao ? pedidoEmEdicao.tabelaPreco || "" : "";
+  const produtosDaRep = (produtos || []).filter(x => !x.excluido && form && form.representada && norm(x.representada) === norm(form.representada));
+  const prodNovoItem = acharProdutoNoCatalogo(produtosDaRep, novoItem.produto);
+  const onNovoItemProduto = e => {
+    const valor = e.target.value;
+    const prod = acharProdutoNoCatalogo(produtosDaRep, valor);
+    setNovoItem(n => ({
+      ...n,
+      produto: valor,
+      preco: prod ? String(precoNaTabela(prod, tabelaDoPedido) || "") : n.preco
+    }));
+  };
+  const adicionarItem = () => {
+    if (!novoItem.produto.trim() || !Number(novoItem.preco)) return;
+    const prod = prodNovoItem;
+    const item = {
+      id: uid(),
+      produto: prod ? (prod.codigo ? `${prod.codigo} ${prod.nome}` : prod.nome).replace(/\s+/g, " ").trim() : novoItem.produto.trim(),
+      ...(prod ? {
+        produtoId: prod.id,
+        codigo: prod.codigo || "",
+        qtdCaixaMaster: Number(prod.qtdEmbalagem) > 0 ? Number(prod.qtdEmbalagem) : 0
+      } : {}),
+      quantidade: Number(novoItem.qtd) || 1,
+      precoUnitario: Number(novoItem.preco)
+    };
+    setForm(f => ({
+      ...f,
+      itens: [...f.itens, item]
+    }));
+    setNovoItem({
+      produto: "",
+      qtd: 1,
+      preco: ""
+    });
+  };
   const setF = campo => e => setForm(f => ({
     ...f,
     [campo]: e.target.value
@@ -14673,7 +14742,7 @@ function Orcamentos({
   }, "Itens (", form.itens.length, ")"), form.itens.length === 0 ? React.createElement("p", {
     className: "text-xs text-slate-400"
   }, "Sem itens neste or\xE7amento.") : form.itens.map(i => {
-    const qtdCx = Number(i.qtdCaixaMaster) || 0;
+    const qtdCx = caixaMasterDoItem(i, produtosDaRep);
     const qtdAtual = Number(i.quantidade) || 0;
     const cxs = qtdCx > 0 ? qtdAtual / qtdCx : 0;
     const restoCx = qtdCx > 0 ? qtdAtual % qtdCx : 0;
@@ -14715,7 +14784,7 @@ function Orcamentos({
     }, "= ", brl(qtdAtual * (Number(i.precoUnitario) || 0))), qtdCx > 0 && React.createElement(React.Fragment, null, React.createElement("span", {
       className: "text-[11px] font-semibold text-slate-400 whitespace-nowrap",
       title: `Caixa master: ${qtdCx} un`
-    }, Number.isInteger(cxs) ? `${cxs} cx` : `${cxs.toFixed(1)} cx ⚠️`), restoCx !== 0 && React.createElement("button", {
+    }, `cx ${qtdCx} · `, Number.isInteger(cxs) ? `${cxs} cx` : `${cxs.toFixed(1)} cx ⚠️`), restoCx !== 0 && React.createElement("button", {
       onClick: () => ajustarQtd(i.id, arredondarCx),
       className: "text-[10px] font-semibold text-amber-600 hover:text-amber-800 whitespace-nowrap",
       title: "Arredondar pra caixa cheia"
@@ -14723,7 +14792,62 @@ function Orcamentos({
       onClick: () => removerItem(i.id),
       className: "ml-auto text-[11px] font-semibold text-slate-500 hover:text-red-600"
     }, "Remover")));
-  }), totaisEdit && React.createElement("p", {
+  }), React.createElement("div", {
+    className: "grid grid-cols-3 md:grid-cols-4 gap-2"
+  }, React.createElement("input", {
+    value: novoItem.produto,
+    onChange: onNovoItemProduto,
+    placeholder: produtosDaRep.length ? "Código ou nome do produto" : "Produto",
+    "aria-label": "Novo item do or\xE7amento",
+    list: "orcamento-catalogo-produtos",
+    className: "col-span-3 md:col-span-2 border rounded-md px-3 py-2 text-sm",
+    style: estiloLinha
+  }), React.createElement("datalist", {
+    id: "orcamento-catalogo-produtos"
+  }, produtosDaRep.map(x => React.createElement("option", {
+    key: x.id,
+    value: rotuloProdutoCatalogo(x).replace(/\s+/g, " ").trim()
+  }))), React.createElement("input", {
+    type: "number",
+    min: 1,
+    value: novoItem.qtd,
+    onChange: e => setNovoItem(n => ({
+      ...n,
+      qtd: e.target.value
+    })),
+    placeholder: "Qtd",
+    "aria-label": "Quantidade do novo item",
+    className: "col-span-1 border rounded-md px-3 py-2 text-sm",
+    style: estiloLinha
+  }), React.createElement("div", {
+    className: "col-span-2 md:col-span-1 flex gap-1"
+  }, React.createElement("input", {
+    type: "number",
+    step: "0.01",
+    min: "0",
+    value: novoItem.preco,
+    onChange: e => setNovoItem(n => ({
+      ...n,
+      preco: e.target.value
+    })),
+    placeholder: "Pre\xE7o unit. (R$)",
+    "aria-label": "Pre\xE7o do novo item",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: estiloLinha
+  }), React.createElement("button", {
+    onClick: adicionarItem,
+    "aria-label": "Adicionar item ao or\xE7amento",
+    className: "text-white text-xs font-bold px-3 rounded-md whitespace-nowrap",
+    style: {
+      background: ROYAL
+    }
+  }, "+"))), novoItem.produto.trim() && produtosDaRep.length > 0 && React.createElement("p", {
+    "data-testid": "orc-item-hint",
+    className: "text-[11px] font-semibold",
+    style: {
+      color: prodNovoItem ? "#047857" : "#B45309"
+    }
+  }, prodNovoItem ? `✓ ${rotuloProdutoCatalogo(prodNovoItem).replace(/\s+/g, " ").trim()} · ${brl(precoNaTabela(prodNovoItem, tabelaDoPedido))}${prodNovoItem.qtdEmbalagem ? ` · Caixa master: ${prodNovoItem.qtdEmbalagem} un` : ""}` : `Ainda não achei no catálogo da ${form.representada || "representada"} — digite o código ou escolha uma sugestão da lista.`), totaisEdit && React.createElement("p", {
     "data-testid": "orc-totais-edit",
     className: "text-sm font-bold text-right",
     style: {

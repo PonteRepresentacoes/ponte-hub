@@ -7506,6 +7506,7 @@ function MixClientes({
   const [naoIdentificados, setNaoIdentificados] = useState([]);
   const [msg, setMsg] = useState("");
   const [filtroCliente, setFiltroCliente] = useState("");
+  const [limitePorGrupo, setLimitePorGrupo] = useState({});
   const repsAtivas = (representadasCadastro || []).filter(r => !r.excluida).map(r => r.nome).sort((a, b) => a.localeCompare(b));
   const clientesAtivos = (clientes || []).filter(c => !c.excluido);
   const soDigitos = v => String(v || "").replace(/\D/g, "");
@@ -7785,16 +7786,40 @@ function MixClientes({
     onClick: () => limparGrupo(g.clienteId, g.representada),
     className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
   }, "Limpar mix")), React.createElement("div", {
-    className: "mt-2 flex flex-wrap gap-1.5"
-  }, g.itens.map(m => React.createElement("span", {
-    key: m.id,
-    className: "inline-flex items-center gap-1 text-[11px] border rounded-md px-2 py-1",
-    style: linha
-  }, m.produto, React.createElement("button", {
-    onClick: () => removerItem(m.id),
-    className: "font-bold text-slate-400 hover:text-red-600",
-    title: "Tirar do mix"
-  }, "\xD7")))))))));
+    className: "mt-2 space-y-1"
+  }, g.itens.slice(0, limitePorGrupo[`${g.clienteId}|${g.representada}`] || 60).map(m => {
+    const detalhe = [m.statusFabrica ? rotuloStatusFabrica(m.statusFabrica) : "", m.ultimaCompra ? `última compra ${dataBR(m.ultimaCompra)}` : "", Number(m.qtdComprada) > 0 ? `comprou ${m.qtdComprada} un` : "", Number(m.precoLiquido) > 0 ? brl(m.precoLiquido) : "", m.noCatalogo === false ? "fora do catálogo" : ""].filter(Boolean).join(" · ");
+    return React.createElement("div", {
+      key: m.id,
+      "data-testid": "mix-item-linha",
+      className: "flex items-start justify-between gap-2 text-[11px] border rounded-md px-2 py-1.5",
+      style: linha
+    }, React.createElement("div", {
+      className: "flex-1 min-w-0"
+    }, React.createElement("p", {
+      className: "font-semibold",
+      style: {
+        color: INK
+      }
+    }, m.produto), detalhe && React.createElement("p", {
+      className: "text-[10px] text-slate-400"
+    }, detalhe)), React.createElement("button", {
+      onClick: () => removerItem(m.id),
+      className: "font-bold text-slate-400 hover:text-red-600",
+      title: "Tirar do mix"
+    }, "\xD7"));
+  }), g.itens.length > (limitePorGrupo[`${g.clienteId}|${g.representada}`] || 60) && React.createElement("button", {
+    onClick: () => setLimitePorGrupo(l => ({
+      ...l,
+      [`${g.clienteId}|${g.representada}`]: (l[`${g.clienteId}|${g.representada}`] || 60) + 60
+    })),
+    "data-testid": "mix-grupo-mais",
+    className: "w-full text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: INK
+    }
+  }, "Mostrar mais (", g.itens.length - (limitePorGrupo[`${g.clienteId}|${g.representada}`] || 60), " restantes)")))))));
 }
 function ImportarEstoque({
   clientes,

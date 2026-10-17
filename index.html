@@ -1451,6 +1451,7 @@ function PonteHub({
     oportunidades: oportunidades,
     setOportunidades: setOportunidades
   }), area === "vendas" && tab === "vendas-preditiva" && React.createElement(VendaPreditiva, {
+    somenteLeitura: restritoAVendas,
     clientes: clientes,
     produtosGiro: produtosGiro,
     setProdutosGiro: setProdutosGiro,
@@ -6708,7 +6709,8 @@ function VendaPreditiva({
   produtos = [],
   representadasCadastro = [],
   contagens = [],
-  setContagens = () => {}
+  setContagens = () => {},
+  somenteLeitura = false
 }) {
   const [sub, setSub] = useState("analise");
   return React.createElement("div", {
@@ -6731,13 +6733,13 @@ function VendaPreditiva({
   }, "Produtos e giro m\xE9dio"), React.createElement(ToggleBtn, {
     active: sub === "contagem",
     onClick: () => setSub("contagem")
-  }, "\uD83D\uDCF7 Contar estoque"), React.createElement(ToggleBtn, {
+  }, "\uD83D\uDCF7 Contar estoque"), !somenteLeitura && React.createElement(ToggleBtn, {
     active: sub === "mix",
     onClick: () => setSub("mix")
   }, "Mix por cliente (", mixClientes.length, ")"), React.createElement(ToggleBtn, {
     active: sub === "foradelinha",
     onClick: () => setSub("foradelinha")
-  }, "Fora de linha"), React.createElement(ToggleBtn, {
+  }, "Fora de linha"), !somenteLeitura && React.createElement(ToggleBtn, {
     active: sub === "importar",
     onClick: () => setSub("importar")
   }, "Importar estoque (repositor)")), sub === "produtos" && React.createElement(ProdutosGiro, {
@@ -6750,13 +6752,13 @@ function VendaPreditiva({
     produtosGiro: produtosGiro,
     contagens: contagens,
     setContagens: setContagens,
-    onIrMix: () => setSub("mix")
+    onIrMix: somenteLeitura ? null : () => setSub("mix")
   }), sub === "foradelinha" && React.createElement(RelatorioForaDeLinha, {
     clientes: clientes,
     mixClientes: mixClientes,
     contagens: contagens,
-    onIrMix: () => setSub("mix")
-  }), sub === "mix" && React.createElement(MixClientes, {
+    onIrMix: somenteLeitura ? null : () => setSub("mix")
+  }), sub === "mix" && !somenteLeitura && React.createElement(MixClientes, {
     clientes: clientes,
     produtos: produtos,
     representadasCadastro: representadasCadastro,
@@ -6769,8 +6771,8 @@ function VendaPreditiva({
     setAnalisesPreditivas: setAnalisesPreditivas,
     mixClientes: mixClientes,
     onIrProdutos: () => setSub("produtos"),
-    onIrMix: () => setSub("mix")
-  }), sub === "importar" && React.createElement(ImportarEstoque, {
+    onIrMix: somenteLeitura ? null : () => setSub("mix")
+  }), sub === "importar" && !somenteLeitura && React.createElement(ImportarEstoque, {
     clientes: clientes,
     produtosGiro: produtosGiro,
     analisesPreditivas: analisesPreditivas,
@@ -7281,14 +7283,19 @@ function ContagemLoja({
     style: {
       color: ROYAL
     }
-  }, msg), clienteId && mixDoCliente.length === 0 && onIrMix && React.createElement("button", {
+  }, msg), clienteId && mixDoCliente.length === 0 && (onIrMix ? React.createElement("button", {
     onClick: onIrMix,
     className: "mt-2 text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
     style: {
       borderColor: LINE,
       color: INK
     }
-  }, "Cadastrar o mix desse cliente")), React.createElement("div", {
+  }, "Cadastrar o mix desse cliente") : React.createElement("p", {
+    className: "text-[11px] font-semibold mt-2",
+    style: {
+      color: "#B45309"
+    }
+  }, "Pe\xE7a pro ADM carregar o mix dessa loja antes de contar."))), React.createElement("div", {
     className: "flex gap-2 flex-wrap"
   }, React.createElement(ToggleBtn, {
     active: aba === "contar",
@@ -8136,7 +8143,7 @@ function AnalisePreditiva({
     "data-testid": "mix-contagem",
     className: "text-[11px] font-bold text-slate-400"
   }, mixFiltrado.length, " de ", mixDoCliente.length)), mixDoCliente.length === 0 ? React.createElement(React.Fragment, null, React.createElement(EmptyState, {
-    text: "Esse cliente ainda n\xE3o tem mix cadastrado."
+    text: onIrMix ? "Esse cliente ainda não tem mix cadastrado." : "Esse cliente ainda não tem mix cadastrado — peça pro ADM carregar a base dessa loja."
   }), onIrMix && React.createElement("button", {
     onClick: onIrMix,
     className: "mt-3 text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",

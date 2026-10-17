@@ -7002,6 +7002,8 @@ function ContagemLoja({
   const [qtd, setQtd] = useState("");
   const [digitado, setDigitado] = useState("");
   const [veioDaCamera, setVeioDaCamera] = useState(false);
+  const [textoLido, setTextoLido] = useState("");
+  const ultimaLeituraRef = useRef(null);
   const [diasCobertura, setDiasCobertura] = useState(30);
   const [aba, setAba] = useState("contar");
   const [msg, setMsg] = useState("");
@@ -7070,21 +7072,31 @@ function ContagemLoja({
       } = await T.recognize(cv, "eng", {
         tessedit_char_whitelist: "0123456789/.-"
       });
-      const texto = data && data.text || "";
+      const texto = (data && data.text || "").replace(/\s+/g, " ").trim();
+      setTextoLido(texto);
       const achados = casarLeituraComMix(texto, mixDoCliente);
-      if (achados.length && achados[0].score >= 0.9) {
+      if (leituraConfiavel(achados)) {
+        const anterior = ultimaLeituraRef.current;
+        ultimaLeituraRef.current = achados[0].item.id;
+        if (anterior !== achados[0].item.id) {
+          setOcrMsg("Achei, confirmando… segure firme mais um instante.");
+          return;
+        }
         pararCamera();
         setVeioDaCamera(true);
         setPendente(achados[0].item);
         setCandidatos([]);
         setQtd("");
         setOcrMsg("");
+        ultimaLeituraRef.current = null;
       } else if (achados.length) {
         pararCamera();
         setVeioDaCamera(true);
         setCandidatos(achados);
         setOcrMsg("Não tenho certeza — escolha qual é:");
+        ultimaLeituraRef.current = null;
       } else {
+        ultimaLeituraRef.current = null;
         setOcrMsg("Mirando… encaixe o código dentro da moldura.");
       }
     } catch (e) {
@@ -7111,6 +7123,12 @@ function ContagemLoja({
         video: {
           facingMode: {
             ideal: "environment"
+          },
+          width: {
+            ideal: 1920
+          },
+          height: {
+            ideal: 1080
           }
         }
       });
@@ -7131,8 +7149,8 @@ function ContagemLoja({
   };
   const processarTexto = texto => {
     setVeioDaCamera(false);
-    const achados = casarLeituraComMix(texto, mixDoCliente);
-    if (achados.length && achados[0].score >= 0.9) {
+    const achados = casarLeituraComMix(texto, mixDoCliente, false);
+    if (leituraConfiavel(achados)) {
       setPendente(achados[0].item);
       setCandidatos([]);
       setQtd("");
@@ -7317,7 +7335,10 @@ function ContagemLoja({
   }, "Fechar c\xE2mera")), ocrMsg && React.createElement("p", {
     "data-testid": "ocr-msg",
     className: "text-xs font-semibold mt-2 text-slate-500"
-  }, lendo ? "Lendo… " : "", ocrMsg), candidatos.length > 0 && React.createElement("div", {
+  }, lendo ? "Lendo… " : "", ocrMsg), camOn && textoLido && React.createElement("p", {
+    "data-testid": "ocr-cru",
+    className: "text-[10px] text-slate-400 mt-1"
+  }, "C\xE2mera leu: \u201C", textoLido.slice(0, 60), "\u201D"), candidatos.length > 0 && React.createElement("div", {
     "data-testid": "candidatos",
     className: "mt-2 space-y-1"
   }, candidatos.map(c => React.createElement("button", {
@@ -15671,15 +15692,18 @@ const CONFUNDIVEIS = {
 function normalizarCodigoOCR(txt) {
   return String(txt || "").toUpperCase().split("").map(c => CONFUNDIVEIS[c] || c).filter(c => /[0-9/.\-]/.test(c)).join("");
 }
-function extrairCodigosDaLeitura(texto) {
-  const limpo = String(texto || "").toUpperCase().replace(/[^0-9A-Z/.\-\s]/g, " ");
-  const brutos = limpo.split(/\s+/).filter(Boolean);
-  const saida = [];
-  brutos.forEach(t => {
-    const n = normalizarCodigoOCR(t);
-    if (n.replace(/[^0-9]/g, "").length >= 4) saida.push(n);
-  });
-  return saida;
+const RE_CODIGO_FABRICA = /\d{3,6}\s*[/.\-]\s*\d{1,4}/g;
+function extrairCodigosDaLeitura(texto, exigirPadrao = true) {
+  const normalizado = String(texto || "").toUpperCase().split("").map(c => CONFUNDIVEIS[c] || c).join("");
+  const achados = [];
+  let m;
+  RE_CODIGO_FABRICA.lastIndex = 0;
+  while ((m = RE_CODIGO_FABRICA.exec(normalizado)) !== null) achados.push(m[0].replace(/\s+/g, ""));
+  if (achados.length === 0 && !exigirPadrao) {
+    const soNum = normalizado.replace(/[^0-9]/g, "");
+    if (soNum.length >= 4) achados.push(soNum);
+  }
+  return achados;
 }
 function pontuarCodigo(lido, alvo) {
   const a = normalizarCodigoOCR(lido),
@@ -15689,7 +15713,6 @@ function pontuarCodigo(lido, alvo) {
   const soA = a.replace(/[^0-9]/g, ""),
     soB = b.replace(/[^0-9]/g, "");
   if (soA && soA === soB) return 0.95;
-  if (soB.length >= 5 && (soA.includes(soB) || soB.includes(soA))) return 0.8;
   const m = soA.length,
     n2 = soB.length;
   if (!m || !n2 || Math.abs(m - n2) > 2) return 0;
@@ -15700,10 +15723,10 @@ function pontuarCodigo(lido, alvo) {
   for (let i = 1; i <= m; i++) for (let j = 1; j <= n2; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (soA[i - 1] === soB[j - 1] ? 0 : 1));
   const dist = d[m][n2];
   if (dist > 2) return 0;
-  return Math.max(0, 0.75 - (dist - 1) * 0.2);
+  return dist === 1 ? 0.6 : 0.4;
 }
-function casarLeituraComMix(texto, itensMix) {
-  const codigos = extrairCodigosDaLeitura(texto);
+function casarLeituraComMix(texto, itensMix, exigirPadrao = true) {
+  const codigos = extrairCodigosDaLeitura(texto, exigirPadrao);
   const alvos = (itensMix || []).filter(m => m.codigo || m.produto);
   if (codigos.length === 0 || alvos.length === 0) return [];
   const placar = new Map();
@@ -15715,6 +15738,12 @@ function casarLeituraComMix(texto, itensMix) {
     });
   }));
   return [...placar.values()].sort((a, b) => b.score - a.score).slice(0, 3);
+}
+function leituraConfiavel(achados) {
+  if (!achados || achados.length === 0) return false;
+  if (achados[0].score < 0.95) return false;
+  if (achados.length > 1 && achados[1].score >= 0.95) return false;
+  return true;
 }
 function sugerirReposicao(contado, giroDiario, diasCobertura, qtdCaixaMaster) {
   const alvo = Math.max(0, Math.ceil((Number(giroDiario) || 0) * (Number(diasCobertura) || 0) - (Number(contado) || 0)));

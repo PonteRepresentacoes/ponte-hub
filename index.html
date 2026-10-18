@@ -6698,6 +6698,14 @@ function ScannerOportunidades({
     }
   }, o.diffPercent > 0 ? "+" : "", o.diffPercent.toFixed(1), "%"))))));
 }
+const ROTULO_ABA_PREDITIVA = {
+  analise: "Analisar cliente",
+  produtos: "Produtos e giro médio",
+  contagem: "Contar estoque",
+  mix: "Mix por cliente",
+  foradelinha: "Fora de linha",
+  importar: "Importar estoque"
+};
 function VendaPreditiva({
   clientes,
   produtosGiro,
@@ -6713,6 +6721,18 @@ function VendaPreditiva({
   somenteLeitura = false
 }) {
   const [sub, setSub] = useState("analise");
+  const [historicoAbas, setHistoricoAbas] = useState([]);
+  const irPara = destino => {
+    if (destino === sub) return;
+    setHistoricoAbas(h => [...h.slice(-9), sub]);
+    setSub(destino);
+  };
+  const voltarAba = () => {
+    if (historicoAbas.length === 0) return;
+    setSub(historicoAbas[historicoAbas.length - 1]);
+    setHistoricoAbas(h => h.slice(0, -1));
+  };
+  const abaAnterior = historicoAbas.length > 0 ? historicoAbas[historicoAbas.length - 1] : null;
   return React.createElement("div", {
     className: "space-y-6"
   }, React.createElement("div", null, React.createElement("h2", {
@@ -6723,25 +6743,33 @@ function VendaPreditiva({
   }, "Venda Preditiva"), React.createElement("p", {
     className: "text-sm text-slate-500"
   }, "Estoque do cliente + giro m\xE9dio = quando ele vai precisar repor.")), React.createElement("div", {
-    className: "flex gap-2 flex-wrap"
-  }, React.createElement(ToggleBtn, {
+    className: "flex gap-2 flex-wrap items-center"
+  }, abaAnterior && React.createElement("button", {
+    onClick: voltarAba,
+    "data-testid": "preditiva-voltar",
+    className: "text-xs font-bold uppercase tracking-wide px-3 py-2 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: INK
+    }
+  }, "\u2190 Voltar", ROTULO_ABA_PREDITIVA[abaAnterior] ? ` pra ${ROTULO_ABA_PREDITIVA[abaAnterior]}` : ""), React.createElement(ToggleBtn, {
     active: sub === "analise",
-    onClick: () => setSub("analise")
+    onClick: () => irPara("analise")
   }, "Analisar cliente"), React.createElement(ToggleBtn, {
     active: sub === "produtos",
-    onClick: () => setSub("produtos")
+    onClick: () => irPara("produtos")
   }, "Produtos e giro m\xE9dio"), React.createElement(ToggleBtn, {
     active: sub === "contagem",
-    onClick: () => setSub("contagem")
+    onClick: () => irPara("contagem")
   }, "\uD83D\uDCF7 Contar estoque"), !somenteLeitura && React.createElement(ToggleBtn, {
     active: sub === "mix",
-    onClick: () => setSub("mix")
+    onClick: () => irPara("mix")
   }, "Mix por cliente (", mixClientes.length, ")"), React.createElement(ToggleBtn, {
     active: sub === "foradelinha",
-    onClick: () => setSub("foradelinha")
+    onClick: () => irPara("foradelinha")
   }, "Fora de linha"), !somenteLeitura && React.createElement(ToggleBtn, {
     active: sub === "importar",
-    onClick: () => setSub("importar")
+    onClick: () => irPara("importar")
   }, "Importar estoque (repositor)")), sub === "produtos" && React.createElement(ProdutosGiro, {
     produtosGiro: produtosGiro,
     setProdutosGiro: setProdutosGiro
@@ -6752,12 +6780,12 @@ function VendaPreditiva({
     produtosGiro: produtosGiro,
     contagens: contagens,
     setContagens: setContagens,
-    onIrMix: somenteLeitura ? null : () => setSub("mix")
+    onIrMix: somenteLeitura ? null : () => irPara("mix")
   }), sub === "foradelinha" && React.createElement(RelatorioForaDeLinha, {
     clientes: clientes,
     mixClientes: mixClientes,
     contagens: contagens,
-    onIrMix: somenteLeitura ? null : () => setSub("mix")
+    onIrMix: somenteLeitura ? null : () => irPara("mix")
   }), sub === "mix" && !somenteLeitura && React.createElement(MixClientes, {
     clientes: clientes,
     produtos: produtos,
@@ -6770,8 +6798,8 @@ function VendaPreditiva({
     analisesPreditivas: analisesPreditivas,
     setAnalisesPreditivas: setAnalisesPreditivas,
     mixClientes: mixClientes,
-    onIrProdutos: () => setSub("produtos"),
-    onIrMix: somenteLeitura ? null : () => setSub("mix")
+    onIrProdutos: () => irPara("produtos"),
+    onIrMix: somenteLeitura ? null : () => irPara("mix")
   }), sub === "importar" && !somenteLeitura && React.createElement(ImportarEstoque, {
     clientes: clientes,
     produtosGiro: produtosGiro,
@@ -7187,6 +7215,19 @@ function ContagemLoja({
     if (veioDaCamera) abrirCamera();
   };
   const removerContado = mixId => setItens(prev => prev.filter(i => i.mixId !== mixId));
+  const alterarQtdContada = (mixId, valor) => {
+    const q = valor === "" ? "" : Math.max(0, Number(valor) || 0);
+    setItens(prev => prev.map(i => i.mixId === mixId ? {
+      ...i,
+      quantidade: q,
+      em: new Date().toISOString()
+    } : i));
+  };
+  const somarQtdContada = (mixId, passo) => setItens(prev => prev.map(i => i.mixId === mixId ? {
+    ...i,
+    quantidade: Math.max(0, (Number(i.quantidade) || 0) + passo),
+    em: new Date().toISOString()
+  } : i));
   const giroDe = it => (produtosGiro || []).find(g => norm(g.nome) === norm(it.produto)) || (produtosGiro || []).find(g => norm(g.nome) && norm(it.produto).includes(norm(g.nome))) || null;
   const mixPorId = {};
   mixDoCliente.forEach(m => {
@@ -7429,22 +7470,52 @@ function ContagemLoja({
   }, React.createElement("p", {
     className: "text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2"
   }, "Contados nesta visita (", itens.length, ")"), React.createElement("div", {
-    className: "space-y-1 max-h-72 overflow-y-auto",
+    className: "space-y-1 max-h-96 overflow-y-auto",
     "data-testid": "lista-contados"
   }, itens.slice().reverse().map(i => React.createElement("div", {
     key: i.mixId,
-    className: "flex items-center justify-between gap-2 border rounded-md px-3 py-1.5 text-xs",
+    className: "flex items-center justify-between gap-2 border rounded-md px-2 py-1.5 text-xs",
     style: linha
   }, React.createElement("span", {
     className: "flex-1 min-w-0"
-  }, i.produto), React.createElement("b", {
+  }, i.produto), React.createElement("div", {
+    className: "flex items-center gap-1 shrink-0"
+  }, React.createElement("button", {
+    onClick: () => somarQtdContada(i.mixId, -1),
+    "aria-label": `Diminuir ${i.produto}`,
+    className: "w-8 h-8 rounded-md border font-bold text-base leading-none",
     style: {
+      borderColor: LINE,
       color: INK
     }
-  }, i.quantidade), React.createElement("button", {
+  }, "\u2212"), React.createElement("input", {
+    type: "number",
+    inputMode: "numeric",
+    min: 0,
+    value: i.quantidade,
+    onChange: e => alterarQtdContada(i.mixId, e.target.value),
+    onBlur: e => {
+      if (e.target.value === "") alterarQtdContada(i.mixId, 0);
+    },
+    "aria-label": `Quantidade de ${i.produto}`,
+    className: "w-14 h-8 border rounded-md px-1 text-sm font-bold text-center",
+    style: {
+      borderColor: LINE,
+      color: INK
+    }
+  }), React.createElement("button", {
+    onClick: () => somarQtdContada(i.mixId, 1),
+    "aria-label": `Aumentar ${i.produto}`,
+    className: "w-8 h-8 rounded-md border font-bold text-base leading-none",
+    style: {
+      borderColor: LINE,
+      color: INK
+    }
+  }, "+"), React.createElement("button", {
     onClick: () => removerContado(i.mixId),
-    className: "text-[11px] font-semibold text-slate-400 hover:text-red-600"
-  }, "\xD7")))), React.createElement("div", {
+    "aria-label": `Remover ${i.produto}`,
+    className: "w-7 h-8 text-sm font-bold text-slate-400 hover:text-red-600"
+  }, "\xD7"))))), React.createElement("div", {
     className: "flex gap-2 flex-wrap mt-3"
   }, React.createElement("button", {
     onClick: salvarContagem,

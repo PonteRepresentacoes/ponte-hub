@@ -7036,6 +7036,8 @@ function ContagemLoja({
   const ultimaLeituraRef = useRef(null);
   const [diasCobertura, setDiasCobertura] = useState(30);
   const [aba, setAba] = useState("contar");
+  const [editandoContagemId, setEditandoContagemId] = useState(null);
+  const [contagemParaAbrir, setContagemParaAbrir] = useState(null);
   const [msg, setMsg] = useState("");
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -7249,25 +7251,76 @@ function ContagemLoja({
   }).filter(l => l.sugestao > 0).sort((a, b) => a.dias === null ? 1 : b.dias === null ? -1 : a.dias - b.dias);
   const contadosIds = new Set(itens.map(i => i.mixId));
   const rupturas = mixDoCliente.filter(m => !contadosIds.has(m.id) || itens.some(i => i.mixId === m.id && i.quantidade === 0));
+  const itensDaContagem = c => {
+    const mixDoC = (mixClientes || []).filter(m => m.clienteId === c.clienteId);
+    return (c.itens || []).map(i => {
+      const m = mixDoC.find(x => i.codigo && norm(x.codigo) === norm(i.codigo) || norm(x.produto) === norm(i.produto));
+      return {
+        mixId: m ? m.id : `avulso-${norm(i.codigo || i.produto)}`,
+        codigo: i.codigo || "",
+        produto: i.produto,
+        representada: m ? m.representada : "",
+        quantidade: Number(i.quantidade) || 0,
+        em: c.em
+      };
+    });
+  };
+  const abrirContagem = (c, forcar = false) => {
+    if (!forcar && itens.length > 0 && editandoContagemId !== c.id) {
+      setContagemParaAbrir(c);
+      return;
+    }
+    setContagemParaAbrir(null);
+    setClienteId(c.clienteId);
+    setItens(itensDaContagem(c));
+    setEditandoContagemId(c.id);
+    setPendente(null);
+    setAba("contar");
+    setMsg(`Editando a contagem de ${dataBR(String(c.em).slice(0, 10))}.`);
+  };
+  const cancelarEdicao = () => {
+    setEditandoContagemId(null);
+    setItens([]);
+    setMsg("");
+    try {
+      localStorage.removeItem(RASCUNHO_CONTAGEM);
+    } catch (e) {}
+  };
   const salvarContagem = () => {
     if (!clienteId || itens.length === 0) return;
-    setContagens([...(contagens || []), {
-      id: uid(),
-      clienteId,
-      clienteNome: cliente ? cliente.nome : "",
-      em: new Date().toISOString(),
-      itens: itens.map(i => ({
-        codigo: i.codigo,
-        produto: i.produto,
-        quantidade: i.quantidade
-      })),
-      totalItens: itens.length
-    }]);
-    setMsg(`✅ Contagem salva com ${itens.length} item(ns).`);
+    const corpo = itens.map(i => ({
+      codigo: i.codigo,
+      produto: i.produto,
+      quantidade: Number(i.quantidade) || 0
+    }));
+    if (editandoContagemId) {
+      setContagens((contagens || []).map(c => c.id === editandoContagemId ? {
+        ...c,
+        itens: corpo,
+        totalItens: corpo.length,
+        editadoEm: new Date().toISOString()
+      } : c));
+      setMsg(`✅ Contagem atualizada com ${corpo.length} item(ns).`);
+      setEditandoContagemId(null);
+    } else {
+      setContagens([...(contagens || []), {
+        id: uid(),
+        clienteId,
+        clienteNome: cliente ? cliente.nome : "",
+        em: new Date().toISOString(),
+        itens: corpo,
+        totalItens: corpo.length
+      }]);
+      setMsg(`✅ Contagem salva com ${corpo.length} item(ns).`);
+    }
     setItens([]);
     try {
       localStorage.removeItem(RASCUNHO_CONTAGEM);
     } catch (e) {}
+  };
+  const excluirContagem = id => {
+    setContagens((contagens || []).filter(c => c.id !== id));
+    if (editandoContagemId === id) cancelarEdicao();
   };
   const exportar = () => {
     const rows = itens.map(i => {
@@ -7296,6 +7349,8 @@ function ContagemLoja({
       setClienteId(e.target.value);
       setItens([]);
       setPendente(null);
+      setEditandoContagemId(null);
+      setContagemParaAbrir(null);
     },
     "aria-label": "Cliente da contagem",
     className: inputCls,
@@ -7324,7 +7379,44 @@ function ContagemLoja({
     style: {
       color: ROYAL
     }
-  }, msg), clienteId && mixDoCliente.length === 0 && (onIrMix ? React.createElement("button", {
+  }, msg), editandoContagemId && React.createElement("div", {
+    "data-testid": "editando-aviso",
+    className: "mt-2 rounded-md border-2 px-3 py-2 flex items-center justify-between gap-3 flex-wrap",
+    style: {
+      borderColor: ROYAL,
+      background: "#F5F8FF"
+    }
+  }, React.createElement("span", {
+    className: "text-[11px] font-bold",
+    style: {
+      color: INK
+    }
+  }, "\u270F\uFE0F Editando uma contagem j\xE1 salva \u2014 ao salvar, ela \xE9 atualizada."), React.createElement("button", {
+    onClick: cancelarEdicao,
+    "data-testid": "cancelar-edicao",
+    className: "text-[11px] font-semibold text-slate-500 hover:text-red-600"
+  }, "Cancelar edi\xE7\xE3o")), contagemParaAbrir && React.createElement("div", {
+    "data-testid": "confirma-abrir",
+    className: "mt-2 rounded-md border-2 px-3 py-2",
+    style: {
+      borderColor: "#F59E0B",
+      background: "#FFFBEB"
+    }
+  }, React.createElement("p", {
+    className: "text-[11px] font-bold text-amber-800"
+  }, "Voc\xEA tem ", itens.length, " item(ns) contados que ainda n\xE3o foram salvos. Abrir a contagem anterior descarta isso."), React.createElement("div", {
+    className: "flex gap-2 mt-2"
+  }, React.createElement("button", {
+    onClick: () => abrirContagem(contagemParaAbrir, true),
+    "data-testid": "confirma-descartar",
+    className: "text-[11px] font-bold uppercase px-3 py-1.5 rounded-md text-white",
+    style: {
+      background: "#B45309"
+    }
+  }, "Descartar e abrir"), React.createElement("button", {
+    onClick: () => setContagemParaAbrir(null),
+    className: "text-[11px] font-semibold text-slate-500"
+  }, "Cancelar"))), clienteId && mixDoCliente.length === 0 && (onIrMix ? React.createElement("button", {
     onClick: onIrMix,
     className: "mt-2 text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
     style: {
@@ -7524,7 +7616,7 @@ function ContagemLoja({
     style: {
       background: "#047857"
     }
-  }, "Salvar contagem"), React.createElement("button", {
+  }, editandoContagemId ? "Salvar alterações" : "Salvar contagem"), React.createElement("button", {
     onClick: exportar,
     className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
     style: {
@@ -7578,8 +7670,10 @@ function ContagemLoja({
     "data-testid": "lista-historico"
   }, historicoCliente.map(c => React.createElement("div", {
     key: c.id,
-    className: "border rounded-md px-3 py-2",
+    className: "border rounded-md px-3 py-2 flex items-start justify-between gap-3 flex-wrap",
     style: linha
+  }, React.createElement("div", {
+    className: "flex-1 min-w-0"
   }, React.createElement("p", {
     className: "text-sm font-bold",
     style: {
@@ -7587,7 +7681,22 @@ function ContagemLoja({
     }
   }, c.clienteNome, " ", React.createElement("span", {
     className: "text-[11px] font-normal text-slate-500"
-  }, "\xB7 ", dataBR(String(c.em).slice(0, 10)), " \xB7 ", c.totalItens, " item(ns)")))))));
+  }, "\xB7 ", dataBR(String(c.em).slice(0, 10)), " \xB7 ", c.totalItens, " item(ns)")), c.editadoEm && React.createElement("p", {
+    className: "text-[10px] text-slate-400"
+  }, "corrigida em ", dataBR(String(c.editadoEm).slice(0, 10)))), React.createElement("div", {
+    className: "flex gap-2 shrink-0"
+  }, React.createElement("button", {
+    onClick: () => abrirContagem(c),
+    "data-testid": "abrir-contagem",
+    className: "text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-md border",
+    style: {
+      borderColor: ROYAL,
+      color: ROYAL
+    }
+  }, "Abrir e editar"), React.createElement("button", {
+    onClick: () => excluirContagem(c.id),
+    className: "text-[11px] font-semibold text-slate-400 hover:text-red-600"
+  }, "Excluir")))))));
 }
 function chaveMix(clienteId, representada, produto) {
   return `${clienteId}|${norm(representada)}|${norm(produto)}`;

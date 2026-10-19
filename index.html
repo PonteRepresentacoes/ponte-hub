@@ -21358,6 +21358,10 @@ function Produtos({
   }, {
     id: "valorFretePorPeso",
     label: "Valor frete por peso líq. unit"
+  }, {
+    id: "representada",
+    label: "Representada",
+    sinonimos: ["marca representada"]
   }];
   const importarProdutosMapeado = linhas => {
     const novos = linhas.map(row => {
@@ -21442,7 +21446,8 @@ function Produtos({
         fatorCubagem: row.fatorCubagem || "",
         espessura: row.espessura || "",
         pesoBrutoCaixaMaster: row.pesoBrutoCaixaMaster || "",
-        valorFretePorPeso: row.valorFretePorPeso || ""
+        valorFretePorPeso: row.valorFretePorPeso || "",
+        representada: row.representada || ""
       };
     }).filter(Boolean);
     setProdutos([...produtos, ...novos]);
@@ -22645,31 +22650,47 @@ function CondicoesPagamentoCadastro({
   }));
   const CAMPOS_CONDICAO_IMPORT = [{
     id: "cnpj",
-    label: "CNPJ (da representada)"
+    label: "CNPJ (da representada)",
+    sinonimos: ["cnpj representada"]
+  }, {
+    id: "representadaNome",
+    label: "Representada",
+    sinonimos: ["marca", "fabricante"]
   }, {
     id: "descricao",
-    label: "Descrição"
+    label: "Descrição",
+    sinonimos: ["descricao", "condicao", "condição", "nome"]
+  }, {
+    id: "prazosLivre",
+    label: "Prazos (ex: 30/60/90)",
+    sinonimos: ["prazos", "dias", "vencimentos"]
   }, {
     id: "quantidadeParcelas",
-    label: "Quantidade de parcelas"
+    label: "Quantidade de parcelas",
+    sinonimos: ["parcelas", "qtd parcelas"]
   }, {
     id: "intervaloDias",
-    label: "Intervalo de dias"
+    label: "Intervalo de dias",
+    sinonimos: ["intervalo", "dias entre parcelas"]
   }, {
     id: "desconto",
-    label: "Desconto"
+    label: "Desconto",
+    sinonimos: ["perc desconto", "% desconto"]
   }, {
     id: "pedidoMinimo",
-    label: "Pedido mínimo"
+    label: "Pedido mínimo",
+    sinonimos: ["minimo", "valor minimo"]
   }];
   const importarCondicoesMapeado = linhas => {
     const novos = linhas.map(row => {
       const descricao = String(row.descricao || "").trim();
       const cnpj = String(row.cnpj || "").trim();
-      const rep = (representadasCadastro || []).find(r => r.cnpj && norm(r.cnpj) === norm(cnpj));
+      const nomeRep = String(row.representadaNome || "").trim();
+      const rep = (representadasCadastro || []).find(r => cnpj && r.cnpj && norm(r.cnpj) === norm(cnpj) || nomeRep && norm(r.nome) === norm(nomeRep));
       const qtdParcelas = Number(row.quantidadeParcelas) || "";
       const intervalo = Number(row.intervaloDias) || "";
-      const prazos = qtdParcelas && intervalo ? Array.from({
+      const prazosLivreStr = String(row.prazosLivre || "").trim();
+      const prazos = prazosLivreStr ? prazosLivreStr.split(/[\/\-,;\s]+/).map(Number).filter(n => n > 0) : qtdParcelas && intervalo ? Array.from({
         length: qtdParcelas
       }, (_, i) => intervalo * (i + 1)) : [];
       const nome = descricao || (prazos.length > 0 ? prazos.join("/") + " dias" : "");
@@ -22678,8 +22699,8 @@ function CondicoesPagamentoCadastro({
         ...blankCondicao(),
         id: uid(),
         nome,
-        representada: rep ? rep.nome : "",
-        quantidadeParcelas: qtdParcelas,
+        representada: rep ? rep.nome : nomeRep || "",
+        quantidadeParcelas: prazos.length || qtdParcelas,
         intervaloDias: intervalo,
         prazos,
         percentual: row.desconto || "",

@@ -7438,6 +7438,7 @@ function ContagemLoja({
   const [editandoContagemId, setEditandoContagemId] = useState(null);
   const [contagemParaAbrir, setContagemParaAbrir] = useState(null);
   const [msg, setMsg] = useState("");
+  const [expandidoId, setExpandidoId] = useState(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const loopRef = useRef(null);
@@ -7660,7 +7661,7 @@ function ContagemLoja({
         produto: i.produto,
         representada: m ? m.representada : "",
         quantidade: Number(i.quantidade) || 0,
-        em: c.em
+        em: i.em || c.em
       };
     });
   };
@@ -7690,7 +7691,8 @@ function ContagemLoja({
     const corpo = itens.map(i => ({
       codigo: i.codigo,
       produto: i.produto,
-      quantidade: Number(i.quantidade) || 0
+      quantidade: Number(i.quantidade) || 0,
+      em: i.em || new Date().toISOString()
     }));
     if (editandoContagemId) {
       setContagens((contagens || []).map(c => c.id === editandoContagemId ? {
@@ -7729,6 +7731,41 @@ function ContagemLoja({
     downloadCSV(`contagem-${norm(cliente ? cliente.nome : "cliente").replace(/\s+/g, "-")}.csv`, "Codigo,Produto,Contado,Sugestao de reposicao", rows);
   };
   const historicoCliente = (contagens || []).filter(c => !clienteId || c.clienteId === clienteId).slice().reverse();
+  const porProdutoEvol = {};
+  (contagens || []).filter(c => !clienteId || c.clienteId === clienteId).forEach(c => {
+    (c.itens || []).forEach(it => {
+      const chave = norm(it.codigo || it.produto);
+      if (!porProdutoEvol[chave]) porProdutoEvol[chave] = {
+        produto: it.produto,
+        codigo: it.codigo || "",
+        historico: []
+      };
+      porProdutoEvol[chave].historico.push({
+        data: it.em || c.em,
+        qtd: Number(it.quantidade) || 0,
+        clienteNome: c.clienteNome
+      });
+    });
+  });
+  const evolucao = Object.values(porProdutoEvol).filter(p => p.historico.length >= 2).map(p => {
+    const hist = p.historico.slice().sort((a, b) => a.data.localeCompare(b.data));
+    for (let i = 1; i < hist.length; i++) {
+      const prev = hist[i - 1];
+      const curr = hist[i];
+      const dias = Math.max(1, Math.round((new Date(curr.data) - new Date(prev.data)) / 86400000));
+      const diff = prev.qtd - curr.qtd;
+      curr.dias = dias;
+      curr.diff = diff;
+      curr.velocidade = diff > 0 ? diff / dias : null;
+    }
+    const vs = hist.slice(1).filter(h => h.velocidade !== null).map(h => h.velocidade);
+    const giroMedio = vs.length > 0 ? vs.reduce((a, b) => a + b, 0) / vs.length : null;
+    return {
+      ...p,
+      historico: hist,
+      giroMedio
+    };
+  }).sort((a, b) => (b.giroMedio || 0) - (a.giroMedio || 0));
   const inputCls = "w-full border rounded-md px-3 py-2 text-sm";
   const linha = {
     borderColor: LINE
@@ -7841,7 +7878,10 @@ function ContagemLoja({
   }, "Rupturas (", rupturas.length, ")"), React.createElement(ToggleBtn, {
     active: aba === "historico",
     onClick: () => setAba("historico")
-  }, "Hist\xF3rico (", historicoCliente.length, ")")), aba === "contar" && React.createElement(Card, null, !camOn && !pendente && React.createElement("button", {
+  }, "Hist\xF3rico (", historicoCliente.length, ")"), React.createElement(ToggleBtn, {
+    active: aba === "evolucao",
+    onClick: () => setAba("evolucao")
+  }, "Evolu\xE7\xE3o (", evolucao.length, ")")), aba === "contar" && React.createElement(Card, null, !camOn && !pendente && React.createElement("button", {
     onClick: abrirCamera,
     "data-testid": "abrir-camera",
     className: "w-full text-white text-sm font-bold uppercase tracking-wide px-4 py-4 rounded-md",
@@ -7969,7 +8009,11 @@ function ContagemLoja({
     style: linha
   }, React.createElement("span", {
     className: "flex-1 min-w-0"
-  }, i.produto), React.createElement("div", {
+  }, React.createElement("span", {
+    className: "block"
+  }, i.produto), i.em && React.createElement("span", {
+    className: "block text-[10px] text-slate-400"
+  }, dataBR(String(i.em).slice(0, 10)), " ", String(i.em).slice(11, 16))), React.createElement("div", {
     className: "flex items-center gap-1 shrink-0"
   }, React.createElement("button", {
     onClick: () => somarQtdContada(i.mixId, -1),
@@ -8069,8 +8113,10 @@ function ContagemLoja({
     "data-testid": "lista-historico"
   }, historicoCliente.map(c => React.createElement("div", {
     key: c.id,
-    className: "border rounded-md px-3 py-2 flex items-start justify-between gap-3 flex-wrap",
+    className: "border rounded-md px-3 py-2",
     style: linha
+  }, React.createElement("div", {
+    className: "flex items-start justify-between gap-3 flex-wrap"
   }, React.createElement("div", {
     className: "flex-1 min-w-0"
   }, React.createElement("p", {
@@ -8083,8 +8129,11 @@ function ContagemLoja({
   }, "\xB7 ", dataBR(String(c.em).slice(0, 10)), " \xB7 ", c.totalItens, " item(ns)")), c.editadoEm && React.createElement("p", {
     className: "text-[10px] text-slate-400"
   }, "corrigida em ", dataBR(String(c.editadoEm).slice(0, 10)))), React.createElement("div", {
-    className: "flex gap-2 shrink-0"
+    className: "flex gap-2 shrink-0 flex-wrap"
   }, React.createElement("button", {
+    onClick: () => setExpandidoId(expandidoId === c.id ? null : c.id),
+    className: "text-[11px] font-semibold text-slate-500 hover:text-slate-700"
+  }, expandidoId === c.id ? "Fechar ▲" : "Ver itens ▼"), React.createElement("button", {
     onClick: () => abrirContagem(c),
     "data-testid": "abrir-contagem",
     className: "text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-md border",
@@ -8095,7 +8144,65 @@ function ContagemLoja({
   }, "Abrir e editar"), React.createElement("button", {
     onClick: () => excluirContagem(c.id),
     className: "text-[11px] font-semibold text-slate-400 hover:text-red-600"
-  }, "Excluir")))))));
+  }, "Excluir"))), expandidoId === c.id && React.createElement("div", {
+    className: "mt-2 pt-2 border-t space-y-1",
+    style: linha
+  }, (c.itens || []).map((it, idx) => React.createElement("div", {
+    key: idx,
+    className: "flex items-center justify-between gap-2 text-[11px] py-0.5"
+  }, React.createElement("span", {
+    className: "flex-1 min-w-0 text-slate-700"
+  }, it.produto), React.createElement("span", {
+    className: "whitespace-nowrap font-bold px-2",
+    style: {
+      color: INK
+    }
+  }, it.quantidade, " un"), it.em && React.createElement("span", {
+    className: "whitespace-nowrap text-slate-400"
+  }, dataBR(String(it.em).slice(0, 10)), " ", String(it.em).slice(11, 16))))))))), aba === "evolucao" && React.createElement(Card, {
+    title: "Evolução das contagens (" + evolucao.length + " produto(s))",
+    subtitle: "Compara contagens sucessivas pra estimar o giro de cada item."
+  }, evolucao.length === 0 ? React.createElement(EmptyState, {
+    text: "Precisa de pelo menos 2 contagens do mesmo produto pra calcular o giro."
+  }) : React.createElement("div", {
+    className: "space-y-2",
+    "data-testid": "lista-evolucao"
+  }, evolucao.map(p => React.createElement("div", {
+    key: p.codigo || norm(p.produto),
+    className: "border rounded-md px-3 py-2",
+    style: linha
+  }, React.createElement("div", {
+    className: "flex items-start justify-between gap-2 flex-wrap"
+  }, React.createElement("p", {
+    className: "text-sm font-bold flex-1 min-w-0 pr-2",
+    style: {
+      color: INK
+    }
+  }, p.produto), p.giroMedio !== null && React.createElement("span", {
+    className: "text-[11px] font-bold whitespace-nowrap px-2 py-0.5 rounded-full shrink-0",
+    style: {
+      background: p.giroMedio > 0.3 ? "#D1FAE5" : "#FEF9C3",
+      color: p.giroMedio > 0.3 ? "#047857" : "#92400E"
+    }
+  }, p.giroMedio.toFixed(2), " un/dia")), React.createElement("div", {
+    className: "mt-1 flex flex-wrap gap-2"
+  }, p.historico.map((h, i) => React.createElement("span", {
+    key: i,
+    className: "inline-flex items-center gap-1 text-[11px] border rounded px-2 py-0.5",
+    style: {
+      borderColor: LINE
+    }
+  }, React.createElement("span", {
+    className: "text-slate-400"
+  }, dataBR(String(h.data).slice(0, 10))), React.createElement("b", {
+    style: {
+      color: INK
+    }
+  }, " ", h.qtd, " un"), h.diff !== undefined && React.createElement("span", {
+    style: {
+      color: h.diff > 0 ? "#047857" : h.diff < 0 ? "#DC2626" : "#64748B"
+    }
+  }, " ", h.diff > 0 ? "−" + h.diff : h.diff < 0 ? "+" + Math.abs(h.diff) : "=")))))))));
 }
 function chaveMix(clienteId, representada, produto) {
   return `${clienteId}|${norm(representada)}|${norm(produto)}`;

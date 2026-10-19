@@ -1449,7 +1449,11 @@ function PonteHub({
   }), area === "vendas" && tab === "vendas-scanner" && React.createElement(ScannerOportunidades, {
     clientes: clientes,
     oportunidades: oportunidades,
-    setOportunidades: setOportunidades
+    setOportunidades: setOportunidades,
+    pedidosEspelho: pedidosEspelho,
+    mixClientes: mixClientes,
+    contagens: contagens,
+    representadasCadastro: representadasCadastro
   }), area === "vendas" && tab === "vendas-preditiva" && React.createElement(VendaPreditiva, {
     somenteLeitura: restritoAVendas,
     clientes: clientes,
@@ -6460,11 +6464,151 @@ function FichaRapida({
     className: "text-[11px] font-semibold text-slate-500"
   }, msgRepositor)));
 }
+function montarSwotCliente(cliente, {
+  oportunidades,
+  pedidosEspelho,
+  mixClientes,
+  contagens,
+  representadasCadastro
+}) {
+  const vazio = {
+    forcas: [],
+    fraquezas: [],
+    oportunidades: [],
+    ameacas: []
+  };
+  if (!cliente) return vazio;
+  const alvoNome = norm(cliente.nome);
+  const doCliente = l => l.clienteId === cliente.id || norm(l.clienteNome || "") === alvoNome;
+  const comparacoes = (oportunidades || []).filter(doCliente);
+  const pedidos = (pedidosEspelho || []).filter(p => !p.excluido && p.status === "Pedido" && norm(p.clienteNome || "") === alvoNome);
+  const mix = (mixClientes || []).filter(m => m.clienteId === cliente.id);
+  const ultimaContagem = (contagens || []).filter(c => c.clienteId === cliente.id).sort((a, b) => String(b.em).localeCompare(String(a.em)))[0] || null;
+  const forcas = [],
+    fraquezas = [],
+    oportunidadesLista = [],
+    ameacas = [];
+  const meusProdutosNoCliente = new Set();
+  pedidos.forEach(p => (p.itens || []).forEach(i => meusProdutosNoCliente.add(norm(i.produto))));
+  const jaCompraDeMim = nome => {
+    const n = norm(nome);
+    if (!n) return false;
+    for (const prod of meusProdutosNoCliente) if (prod.includes(n) || n.includes(prod)) return true;
+    return false;
+  };
+  comparacoes.forEach(o => {
+    const diff = Number(o.diffPercent);
+    if (!isFinite(diff)) return;
+    const base = {
+      id: o.id,
+      titulo: o.meuProduto,
+      evidencia: `vs ${o.produtoConcorrente} · ${brl(o.meuPreco)} contra ${brl(o.precoConcorrente)}`,
+      origem: "Scanner"
+    };
+    if (diff < -0.5) forcas.push({
+      ...base,
+      nota: `${Math.abs(diff).toFixed(1)}% mais barato`
+    });else if (diff > 0.5) {
+      const critico = jaCompraDeMim(o.meuProduto);
+      fraquezas.push({
+        ...base,
+        nota: `${diff.toFixed(1)}% mais caro`
+      });
+      if (critico) ameacas.push({
+        id: `am-${o.id}`,
+        titulo: o.meuProduto,
+        evidencia: `${o.produtoConcorrente} está ${diff.toFixed(1)}% mais barato e ele já compra esse item de mim`,
+        origem: "Scanner + pedidos"
+      });
+    } else forcas.push({
+      ...base,
+      nota: "preço equivalente"
+    });
+  });
+  const porRep = {};
+  pedidos.forEach(p => {
+    if (p.representada) porRep[p.representada] = (porRep[p.representada] || 0) + 1;
+  });
+  Object.keys(porRep).filter(r => porRep[r] >= 2).sort((a, b) => porRep[b] - porRep[a]).forEach(r => {
+    forcas.push({
+      id: `rep-${r}`,
+      titulo: r,
+      evidencia: `${porRep[r]} pedidos faturados dessa marca`,
+      origem: "Histórico",
+      nota: "marca consolidada"
+    });
+  });
+  if (ultimaContagem) {
+    const contados = new Set((ultimaContagem.itens || []).map(i => norm(i.codigo || i.produto)));
+    const zerados = new Set((ultimaContagem.itens || []).filter(i => Number(i.quantidade) === 0).map(i => norm(i.codigo || i.produto)));
+    mix.forEach(m => {
+      const chave = norm(m.codigo || m.produto);
+      const ativo = !m.statusFabrica || statusFabricaEhAtivo(m.statusFabrica);
+      if (!ativo) return;
+      if (zerados.has(chave)) oportunidadesLista.push({
+        id: `rup-${m.id}`,
+        titulo: m.produto,
+        evidencia: `zerado na última contagem (${dataBR(String(ultimaContagem.em).slice(0, 10))})`,
+        origem: "Contagem"
+      });else if (!contados.has(chave) && m.ultimaCompra) oportunidadesLista.push({
+        id: `sum-${m.id}`,
+        titulo: m.produto,
+        evidencia: `está no mix mas não apareceu na contagem · última compra ${dataBR(m.ultimaCompra)}`,
+        origem: "Contagem"
+      });
+    });
+  }
+  const repsCompradas = new Set(Object.keys(porRep).map(norm));
+  (representadasCadastro || []).filter(r => !r.excluida && r.nome && !repsCompradas.has(norm(r.nome))).forEach(r => {
+    oportunidadesLista.push({
+      id: `nova-${r.id}`,
+      titulo: r.nome,
+      evidencia: "represento essa marca e ele nunca comprou",
+      origem: "Carteira"
+    });
+  });
+  if (ultimaContagem) {
+    const porChave = {};
+    (ultimaContagem.itens || []).forEach(i => {
+      porChave[norm(i.codigo || i.produto)] = Number(i.quantidade) || 0;
+    });
+    mix.filter(m => itemForaDeLinha(m)).forEach(m => {
+      const qtd = porChave[norm(m.codigo || m.produto)];
+      if (qtd > 0) ameacas.push({
+        id: `fl-${m.id}`,
+        titulo: m.produto,
+        evidencia: `${qtd} un parada(s) na loja e a fábrica não produz mais`,
+        origem: "Fora de linha"
+      });
+    });
+  }
+  const pot = potencialCompraCliente(cliente.nome, pedidosEspelho);
+  if (pot.totalPedidos > 0 && pot.diasDesdeUltimaCompra > 90) {
+    ameacas.push({
+      id: "inativo",
+      titulo: "Cliente parou de comprar",
+      evidencia: `última compra há ${pot.diasDesdeUltimaCompra} dias`,
+      origem: "Histórico"
+    });
+  }
+  return {
+    forcas,
+    fraquezas,
+    oportunidades: oportunidadesLista,
+    ameacas
+  };
+}
 function ScannerOportunidades({
   clientes,
   oportunidades,
-  setOportunidades
+  setOportunidades,
+  pedidosEspelho = [],
+  mixClientes = [],
+  contagens = [],
+  representadasCadastro = []
 }) {
+  const [aba, setAba] = useState("scanner");
+  const [swotClienteId, setSwotClienteId] = useState("");
   const [clienteId, setClienteId] = useState("");
   const [produtoConcorrente, setProdutoConcorrente] = useState("");
   const [precoConcorrente, setPrecoConcorrente] = useState("");
@@ -6539,6 +6683,109 @@ function ScannerOportunidades({
       setMensagem(m => m);
     } catch (e) {}
   };
+  const clienteSwot = (clientes || []).find(c => c.id === swotClienteId) || null;
+  const swot = montarSwotCliente(clienteSwot, {
+    oportunidades,
+    pedidosEspelho,
+    mixClientes,
+    contagens,
+    representadasCadastro
+  });
+  const QUADRANTES = [{
+    id: "forcas",
+    rotulo: "Forças",
+    desc: "Onde eu ganho desse concorrente",
+    cor: "#047857",
+    fundo: "#ECFDF5"
+  }, {
+    id: "fraquezas",
+    rotulo: "Fraquezas",
+    desc: "Onde o concorrente me ganha",
+    cor: "#B91C1C",
+    fundo: "#FEF2F2"
+  }, {
+    id: "oportunidades",
+    rotulo: "Oportunidades",
+    desc: "Espaço que dá pra ocupar nessa loja",
+    cor: "#1D4ED8",
+    fundo: "#EFF6FF"
+  }, {
+    id: "ameacas",
+    rotulo: "Ameaças",
+    desc: "O que posso perder se não agir",
+    cor: "#B45309",
+    fundo: "#FFFBEB"
+  }];
+  const totalSwot = QUADRANTES.reduce((a, q) => a + swot[q.id].length, 0);
+  const painelSwot = React.createElement("div", {
+    className: "space-y-4"
+  }, React.createElement(Card, {
+    title: "SWOT do cliente",
+    subtitle: "Montado a partir do que j\xE1 est\xE1 registrado: compara\xE7\xF5es do Scanner, pedidos faturados, mix cadastrado e a \xFAltima contagem na loja."
+  }, React.createElement(Field, {
+    label: "Cliente"
+  }, React.createElement("select", {
+    value: swotClienteId,
+    onChange: e => setSwotClienteId(e.target.value),
+    "aria-label": "Cliente do SWOT",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, React.createElement("option", {
+    value: ""
+  }, "Selecione o cliente..."), (clientes || []).filter(c => !c.excluido).map(c => React.createElement("option", {
+    key: c.id,
+    value: c.id
+  }, c.nome)))), clienteSwot && totalSwot === 0 && React.createElement("p", {
+    className: "text-xs text-slate-500 mt-3"
+  }, "Ainda n\xE3o h\xE1 registro suficiente desse cliente. Fa\xE7a uma compara\xE7\xE3o no Scanner, uma contagem na loja ou registre um pedido \u2014 o SWOT se monta sozinho a partir disso.")), clienteSwot && totalSwot > 0 && React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-3",
+    "data-testid": "swot-grade"
+  }, QUADRANTES.map(q => React.createElement("div", {
+    key: q.id,
+    "data-testid": `swot-${q.id}`,
+    className: "rounded-xl border p-3",
+    style: {
+      borderColor: LINE,
+      borderTopWidth: 3,
+      borderTopColor: q.cor,
+      background: CARD
+    }
+  }, React.createElement("p", {
+    className: "text-sm font-black",
+    style: {
+      color: q.cor
+    }
+  }, q.rotulo, " (", swot[q.id].length, ")"), React.createElement("p", {
+    className: "text-[10px] text-slate-400 mb-2"
+  }, q.desc), swot[q.id].length === 0 ? React.createElement("p", {
+    className: "text-[11px] text-slate-400"
+  }, "Nada registrado aqui ainda.") : React.createElement("div", {
+    className: "space-y-1.5"
+  }, swot[q.id].slice(0, 12).map(it => React.createElement("div", {
+    key: it.id,
+    className: "rounded-md px-2 py-1.5",
+    style: {
+      background: q.fundo
+    }
+  }, React.createElement("p", {
+    className: "text-[11px] font-bold",
+    style: {
+      color: INK
+    }
+  }, it.titulo, it.nota ? React.createElement("span", {
+    className: "ml-1 font-semibold",
+    style: {
+      color: q.cor
+    }
+  }, "\xB7 ", it.nota) : null), React.createElement("p", {
+    className: "text-[10px] text-slate-500"
+  }, it.evidencia, " ", React.createElement("span", {
+    className: "text-slate-400"
+  }, "(", it.origem, ")")))), swot[q.id].length > 12 && React.createElement("p", {
+    className: "text-[10px] text-slate-400"
+  }, "+ ", swot[q.id].length - 12, " n\xE3o mostrado(s)"))))));
   return React.createElement("div", {
     className: "space-y-6"
   }, React.createElement("div", null, React.createElement("h2", {
@@ -6548,7 +6795,15 @@ function ScannerOportunidades({
     }
   }, "Scanner de Oportunidades"), React.createElement("p", {
     className: "text-sm text-slate-500"
-  }, "Compare o pre\xE7o do concorrente com o seu e gere o argumento de venda na hora.")), React.createElement(Card, {
+  }, "Compare o pre\xE7o do concorrente com o seu e gere o argumento de venda na hora.")), React.createElement("div", {
+    className: "flex gap-2 flex-wrap"
+  }, React.createElement(ToggleBtn, {
+    active: aba === "scanner",
+    onClick: () => setAba("scanner")
+  }, "Comparar pre\xE7o"), React.createElement(ToggleBtn, {
+    active: aba === "swot",
+    onClick: () => setAba("swot")
+  }, "SWOT do cliente")), aba === "swot" ? painelSwot : React.createElement(React.Fragment, null, React.createElement(Card, {
     title: "Captura na g\xF4ndola",
     subtitle: "Por enquanto os valores s\xE3o digitados \u2014 a leitura por foto (OCR) entra numa fase futura"
   }, React.createElement("div", {
@@ -6696,7 +6951,7 @@ function ScannerOportunidades({
     style: {
       color: o.diffPercent > 0 ? "#1D4ED8" : "#047857"
     }
-  }, o.diffPercent > 0 ? "+" : "", o.diffPercent.toFixed(1), "%"))))));
+  }, o.diffPercent > 0 ? "+" : "", o.diffPercent.toFixed(1), "%")))))));
 }
 const ROTULO_ABA_PREDITIVA = {
   analise: "Analisar cliente",
@@ -9115,6 +9370,33 @@ const ETAPA_COR = {
   "Negociação": "#059669",
   "Fechamento": "#16A34A"
 };
+const GUT_ESCALAS = {
+  g: {
+    rotulo: "Gravidade",
+    ajuda: "O quanto pesa pro negócio",
+    opcoes: ["Irrelevante", "Pouco grave", "Grave", "Muito grave", "Gravíssimo"]
+  },
+  u: {
+    rotulo: "Urgência",
+    ajuda: "O quanto corre o relógio",
+    opcoes: ["Pode esperar", "Pouco urgente", "Urgente", "Muito urgente", "Imediato"]
+  },
+  t: {
+    rotulo: "Tendência",
+    ajuda: "O que acontece se eu não agir",
+    opcoes: ["Não muda", "Piora devagar", "Piora no médio prazo", "Piora rápido", "Perco o negócio"]
+  }
+};
+function notaGUT(n) {
+  const g = Number(n && n.gutG) || 0,
+    u = Number(n && n.gutU) || 0,
+    t = Number(n && n.gutT) || 0;
+  return g > 0 && u > 0 && t > 0 ? g * u * t : null;
+}
+function prioridadeDaNota(nota) {
+  if (nota === null) return null;
+  return nota >= 60 ? "Alta" : nota >= 20 ? "Média" : "Baixa";
+}
 const PRIORIDADE_META = {
   Alta: {
     bg: "bg-red-100",
@@ -9138,6 +9420,9 @@ function blankNegocio() {
     representada: "",
     valor: "",
     prioridade: "Média",
+    gutG: 0,
+    gutU: 0,
+    gutT: 0,
     etapa: "Prospecção",
     vencimento: "",
     vendedorId: "",
@@ -9564,6 +9849,18 @@ function FunilVendas({
   const [importFabrica, setImportFabrica] = useState("");
   const [importMensagem, setImportMensagem] = useState("");
   const [filtroCliente, setFiltroCliente] = useState("");
+  const [limiteWip, setLimiteWip] = useState(() => {
+    try {
+      return Number(localStorage.getItem("ponte-funil-wip")) || 0;
+    } catch (e) {
+      return 0;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("ponte-funil-wip", String(limiteWip || 0));
+    } catch (e) {}
+  }, [limiteWip]);
   const set = campo => e => setForm(f => ({
     ...f,
     [campo]: e.target.value
@@ -9571,10 +9868,12 @@ function FunilVendas({
   const salvar = () => {
     if (!form.titulo.trim()) return;
     const cliente = clientes.find(c => c.id === form.clienteId);
+    const nota = notaGUT(form);
     const registro = {
       ...form,
       clienteNome: cliente ? cliente.nome : form.clienteNome,
-      vendedorId: meuId || form.vendedorId || ""
+      vendedorId: meuId || form.vendedorId || "",
+      prioridade: nota !== null ? prioridadeDaNota(nota) : form.prioridade
     };
     if (editandoId) {
       setNegocios(negocios.map(n => n.id === editandoId ? {
@@ -9829,7 +10128,20 @@ function FunilVendas({
     type: "checkbox",
     checked: mostrarPerdidos,
     onChange: e => setMostrarPerdidos(e.target.checked)
-  }), "Exibir perdidos"), React.createElement("button", {
+  }), "Exibir perdidos"), React.createElement("label", {
+    className: "flex items-center gap-1.5 text-xs font-semibold text-slate-600",
+    title: "Avisa quando uma etapa passa dessa quantidade de neg\xF3cios. 0 desliga."
+  }, "Limite por etapa", React.createElement("input", {
+    type: "number",
+    min: 0,
+    value: limiteWip,
+    onChange: e => setLimiteWip(Math.max(0, Number(e.target.value) || 0)),
+    "aria-label": "Limite de neg\xF3cios por etapa",
+    className: "w-16 border rounded-md px-2 py-1 text-xs",
+    style: {
+      borderColor: LINE
+    }
+  })), React.createElement("button", {
     onClick: () => setMostrarRelatorio(v => !v),
     className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
     style: {
@@ -10006,15 +10318,36 @@ function FunilVendas({
     key: r.id,
     value: r.nome
   }, r.nome)))), React.createElement(Field, {
-    label: "Prioridade"
-  }, React.createElement("select", {
-    value: form.prioridade,
-    onChange: set("prioridade"),
-    className: "w-full border rounded-md px-3 py-2 text-sm",
+    label: "Prioridade (GUT)"
+  }, React.createElement("div", {
+    className: "grid grid-cols-3 gap-1.5"
+  }, ["g", "u", "t"].map(eixo => React.createElement("select", {
+    key: eixo,
+    value: form[`gut${eixo.toUpperCase()}`] || 0,
+    onChange: e => setForm({
+      ...form,
+      [`gut${eixo.toUpperCase()}`]: Number(e.target.value)
+    }),
+    "aria-label": GUT_ESCALAS[eixo].rotulo,
+    title: GUT_ESCALAS[eixo].ajuda,
+    className: "w-full border rounded-md px-2 py-2 text-xs",
     style: {
       borderColor: LINE
     }
-  }, React.createElement("option", null, "Alta"), React.createElement("option", null, "M\xE9dia"), React.createElement("option", null, "Baixa"))), React.createElement(Field, {
+  }, React.createElement("option", {
+    value: 0
+  }, GUT_ESCALAS[eixo].rotulo, "\u2026"), GUT_ESCALAS[eixo].opcoes.map((o, idx) => React.createElement("option", {
+    key: o,
+    value: idx + 1
+  }, idx + 1, " \xB7 ", o))))), notaGUT(form) !== null ? React.createElement("p", {
+    "data-testid": "gut-nota-form",
+    className: "text-[11px] font-bold mt-1",
+    style: {
+      color: PRIORIDADE_META[prioridadeDaNota(notaGUT(form))].cor
+    }
+  }, "Nota GUT ", notaGUT(form), " de 125 \u2014 prioridade ", prioridadeDaNota(notaGUT(form))) : React.createElement("p", {
+    className: "text-[10px] text-slate-400 mt-1"
+  }, "Preencha os tr\xEAs pra calcular a prioridade. Sem isso vale \u201C", form.prioridade, "\u201D.")), React.createElement(Field, {
     label: "Etapa inicial"
   }, React.createElement("select", {
     value: form.etapa,
@@ -10246,8 +10579,19 @@ function FunilVendas({
   }, React.createElement("div", {
     className: "flex gap-3"
   }, ETAPAS_FUNIL.map(etapa => {
-    const doEtapa = ativos.filter(n => n.etapa === etapa);
+    const PESO_PRIO = {
+      Alta: 3,
+      "Média": 2,
+      Baixa: 1
+    };
+    const doEtapa = ativos.filter(n => n.etapa === etapa).slice().sort((a, b) => {
+      const na = notaGUT(a),
+        nb = notaGUT(b);
+      if (na !== null || nb !== null) return (nb === null ? -1 : nb) - (na === null ? -1 : na);
+      return (PESO_PRIO[b.prioridade] || 0) - (PESO_PRIO[a.prioridade] || 0);
+    });
     const totalEtapa = doEtapa.reduce((a, n) => a + (Number(n.valor) || 0), 0);
+    const estourouWip = limiteWip > 0 && doEtapa.length > limiteWip;
     return React.createElement("div", {
       key: etapa,
       className: "flex-1 min-w-[80vw] sm:min-w-[230px] snap-start",
@@ -10262,7 +10606,14 @@ function FunilVendas({
       className: "text-xs font-black text-white uppercase tracking-wide"
     }, etapa), React.createElement("p", {
       className: "text-[11px] text-white/80 mt-0.5"
-    }, brl(totalEtapa), " \xB7 ", doEtapa.length, " neg\xF3cio(s)")), React.createElement("div", {
+    }, brl(totalEtapa), " \xB7 ", doEtapa.length, " neg\xF3cio(s)", limiteWip > 0 ? ` / ${limiteWip}` : ""), estourouWip && React.createElement("p", {
+      "data-testid": "wip-alerta",
+      className: "text-[10px] font-bold mt-1 px-2 py-0.5 rounded-full inline-block",
+      style: {
+        background: "#FEF3C7",
+        color: "#B45309"
+      }
+    }, "\u26A0\uFE0F Etapa cheia \u2014 ", doEtapa.length - limiteWip, " acima do limite")), React.createElement("div", {
       className: "rounded-b-2xl p-2.5 space-y-2.5 min-h-[120px] border border-t-0",
       style: {
         background: PAPER,
@@ -10271,7 +10622,7 @@ function FunilVendas({
     }, doEtapa.length === 0 && React.createElement("p", {
       className: "text-[11px] text-slate-400 text-center py-4"
     }, "\u2014"), doEtapa.map(n => {
-      const pMeta = PRIORIDADE_META[n.prioridade];
+      const pMeta = PRIORIDADE_META[n.prioridade] || PRIORIDADE_META["Média"];
       const dias = diasRestantes(n.vencimento);
       return React.createElement("div", {
         key: n.id,
@@ -10291,8 +10642,9 @@ function FunilVendas({
         className: `text-[10px] font-bold px-2 py-0.5 rounded-full ${pMeta.bg}`,
         style: {
           color: pMeta.cor
-        }
-      }, n.prioridade), n.status !== "Aberto" && React.createElement("span", {
+        },
+        title: notaGUT(n) !== null ? `GUT ${n.gutG}×${n.gutU}×${n.gutT} = ${notaGUT(n)}` : "Prioridade definida à mão"
+      }, n.prioridade, notaGUT(n) !== null ? ` · ${notaGUT(n)}` : ""), n.status !== "Aberto" && React.createElement("span", {
         className: "text-[10px] font-bold px-2 py-0.5 rounded-full",
         style: {
           color: n.status === "Ganho" ? "#047857" : "#B91C1C",
@@ -11847,7 +12199,11 @@ function potencialCompraCliente(nome, pedidosEspelho) {
       valorTotal: 0,
       ticketMedio: 0,
       frequenciaDias: null,
-      diasDesdeUltimaCompra: null
+      diasDesdeUltimaCompra: null,
+      mesesRelacao: 0,
+      ltvRealizado: 0,
+      comprasAno: null,
+      ltvProjetado12m: null
     };
   }
   const totalPedidos = pedidos.length;
@@ -11862,13 +12218,21 @@ function potencialCompraCliente(nome, pedidosEspelho) {
   const diasDesdeUltimaCompra = diasEntre(ultima, hojeStr);
   let label;
   if (diasDesdeUltimaCompra > 90) label = "Inativo";else if (totalPedidos >= 3 && frequenciaDias !== null && frequenciaDias <= 30 && diasDesdeUltimaCompra <= 30) label = "Alto potencial";else if (diasDesdeUltimaCompra <= 60) label = "Médio potencial";else label = "Baixo potencial";
+  const mesesRelacao = Math.max(1, Math.round(diasEntre(primeira, hojeStr) / 30));
+  const ltvRealizado = valorTotal;
+  const comprasAno = frequenciaDias !== null && frequenciaDias > 0 ? 365 / frequenciaDias : null;
+  const ltvProjetado12m = comprasAno !== null ? ticketMedio * comprasAno : null;
   return {
     label,
     totalPedidos,
     valorTotal,
     ticketMedio,
     frequenciaDias,
-    diasDesdeUltimaCompra
+    diasDesdeUltimaCompra,
+    mesesRelacao,
+    ltvRealizado,
+    comprasAno,
+    ltvProjetado12m
   };
 }
 function eventosLinhaDoTempo(nome, {
@@ -12047,7 +12411,26 @@ function LinhaDoTempo({
   }), React.createElement(Stat, {
     label: "Pedidos faturados",
     value: String(potencial.totalPedidos)
-  })), React.createElement("p", {
+  })), potencial.totalPedidos > 0 && React.createElement("div", {
+    className: "grid grid-cols-2 md:grid-cols-4 gap-3 mt-3",
+    "data-testid": "painel-ltv"
+  }, React.createElement(Stat, {
+    label: "LTV realizado",
+    value: brl(potencial.ltvRealizado),
+    tone: "emerald"
+  }), React.createElement(Stat, {
+    label: "LTV projetado (12 meses)",
+    value: potencial.ltvProjetado12m !== null ? brl(potencial.ltvProjetado12m) : "—",
+    tone: potencial.ltvProjetado12m !== null ? "royal" : undefined
+  }), React.createElement(Stat, {
+    label: "Tempo de rela\xE7\xE3o",
+    value: `${potencial.mesesRelacao} ${potencial.mesesRelacao === 1 ? "mês" : "meses"}`
+  }), React.createElement(Stat, {
+    label: "Compras por ano",
+    value: potencial.comprasAno !== null ? potencial.comprasAno.toFixed(1) : "—"
+  })), potencial.totalPedidos > 0 && potencial.ltvProjetado12m === null && React.createElement("p", {
+    className: "text-[10px] text-slate-400 mt-1"
+  }, "O LTV projetado precisa de pelo menos duas compras pra ter um ritmo \u2014 com uma s\xF3 n\xE3o d\xE1 pra estimar."), React.createElement("p", {
     className: "text-[11px] text-slate-400 mt-2"
   }, potencial.totalPedidos === 0 ? "Sem pedidos faturados no histórico ainda." : `Última compra há ${potencial.diasDesdeUltimaCompra} dia(s)${potencial.frequenciaDias ? ` · compra em média a cada ${potencial.frequenciaDias} dia(s)` : ""}.`)), eventos.length === 0 ? React.createElement(EmptyState, {
     text: "Nenhum hist\xF3rico encontrado ainda para esse nome.",

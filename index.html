@@ -7730,6 +7730,40 @@ function ContagemLoja({
     });
     downloadCSV(`contagem-${norm(cliente ? cliente.nome : "cliente").replace(/\s+/g, "-")}.csv`, "Codigo,Produto,Contado,Sugestao de reposicao", rows);
   };
+  const gerarRelatorioContagem = c => {
+    const totalUnidades = (c.itens || []).reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
+    const hoje = new Date().toLocaleDateString("pt-BR");
+    const dataContagem = dataBR(String(c.em).slice(0, 10));
+    const editadoHtml = c.editadoEm ? '<div class="info-item"><label>Última correção</label><span>' + dataBR(String(c.editadoEm).slice(0, 10)) + '</span></div>' : "";
+    const linhas = (c.itens || []).map((it, idx) => {
+      const fundo = idx % 2 === 0 ? "#EEF4FA" : "#FFFFFF";
+      const dh = it.em ? dataBR(String(it.em).slice(0, 10)) + " " + String(it.em).slice(11, 16) : "—";
+      return '<tr style="background:' + fundo + '"><td style="padding:7px 12px;text-align:center;font-family:monospace;font-size:11px;color:#888;border-bottom:1px solid #D6E9F8">' + (idx + 1) + '</td><td style="padding:7px 12px;font-family:monospace;font-size:11px;color:#555;border-bottom:1px solid #D6E9F8">' + (it.codigo || "—") + '</td><td style="padding:7px 12px;font-weight:500;color:#1A3B5D;border-bottom:1px solid #D6E9F8">' + it.produto + '</td><td style="padding:7px 12px;text-align:center;font-weight:700;font-size:13px;border-bottom:1px solid #D6E9F8">' + it.quantidade + '</td><td style="padding:7px 12px;text-align:center;font-size:11px;color:#888;border-bottom:1px solid #D6E9F8">' + dh + '</td></tr>';
+    }).join("");
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Contagem — ${c.clienteNome}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f7fb}.pagina{max-width:900px;margin:24px auto;background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.10);overflow:hidden}.topo{background:linear-gradient(135deg,#1A3B5D 0%,#2E6FA8 100%);padding:24px 32px;color:#fff}.topo h1{font-size:18px;font-weight:700}.topo h2{font-size:12px;opacity:.8;margin-top:4px}.infos{display:flex;gap:28px;padding:16px 32px;background:#EEF4FA;border-bottom:1px solid #D6E9F8;flex-wrap:wrap}.info-item label{font-size:10px;font-weight:600;color:#2E6FA8;text-transform:uppercase;letter-spacing:.5px;display:block}.info-item span{font-size:13px;font-weight:700;color:#1A3B5D}table{width:100%;border-collapse:collapse}thead th{background:#2E6FA8;color:#fff;font-size:10px;font-weight:700;padding:9px 12px;text-transform:uppercase;letter-spacing:.4px;text-align:left}.rodape{padding:14px 32px;font-size:10px;color:#aaa;text-align:center;border-top:1px solid #eee}@media print{body{background:white}.pagina{box-shadow:none;margin:0;border-radius:0}}</style></head><body><div class="pagina"><div class="topo"><h1>Relatório de Contagem de Estoque</h1><h2>${c.clienteNome}</h2></div><div class="infos"><div class="info-item"><label>Data da contagem</label><span>${dataContagem}</span></div><div class="info-item"><label>Itens contados</label><span>${(c.itens || []).length}</span></div><div class="info-item"><label>Total de unidades</label><span>${totalUnidades}</span></div>${editadoHtml}</div><table><thead><tr><th style="width:40px;text-align:center">#</th><th style="width:120px">Código</th><th>Produto</th><th style="width:110px;text-align:center">Qtd.</th><th style="width:140px;text-align:center">Data/hora</th></tr></thead><tbody>${linhas}</tbody></table><div class="rodape">Gerado em ${hoje} · Ponte Hub · Ctrl+P para salvar como PDF</div></div></body></html>`;
+    const blob = new Blob([html], {
+      type: "text/html"
+    });
+    window.open(URL.createObjectURL(blob), "_blank");
+  };
+  const gerarCSVContagem = c => {
+    const linhas = [["#", "Código", "Produto", "Qtd. Contada", "Data/Hora"]];
+    (c.itens || []).forEach((it, idx) => {
+      const dh = it.em ? dataBR(String(it.em).slice(0, 10)) + " " + String(it.em).slice(11, 16) : "";
+      linhas.push([idx + 1, it.codigo || "", it.produto, it.quantidade, dh]);
+    });
+    const csv = linhas.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\n");
+    const nome = "contagem-" + (c.clienteNome || "loja").toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + String(c.em).slice(0, 10) + ".csv";
+    const blob2 = new Blob(["﻿" + csv], {
+      type: "text/csv;charset=utf-8"
+    });
+    const url2 = URL.createObjectURL(blob2);
+    const a = document.createElement("a");
+    a.href = url2;
+    a.download = nome;
+    a.click();
+    URL.revokeObjectURL(url2);
+  };
   const historicoCliente = (contagens || []).filter(c => !clienteId || c.clienteId === clienteId).slice().reverse();
   const porProdutoEvol = {};
   (contagens || []).filter(c => !clienteId || c.clienteId === clienteId).forEach(c => {
@@ -8134,6 +8168,20 @@ function ContagemLoja({
     onClick: () => setExpandidoId(expandidoId === c.id ? null : c.id),
     className: "text-[11px] font-semibold text-slate-500 hover:text-slate-700"
   }, expandidoId === c.id ? "Fechar ▲" : "Ver itens ▼"), React.createElement("button", {
+    onClick: () => gerarRelatorioContagem(c),
+    className: "text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-md border",
+    style: {
+      borderColor: "#047857",
+      color: "#047857"
+    }
+  }, "\uD83D\uDCC4 PDF"), React.createElement("button", {
+    onClick: () => gerarCSVContagem(c),
+    className: "text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-md border",
+    style: {
+      borderColor: LINE,
+      color: INK
+    }
+  }, "\u2B07 CSV"), React.createElement("button", {
     onClick: () => abrirContagem(c),
     "data-testid": "abrir-contagem",
     className: "text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-md border",

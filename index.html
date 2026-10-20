@@ -4128,6 +4128,7 @@ function PonteHub({
     setChecklistVisitaModelo: setChecklistVisitaModelo
   }), area === "vendas" && tab === "vendas-pedidos" && React.createElement(CentralPedidos, {
     somenteLeitura: restritoAVendas,
+    sessao: sessao,
     clientes: clientes,
     vendedores: vendedores,
     pedidosEspelho: pedidosEspelho,
@@ -13156,6 +13157,12 @@ function FunilVendas({
     status,
     dataFechamento: status === "Ganho" ? n.dataFechamento || new Date().toISOString().slice(0, 10) : n.dataFechamento
   } : n));
+  const reabrirNegocio = id => setNegocios(negocios.map(n => n.id === id ? {
+    ...n,
+    status: "Aberto",
+    dataFechamento: "",
+    motivoPerda: ""
+  } : n));
   const confirmarPerdido = id => {
     if (!motivoSelecionado) return;
     setNegocios(negocios.map(n => n.id === id ? {
@@ -13986,7 +13993,10 @@ function FunilVendas({
       }, "\u2713 Ganho"), React.createElement("button", {
         onClick: () => setPerdendoId(n.id),
         className: "text-[10px] font-bold text-red-600"
-      }, "\u2715 Perdido")), React.createElement("button", {
+      }, "\u2715 Perdido")), (n.status === "Ganho" || n.status === "Perdido") && React.createElement("button", {
+        onClick: () => reabrirNegocio(n.id),
+        className: "text-[10px] font-bold text-amber-600 hover:text-amber-700"
+      }, "\u21A9 Reabrir"), React.createElement("button", {
         onClick: () => remover(n.id),
         className: "text-[10px] font-semibold text-slate-400 hover:text-red-600"
       }, "Excluir")), audioParaId === n.id && React.createElement(AtualizarPorAudio, {
@@ -18606,6 +18616,7 @@ function PedidosADM({
 }
 function CentralPedidos({
   somenteLeitura = false,
+  sessao,
   clientes,
   vendedores,
   pedidosEspelho,
@@ -18634,6 +18645,7 @@ function CentralPedidos({
       color: INK
     }
   }, "Novo Pedido")), React.createElement(NovoPedidoEspelho, {
+    sessao: sessao,
     clientes: clientes,
     vendedores: vendedores,
     tabelaICMS: tabelaICMS,
@@ -18698,6 +18710,7 @@ function CentralPedidos({
     vendedores: vendedores,
     clientes: clientes
   }), sub === "novo" && React.createElement(NovoPedidoEspelho, {
+    sessao: sessao,
     clientes: clientes,
     vendedores: vendedores,
     tabelaICMS: tabelaICMS,
@@ -18796,6 +18809,7 @@ function TabelaICMS({
 }
 const FORMAS_PAGAMENTO = ["Boleto", "Pix", "Transferência", "Cartão", "Depósito"];
 function NovoPedidoEspelho({
+  sessao,
   clientes,
   vendedores,
   tabelaICMS,
@@ -18807,11 +18821,12 @@ function NovoPedidoEspelho({
   onSalvo,
   onIrICMS
 }) {
+  const meuId = sessao && sessao.tipo === "vendedor" ? sessao.vendedorId : null;
   const [aba, setAba] = useState("cabecalho");
   const [representada, setRepresentada] = useState("");
   const [clienteId, setClienteId] = useState("");
   const [consumidorFinal, setConsumidorFinal] = useState(false);
-  const [vendedorId, setVendedorId] = useState("");
+  const [vendedorId, setVendedorId] = useState(meuId || "");
   const [status, setStatus] = useState("Pedido");
   const [situacao, setSituacao] = useState("");
   const [dataEmissao, setDataEmissao] = useState(() => new Date().toISOString().slice(0, 10));
@@ -18851,7 +18866,7 @@ function NovoPedidoEspelho({
   const icmsInfo = cliente ? tabelaICMS.find(t => t.uf === (cliente.estado || "").toUpperCase()) : null;
   useEffect(() => {
     setAplicarSuframa(elegibilSuframa);
-    if (cliente && cliente.vendedorId) setVendedorId(cliente.vendedorId);
+    if (!meuId && cliente && cliente.vendedorId) setVendedorId(cliente.vendedorId);
   }, [clienteId]);
   const representadaObj = (representadasCadastro || []).find(r => r.nome === representada);
   const politicaRep = representadaObj ? representadaObj.politica || {} : {};
@@ -19202,6 +19217,30 @@ function NovoPedidoEspelho({
     checked: consumidorFinal,
     onChange: e => setConsumidorFinal(e.target.checked)
   }), "Consumidor final (venda sem cliente cadastrado)"), React.createElement(Field, {
+    label: "Tabela de pre\xE7o"
+  }, tabelasDisponiveis.length > 0 ? React.createElement("select", {
+    value: tabelaPreco,
+    onChange: e => setTabelaPreco(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }, React.createElement("option", {
+    value: ""
+  }, "Pre\xE7o de venda padr\xE3o"), tabelasDisponiveis.map(t => React.createElement("option", {
+    key: t,
+    value: t
+  }, t))) : React.createElement("input", {
+    value: tabelaPreco,
+    onChange: e => setTabelaPreco(e.target.value),
+    placeholder: "Ex: Tabela A, Tabela B...",
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  }), tabelasDisponiveis.length > 0 && React.createElement("p", {
+    className: "text-[11px] text-slate-400 mt-1"
+  }, "Escolher a faixa j\xE1 ajusta o pre\xE7o dos itens que estiverem no cat\xE1logo dessa representada.")), !meuId && React.createElement(Field, {
     label: "Vendedor"
   }, React.createElement("select", {
     value: vendedorId,
@@ -19352,30 +19391,6 @@ function NovoPedidoEspelho({
       borderColor: LINE
     }
   })), React.createElement(Field, {
-    label: "Tabela de pre\xE7o"
-  }, tabelasDisponiveis.length > 0 ? React.createElement("select", {
-    value: tabelaPreco,
-    onChange: e => setTabelaPreco(e.target.value),
-    className: "w-full border rounded-md px-3 py-2 text-sm",
-    style: {
-      borderColor: LINE
-    }
-  }, React.createElement("option", {
-    value: ""
-  }, "Pre\xE7o de venda padr\xE3o"), tabelasDisponiveis.map(t => React.createElement("option", {
-    key: t,
-    value: t
-  }, t))) : React.createElement("input", {
-    value: tabelaPreco,
-    onChange: e => setTabelaPreco(e.target.value),
-    placeholder: "Ex: Tabela Padr\xE3o Ago/2026",
-    className: "w-full border rounded-md px-3 py-2 text-sm",
-    style: {
-      borderColor: LINE
-    }
-  }), tabelasDisponiveis.length > 0 && React.createElement("p", {
-    className: "text-[11px] text-slate-400 mt-1"
-  }, "Escolher a faixa j\xE1 ajusta o pre\xE7o dos itens que estiverem no cat\xE1logo dessa representada.")), React.createElement(Field, {
     label: "Observa\xE7\xE3o para o cliente"
   }, React.createElement("textarea", {
     value: obsCliente,

@@ -3575,7 +3575,7 @@ function PonteHub({
   const changeArea = a => {
     if (restritoAVendas && a === "adm") return;
     setArea(a);
-    setTab(a === "adm" ? "dashboard" : "vendas-rotina");
+    setTab(a === "adm" ? "dashboard" : restritoAVendas ? "vendas-home" : "vendas-rotina");
   };
   const [menuAberto, setMenuAberto] = useState(false);
   const [sidebarColapsada, setSidebarColapsada] = useState(false);
@@ -4820,7 +4820,7 @@ function Sidebar({
     label: "Rotina de Hoje"
   }, {
     id: "vendas-home",
-    label: "Ferramentas"
+    label: "Início"
   }, {
     id: "vendas-ficha",
     label: "Cadastro"
@@ -4933,7 +4933,7 @@ function Sidebar({
     style: {
       borderColor: "#1E2A47"
     }
-  }, items.map(it => React.createElement("button", {
+  }, !(sessao && sessao.tipo === "vendedor") && items.map(it => React.createElement("button", {
     key: it.id,
     onClick: () => irPara(it.id),
     className: "w-full text-left mt-2 px-3 py-2.5 rounded-md text-xs font-bold uppercase tracking-wide transition-colors",
@@ -23243,16 +23243,22 @@ function ImportadorMapeavel({
           type: "array"
         });
         const sheet = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet);
+        const rawAll = XLSX.utils.sheet_to_json(sheet, {
+          header: 1
+        });
+        const row0Nao = (rawAll[0] || []).filter(v => v != null && String(v).trim() !== "").length;
+        const row1Nao = (rawAll[1] || []).filter(v => v != null && String(v).trim() !== "").length;
+        const range = row0Nao === 1 && row1Nao >= 3 ? 1 : 0;
+        const rows = XLSX.utils.sheet_to_json(sheet, range ? {
+          range
+        } : {});
         if (rows.length === 0) {
           setMsg("Essa planilha está vazia.");
           return;
         }
         const vistos = new Set();
         rows.forEach(r => Object.keys(r).forEach(k => vistos.add(k)));
-        const cabecalho = (XLSX.utils.sheet_to_json(sheet, {
-          header: 1
-        })[0] || []).map(h => h == null ? "" : String(h));
+        const cabecalho = (rawAll[range] || []).map(h => h == null ? "" : String(h));
         const cols = [...cabecalho.filter(h => vistos.has(h)), ...[...vistos].filter(k => !cabecalho.includes(k))];
         const guess = {};
         campos.forEach(c => {

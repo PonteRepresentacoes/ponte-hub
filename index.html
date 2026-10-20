@@ -918,6 +918,7 @@ const ehClienteAmostra = (nomes, clientesAmostra) => {
 const STORAGE_KEY_PEDIDOS = "ponte-hub-pedidos";
 const STORAGE_KEY_MIX = "ponte-hub-mix";
 const STORAGE_KEY_CONTAGENS = "ponte-hub-contagens";
+const STORAGE_KEY_PRODUTOS = "ponte-hub-produtos";
 const RASCUNHO_CONTAGEM = "ponte-contagem-rascunho-v1";
 const CATALOGO_COZA = [{
   "codigo": "10460/0007",
@@ -3546,10 +3547,13 @@ async function descomprimirTexto(texto) {
   writer.close();
   return new TextDecoder().decode(await lerStream(ds.readable));
 }
-async function gravarHub(dadosPrincipais, pedidosEspelho, mixClientes, contagens) {
+async function gravarHub(dadosPrincipais, pedidosEspelho, mixClientes, contagens, produtos) {
   const pedidosComprimidos = await comprimirTexto(JSON.stringify(pedidosEspelho || []));
   if (pedidosComprimidos.length > 1000000) throw new Error("Pedidos passaram de 1 MB mesmo comprimidos — avise o suporte.");
   await window.storage.set(STORAGE_KEY_PEDIDOS, pedidosComprimidos, false);
+  const produtosComprimidos = await comprimirTexto(JSON.stringify(produtos || []));
+  if (produtosComprimidos.length > 1000000) throw new Error("Produtos passaram de 1 MB mesmo comprimidos — avise o suporte.");
+  await window.storage.set(STORAGE_KEY_PRODUTOS, produtosComprimidos, false);
   const mixComprimido = await comprimirTexto(JSON.stringify(mixClientes || []));
   if (mixComprimido.length > 1000000) throw new Error("Mix dos clientes passou de 1 MB mesmo comprimido — avise o suporte.");
   await window.storage.set(STORAGE_KEY_MIX, mixComprimido, false);
@@ -3652,6 +3656,13 @@ function PonteHub({
         } catch (eCont) {
           if (!(eCont && eCont.message === "not found")) throw eCont;
         }
+        let produtosSeparados = null;
+        try {
+          const resProd = await window.storage.get(STORAGE_KEY_PRODUTOS, false);
+          if (resProd && resProd.value) produtosSeparados = JSON.parse(await descomprimirTexto(resProd.value));
+        } catch (eProd) {
+          if (!(eProd && eProd.message === "not found")) throw eProd;
+        }
         if (res && res.value) {
           const data = JSON.parse(res.value);
           if (pedidosSeparados) {
@@ -3665,6 +3676,11 @@ function PonteHub({
             data.mixClientes = [...mixSeparado, ...mixSoNoPrincipal];
           }
           if (contagensSeparadas) data.contagens = contagensSeparadas;
+          if (produtosSeparados) {
+            const idsProd = new Set(produtosSeparados.map(p => p.id));
+            const prodSoNoPrincipal = (data.produtos || []).filter(p => p && p.id && !idsProd.has(p.id));
+            data.produtos = [...produtosSeparados, ...prodSoNoPrincipal];
+          }
           setVendedores(data.vendedores || []);
           setClientes(data.clientes || []);
           setLancamentos(data.lancamentos || []);
@@ -3727,7 +3743,6 @@ function PonteHub({
           analisesPreditivas,
           chamadosLRA,
           tabelaICMS,
-          produtos,
           condicoesPagamentoCadastro,
           representadasCadastro,
           transportadorasCadastro,
@@ -3746,7 +3761,7 @@ function PonteHub({
           clientesAmostra,
           metaNorte,
           chaveSintegra
-        }, pedidosEspelho, mixClientes, contagens);
+        }, pedidosEspelho, mixClientes, contagens, produtos);
         if (ok) {
           setSaveState("saved");
           setSaveError("");
@@ -3775,7 +3790,6 @@ function PonteHub({
         analisesPreditivas,
         chamadosLRA,
         tabelaICMS,
-        produtos,
         condicoesPagamentoCadastro,
         representadasCadastro,
         transportadorasCadastro,
@@ -3794,7 +3808,7 @@ function PonteHub({
         clientesAmostra,
         metaNorte,
         chaveSintegra
-      }, pedidosEspelho, mixClientes, contagens);
+      }, pedidosEspelho, mixClientes, contagens, produtos);
       if (ok) {
         setSaveState("saved");
         setSaveError("");

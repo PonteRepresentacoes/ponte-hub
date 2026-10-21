@@ -19648,7 +19648,7 @@ function NovoPedidoEspelho({
     type: "checkbox",
     checked: aplicarSuframa,
     onChange: e => setAplicarSuframa(e.target.checked)
-  }), "\uD83D\uDCA1 Cliente em \xE1rea SUFRAMA (", municipioCliente, ") \u2014 aplicar isen\xE7\xE3o de ICMS", cliente && (/lucro\s*real/i.test(cliente.regimeTributario || "") ? " (ICMS 7%, sem PIS/COFINS — Lucro Real)" : " (PIS/COFINS 9,25% + ICMS 7% — Simples/LP)")), React.createElement("label", {
+  }), "\uD83D\uDCA1 Cliente em \xE1rea SUFRAMA (", municipioCliente, ") \u2014 aplicar isen\xE7\xE3o de ICMS", cliente && (/lucro\s*real/i.test(cliente.regimeTributario || "") ? " · Lucro Real: ICMS 7% desonerado (sem PIS/COFINS)" : /presumido/i.test(cliente.regimeTributario || "") ? " · Lucro Presumido: PIS/COFINS 9,25% + ICMS 7%" : " · Simples Nacional: PIS/COFINS 9,25% + ICMS 7%")), React.createElement("label", {
     className: "flex items-center gap-2 text-xs font-semibold text-slate-600"
   }, React.createElement("input", {
     type: "checkbox",

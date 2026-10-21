@@ -19566,21 +19566,21 @@ function NovoPedidoEspelho({
       borderColor: LINE
     }
   }, React.createElement(Field, {
-    label: "% Desconto comercial"
-  }, React.createElement("input", {
-    type: "number",
-    value: descComercial,
-    onChange: e => setDescComercial(e.target.value),
-    className: "w-full border rounded-md px-3 py-2 text-sm",
-    style: {
-      borderColor: LINE
-    }
-  })), React.createElement(Field, {
     label: "% Desconto promocional"
   }, React.createElement("input", {
     type: "number",
     value: descPromocional,
     onChange: e => setDescPromocional(e.target.value),
+    className: "w-full border rounded-md px-3 py-2 text-sm",
+    style: {
+      borderColor: LINE
+    }
+  })), React.createElement(Field, {
+    label: "% Desconto comercial"
+  }, React.createElement("input", {
+    type: "number",
+    value: descComercial,
+    onChange: e => setDescComercial(e.target.value),
     className: "w-full border rounded-md px-3 py-2 text-sm",
     style: {
       borderColor: LINE

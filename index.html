@@ -19082,10 +19082,28 @@ function NovoPedidoEspelho({
     let pisCofinsDesc = 0,
       icmsDescSuf = 0,
       totalFinal;
+    let temImportado = false,
+      temNacional = false,
+      descNacional = 0,
+      descImportado = 0;
     if (aplicarSuframa) {
-      icmsDescSuf = SUFRAMA_ICMS_NAC;
       pisCofinsDesc = isLucroReal ? 0 : SUFRAMA_PADRAO;
-      totalFinal = v3 * (1 - pisCofinsDesc / 100) * (1 - icmsDescSuf / 100);
+      const brutoTotal = itens.reduce((s, i) => s + Number(i.quantidade) * Number(i.precoUnitario), 0);
+      const brutoImp = brutoTotal > 0 ? itens.reduce((s, i) => {
+        const prod = produtosDaRepresentada.find(p => p.id === i.itemProdutoId);
+        return prod && String(prod.codigo || "").trim().charAt(0) === "1" ? s + Number(i.quantidade) * Number(i.precoUnitario) : s;
+      }, 0) : 0;
+      const brutoNac = brutoTotal - brutoImp;
+      temImportado = brutoImp > 0;
+      temNacional = brutoNac > 0;
+      const icmsImp = isLucroReal ? SUFRAMA_ICMS_IMP : 0;
+      const icmsNac = icmsAliq > 0 ? icmsAliq : SUFRAMA_ICMS_NAC;
+      const propNac = brutoTotal > 0 ? brutoNac / brutoTotal : 1;
+      const propImp = 1 - propNac;
+      icmsDescSuf = Math.round((propNac * icmsNac + propImp * icmsImp) * 100) / 100;
+      descNacional = Math.round((pisCofinsDesc + icmsNac) * 100) / 100;
+      descImportado = Math.round((pisCofinsDesc + icmsImp) * 100) / 100;
+      totalFinal = v3 * (1 - (pisCofinsDesc + icmsDescSuf) / 100);
     } else {
       totalFinal = icmsAliq > 0 ? v3 * (1 - icmsAliq / 100) : v3;
     }
@@ -19102,7 +19120,11 @@ function NovoPedidoEspelho({
       pisCofinsDesc,
       icmsDescSuf,
       regime,
-      itensFracos
+      itensFracos,
+      temImportado,
+      temNacional,
+      descNacional,
+      descImportado
     });
   };
   const travarPedido = () => {
@@ -19648,7 +19670,7 @@ function NovoPedidoEspelho({
     type: "checkbox",
     checked: aplicarSuframa,
     onChange: e => setAplicarSuframa(e.target.checked)
-  }), "\uD83D\uDCA1 Cliente em \xE1rea SUFRAMA (", municipioCliente, ") \u2014 aplicar isen\xE7\xE3o de ICMS", cliente && (/lucro\s*real/i.test(cliente.regimeTributario || "") ? " · Lucro Real: ICMS 7% desonerado (sem PIS/COFINS)" : /presumido/i.test(cliente.regimeTributario || "") ? " · Lucro Presumido: PIS/COFINS 9,25% + ICMS 7%" : " · Simples Nacional: PIS/COFINS 9,25% + ICMS 7%")), React.createElement("label", {
+  }), "\uD83D\uDCA1 Cliente em \xE1rea SUFRAMA (", municipioCliente, ") \u2014 aplicar isen\xE7\xE3o de ICMS", cliente && (/lucro\s*real/i.test(cliente.regimeTributario || "") ? ` · Lucro Real: nacionais ${icmsInfo ? icmsInfo.aliquota : 7}% / importados 4% (ICMS)` : /presumido/i.test(cliente.regimeTributario || "") ? ` · Lucro Presumido: nacionais ${SUFRAMA_PADRAO + (icmsInfo ? icmsInfo.aliquota : SUFRAMA_ICMS_NAC)}% / importados ${SUFRAMA_PADRAO}%` : ` · Simples Nacional: nacionais ${SUFRAMA_PADRAO + (icmsInfo ? icmsInfo.aliquota : SUFRAMA_ICMS_NAC)}% / importados ${SUFRAMA_PADRAO}%`)), React.createElement("label", {
     className: "flex items-center gap-2 text-xs font-semibold text-slate-600"
   }, React.createElement("input", {
     type: "checkbox",
@@ -19727,15 +19749,15 @@ function NovoPedidoEspelho({
     label: "Caixa Master",
     value: `−${caixaMaster}%`,
     tone: "amber"
-  }), aplicarSuframa ? React.createElement(React.Fragment, null, resultado.pisCofinsDesc > 0 && React.createElement(React.Fragment, null, React.createElement(Arrow, null), React.createElement(Formula, {
-    label: `PIS/COFINS ${resultado.pisCofinsDesc}%`,
+  }), aplicarSuframa ? React.createElement(React.Fragment, null, resultado.temNacional && React.createElement(React.Fragment, null, React.createElement(Arrow, null), React.createElement(Formula, {
+    label: `Nacionais ${resultado.descNacional}%`,
     value: "SUFRAMA",
     tone: "royal"
-  })), React.createElement(Arrow, null), React.createElement(Formula, {
-    label: `ICMS ${resultado.icmsDescSuf}%`,
+  })), resultado.temImportado && React.createElement(React.Fragment, null, React.createElement(Arrow, null), React.createElement(Formula, {
+    label: `Importados ${resultado.descImportado}%`,
     value: "SUFRAMA",
     tone: "royal"
-  })) : React.createElement(React.Fragment, null, React.createElement(Arrow, null), React.createElement(Formula, {
+  }))) : React.createElement(React.Fragment, null, React.createElement(Arrow, null), React.createElement(Formula, {
     label: `ICMS ${resultado.icmsAliq}%`,
     value: "\u2212",
     tone: "royal"

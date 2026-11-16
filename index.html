@@ -894,13 +894,7 @@ function PonteHub({
     document.documentElement.setAttribute("data-tema", tema);
   }, [tema]);
   // Popup de novidades — aparece automaticamente na primeira vez que o usuário abre esta versão
-  const [popupNovidades, setPopupNovidades] = useState(() => {
-    try {
-      return !localStorage.getItem(NOVIDADES_KEY);
-    } catch (e) {
-      return false;
-    }
-  });
+  const [popupNovidades, setPopupNovidades] = useState(false);
   const fecharNovidades = () => {
     setPopupNovidades(false);
     try {

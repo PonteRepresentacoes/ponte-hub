@@ -22829,12 +22829,14 @@ function Clientes({
       style: {
         color: INK
       }
-    }, c.nome), c.provisorio &&
+    }, c.razaoSocial && c.razaoSocial.trim() ? c.razaoSocial : c.nome), c.provisorio &&
     /*#__PURE__*/
     /*#__PURE__*/
     React.createElement("span", {
       className: "text-[10px] font-bold px-1.5 py-0.5 rounded border border-amber-400 text-amber-700 bg-amber-100"
-    }, "Provisório")), /*#__PURE__*/React.createElement("p", {
+    }, "Provisório")), c.razaoSocial && c.razaoSocial.trim() && c.nome && c.nome.trim() && c.razaoSocial.trim() !== c.nome.trim() && /*#__PURE__*/React.createElement("p", {
+      className: "text-[11px] text-slate-400 font-medium"
+    }, "Fantasia: ", c.nome), /*#__PURE__*/React.createElement("p", {
       className: "text-[11px] text-slate-400"
     }, [c.cidade || c.municipio, c.estado].filter(Boolean).join(" · ") || (c.provisorio ? "Importado do Funil — complete o cadastro" : "—"), c.cnpj ? ` · ${c.cnpj}` : "", c.telefone ? ` · ${c.telefone}` : "")), /*#__PURE__*/React.createElement("div", {
       className: "flex items-center gap-3"

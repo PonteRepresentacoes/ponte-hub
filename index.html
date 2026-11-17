@@ -1079,7 +1079,8 @@ function PonteHub({
   const [loadFailed, setLoadFailed] = useState(false);
   const [loadFailedMsg, setLoadFailedMsg] = useState("");
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
-  const [saveError, setSaveError] = useState(""); // ---------- Load once ----------
+  const [saveError, setSaveError] = useState("");
+  const [savedAt, setSavedAt] = useState(null); // ---------- Load once ----------
   useEffect(() => {
     (async () => {
       try {
@@ -1214,6 +1215,7 @@ function PonteHub({
         if (ok) {
           setSaveState("saved");
           setSaveError("");
+          setSavedAt(new Date());
         } else {
           setSaveState("error");
           setSaveError("Não foi possível confirmar a gravação.");
@@ -1262,6 +1264,7 @@ function PonteHub({
       if (ok) {
         setSaveState("saved");
         setSaveError("");
+        setSavedAt(new Date());
       } else {
         setSaveState("error");
         setSaveError("Não foi possível confirmar a gravação.");
@@ -1307,6 +1310,7 @@ function PonteHub({
     setTab: setTab,
     saveState: saveState,
     saveError: saveError,
+    savedAt: savedAt,
     onForcarSync: forcarSync,
     tema: tema,
     setTema: setTema,
@@ -1335,7 +1339,18 @@ function PonteHub({
     onClick: () => setMenuAberto(true),
     className: "text-white text-2xl leading-none px-2 py-1",
     "aria-label": "Abrir menu"
-  }, "☰")), loadFailed &&
+  }, "☰")), area === "vendas" && tab !== "vendas-home" &&
+  /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 px-4 py-2 border-b",
+    style: { background: NAVY, borderColor: "#1a416b" }
+  },
+    React.createElement("button", {
+      onClick: () => setTab("vendas-home"),
+      className: "flex items-center gap-1.5 text-xs font-semibold",
+      style: { color: "#60A5FA" }
+    }, "← App de Vendas")
+  ),
+  loadFailed &&
   /*#__PURE__*/
   /*#__PURE__*/
   React.createElement("div", {
@@ -2331,6 +2346,7 @@ function Sidebar({
   setTab,
   saveState,
   saveError,
+  savedAt,
   onForcarSync,
   tema,
   setTema,
@@ -2573,8 +2589,7 @@ function Sidebar({
     style: {
       borderColor: "#1a416b"
     }
-  }, items.map(it =>
-  /*#__PURE__*/
+  }, area === "adm" ? items.map(it =>
   /*#__PURE__*/
   React.createElement("button", {
     key: it.id,
@@ -2587,7 +2602,7 @@ function Sidebar({
     }
   },
   it.icon && React.createElement("span", { style: { fontSize: "14px", lineHeight: 1, flexShrink: 0 } }, it.icon),
-  React.createElement("span", { className: "text-xs font-bold uppercase tracking-wide truncate" }, it.label)))), /*#__PURE__*/React.createElement("div", {
+  React.createElement("span", { className: "text-xs font-bold uppercase tracking-wide truncate" }, it.label))) : null), /*#__PURE__*/React.createElement("div", {
     className: "px-3 py-3 border-t space-y-2",
     style: {
       borderColor: "#1a416b"
@@ -2613,7 +2628,8 @@ function Sidebar({
     className: "flex items-center justify-between gap-2"
   }, /*#__PURE__*/React.createElement(SaveIndicator, {
     state: saveState,
-    erro: saveError
+    erro: saveError,
+    savedAt: savedAt
   }), /*#__PURE__*/React.createElement("button", {
     onClick: onLogout,
     className: "flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-full border shrink-0",
@@ -2744,38 +2760,30 @@ function AreaButton({
 }
 function SaveIndicator({
   state,
-  erro
+  erro,
+  savedAt
 }) {
+  const timeStr = savedAt ? savedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : null;
   const map = {
-    idle: {
-      text: "—",
-      color: "#7a9ab8"
-    },
-    saving: {
-      text: "Sincronizando…",
-      color: "#9db3cc"
-    },
-    saved: {
-      text: "Sincronizado",
-      color: "#34D399"
-    },
-    error: {
-      text: "Falha ao sincronizar",
-      color: "#F87171"
-    }
+    idle: { text: "—", dot: "#7a9ab8", bg: "transparent", border: "transparent", textColor: "#7a9ab8", shadow: false },
+    saving: { text: "Sincronizando…", dot: "#60A5FA", bg: "transparent", border: "transparent", textColor: "#9db3cc", shadow: false },
+    saved: { text: timeStr ? `Sincronizado · ${timeStr}` : "Sincronizado", dot: "#34D399", bg: "#ffffff", border: "#e2e8f0", textColor: "#0B1220", shadow: true },
+    error: { text: "Falha ao sincronizar", dot: "#F87171", bg: "transparent", border: "transparent", textColor: "#F87171", shadow: false }
   };
   const m = map[state] || map.idle;
-  return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-1.5 text-[11px] font-semibold",
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 text-[11px] font-semibold transition-all",
     style: {
-      color: m.color
+      color: m.textColor,
+      background: m.bg,
+      border: `1px solid ${m.border}`,
+      borderRadius: "999px",
+      padding: m.shadow ? "4px 10px 4px 8px" : "0",
+      boxShadow: m.shadow ? "0 2px 8px rgba(0,0,0,0.18)" : "none"
     },
     title: state === "error" && erro ? erro : undefined
   }, /*#__PURE__*/React.createElement("span", {
-    className: "w-1.5 h-1.5 rounded-full",
-    style: {
-      background: m.color
-    }
+    style: { width: 7, height: 7, borderRadius: "50%", background: m.dot, flexShrink: 0, display: "inline-block" }
   }), m.text);
 } // ============================================================
 // CARD PRIMITIVE

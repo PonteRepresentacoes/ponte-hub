@@ -30,6 +30,7 @@
 <style id="fonte-hub">:root{--fonte-hub:"Plus Jakarta Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--fd:"Sora",ui-sans-serif,system-ui,sans-serif}html,body{font-family:var(--fonte-hub)}button,input,select,textarea{font-family:inherit}</style>
 
 <style>
+html{background:var(--paper);min-height:100%}
 :root{--royal:#1D4ED8;--ink:#0B1220;--line:#E2E8F0;--paper:#F4F6FA;--card:#FFFFFF;--card2:#F8FAFC;--card3:#F1F5F9;--btn-ativo:#0B1220;--mudo:#64748B;--mudo2:#94A3B8}
 html[data-tema="escuro"]{--royal:#2F6FEF;--ink:#F1F5F9;--line:#1E2A44;--paper:#05080F;--card:#0C1322;--card2:#101A2E;--card3:#16223A;--btn-ativo:#2F6FEF;--mudo:#A3B1C6;--mudo2:#7C8BA6;color-scheme:dark}
 html[data-tema="escuro"] body{background:var(--paper);color:var(--ink)}
@@ -1022,14 +1023,14 @@ function PonteHub({
   // Tema padrão: preto com azul ("escuro"). Chave nova (v2) para que quem já tinha "claro" salvo veja o novo visual uma vez; o botão continua alternando.
   const [tema, setTema] = useState(() => {
     try {
-      return typeof localStorage !== "undefined" && localStorage.getItem("ponte-hub-tema-v2") || "escuro";
+      return typeof localStorage !== "undefined" && localStorage.getItem("ponte-hub-tema-v3") || "escuro";
     } catch (e) {
       return "escuro";
     }
   });
   useEffect(() => {
     try {
-      if (typeof localStorage !== "undefined") localStorage.setItem("ponte-hub-tema-v2", tema);
+      if (typeof localStorage !== "undefined") localStorage.setItem("ponte-hub-tema-v3", tema);
     } catch (e) {}
     document.documentElement.setAttribute("data-tema", tema);
   }, [tema]);

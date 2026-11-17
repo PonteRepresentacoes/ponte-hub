@@ -30547,11 +30547,92 @@ function Comissoes({
 }) {
   const [preview, setPreview] = useState([]);
   const [msg, setMsg] = useState("");
+
+  // Converte linhas brutas do PDF de comissão em lançamentos calculados
+  const parsePdfComissaoLinhas = linhas => {
+    const texto = linhas.join("\n");
+    // Tenta extrair representada do cabeçalho
+    const repMatch = texto.match(/TASCHIBRA|BRINOX|COZA|KALIPSO|PRAT.?K|TRAMONTINA|(?:REPRESENTADA|FABRICA|INDUSTRIA|FÁBRICA)[\s:\-]+([^\n]{3,60})/i);
+    const representadaHeader = repMatch ? (repMatch[1] ? repMatch[1].trim() : repMatch[0].trim()) : "Taschibra";
+    // Tenta extrair data de referência (mês/ano ou data completa)
+    const dataMatch = texto.match(/(?:PER[IÍ]ODO|COMPET[EÊ]NCIA|REFER[EÊ]NCIA|MÊS|MES)[\s:\-]+(\d{2}\/\d{2}\/\d{4}|\d{2}\/\d{4}|\w+\/\d{4})/i);
+    const dataBase = dataMatch ? dataMatch[1] : new Date().toISOString().slice(0, 10);
+
+    // Detecta linha de cabeçalho da tabela para identificar coluna de comissão
+    const idxHeader = linhas.findIndex(l => /CLIENTE|COMPRADOR/i.test(l) && /COMISS[AÃ]O|VALOR/i.test(l));
+    // Palavras que indicam linha de total/rodapé — ignorar
+    const isRodape = l => /^\s*(?:TOTAL|SUBTOTAL|SOMA|GRAND\s+TOTAL|P[AÁ]GINA|REPRESENTA[ÇC][AÃ]O|CNPJ|ENDERE[ÇC]O)\b/i.test(l);
+
+    const MOEDA_RE = /([\d]{1,3}(?:\.\d{3})*,\d{2})/g;
+    const resultados = [];
+    // Iterar linhas a partir de depois do header (ou linha 0 se não encontrou)
+    const inicio = idxHeader >= 0 ? idxHeader + 1 : 0;
+    for (let i = inicio; i < linhas.length; i++) {
+      const linha = linhas[i];
+      if (!linha || linha.trim().length < 5) continue;
+      if (isRodape(linha)) continue;
+      const moedas = [...linha.matchAll(MOEDA_RE)].map(m => parseFloat(m[1].replace(/\./g, "").replace(",", ".")));
+      if (moedas.length === 0) continue;
+      // O valor de comissão é geralmente o último ou menor valor monetário na linha
+      // (NF bruto é maior; comissão é menor e costuma ser a última coluna)
+      const valorComissao = moedas[moedas.length - 1];
+      if (valorComissao < 0.01 || valorComissao > 500000) continue;
+      // Extrai nome do cliente: texto antes do primeiro número longo ou R$
+      const clienteMatch = linha.match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9\s\-&.'\/,]{3,60}?)(?=\s{2,}|\s+\d{2,}|\s+R?\$|\s+[\d]+[,\.]\d{2})/);
+      if (!clienteMatch) continue;
+      const clienteNome = clienteMatch[1].replace(/\s+/g, " ").trim();
+      if (clienteNome.length < 3) continue;
+      // Ignora linhas que são claramente cabeçalhos, mesmo sem keyword
+      if (/^(?:CLIENTE|NOME|COMPRADOR|NF|NOTA|DATA|VALOR|COMISS)/i.test(clienteNome)) continue;
+
+      const vendedor = findVendedorByCliente(clienteNome);
+      const imposto = valorComissao * (taxaImposto / 100);
+      const base = valorComissao - imposto;
+      const percentual = vendedor ? vendedor.percentual : 0;
+      const repasse = vendedor ? base * (percentual / 100) : 0;
+      const ficaComPonte = base - repasse;
+      // Tenta extrair data da própria linha (dd/mm/aaaa)
+      const dataLinha = linha.match(/\b(\d{2}\/\d{2}\/\d{4})\b/);
+      const dataReferencia = dataLinha ? dataLinha[1].split("/").reverse().join("-") : (dataBase.length === 10 ? dataBase : new Date().toISOString().slice(0, 10));
+      resultados.push({
+        id: uid(),
+        cliente: clienteNome,
+        representada: representadaHeader,
+        dataReferencia,
+        valorBruto: valorComissao,
+        imposto,
+        base,
+        vendedorId: vendedor ? vendedor.id : null,
+        vendedorNome: vendedor ? vendedor.nome : "Sem vínculo (100% Ponte)",
+        percentual: vendedor ? percentual : 0,
+        repasse,
+        ficaComPonte
+      });
+    }
+    return resultados;
+  };
+
   const processFile = e => {
     const file = e.target.files[0];
     if (!file) return;
+    const nome = file.name.toLowerCase();
+    const ehPdf = nome.endsWith(".pdf") || file.type === "application/pdf";
     const reader = new FileReader();
     reader.onload = ev => {
+      if (ehPdf) {
+        setMsg("Lendo PDF...");
+        pdfParaLinhas(ev.target.result).then(linhas => {
+          const calc = parsePdfComissaoLinhas(linhas);
+          if (!calc.length) {
+            setMsg("Não encontrei comissões neste PDF. Verifique se é o relatório correto ou use Excel.");
+            return;
+          }
+          setPreview(calc);
+          setMsg(`${calc.length} lançamento(s) encontrados no PDF — confira os valores antes de confirmar.`);
+        }).catch(err => setMsg("Erro ao ler PDF: " + (err.message || String(err))));
+        e.target.value = "";
+        return;
+      }
       try {
         const wb = XLSX.read(new Uint8Array(ev.target.result), {
           type: "array"
@@ -30746,10 +30827,10 @@ function Comissoes({
     className: "text-xs text-slate-400"
   }, "% (fixo em 15,5% — Anexo V, ajustável a qualquer momento)"))), /*#__PURE__*/React.createElement(Card, {
     title: "Processar relatório de comissão da fábrica",
-    subtitle: "Colunas esperadas: Cliente, Valor, Representada (opcional)"
+    subtitle: "Aceita Excel (.xlsx) ou PDF — Taschibra, Brinox e outras representadas"
   }, /*#__PURE__*/React.createElement("input", {
     type: "file",
-    accept: ".xlsx,.xls",
+    accept: ".xlsx,.xls,.pdf,application/pdf",
     onChange: processFile,
     className: "text-xs"
   }), msg &&

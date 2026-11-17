@@ -2347,89 +2347,117 @@ function Sidebar({
 }) {
   const admItems = [{
     id: "dashboard",
-    label: "Painel"
+    label: "Painel",
+    icon: "🏠"
   }, {
     id: "equipe",
-    label: "Equipe"
+    label: "Equipe",
+    icon: "👤"
   }, {
     id: "clientes",
-    label: "Clientes"
+    label: "Clientes",
+    icon: "🏢"
   }, {
     id: "linha-tempo",
-    label: "Linha do Tempo"
+    label: "Linha do Tempo",
+    icon: "🕐"
   }, {
     id: "pedidos",
-    label: "Pedidos"
+    label: "Pedidos",
+    icon: "📦"
   }, {
     id: "produtos",
-    label: "Produtos"
+    label: "Produtos",
+    icon: "🏷️"
   }, {
     id: "representadas",
-    label: "Representadas"
+    label: "Representadas",
+    icon: "🤝"
   }, {
     id: "transportadoras",
-    label: "Transportadoras"
+    label: "Transportadoras",
+    icon: "🚛"
   }, {
     id: "condicoes",
-    label: "Condições"
+    label: "Condições",
+    icon: "💳"
   }, {
     id: "metas",
-    label: "Metas"
+    label: "Metas",
+    icon: "🎯"
   }, {
     id: "financeiro",
-    label: "Financeiro"
+    label: "Financeiro",
+    icon: "💰"
   }, {
     id: "relatorios",
-    label: "Relatórios"
+    label: "Relatórios",
+    icon: "📊"
   }, {
     id: "qualidade",
-    label: "Qualidade de Dado"
+    label: "Qualidade de Dado",
+    icon: "✅"
   }, {
     id: "devolucoes",
-    label: "Devoluções"
+    label: "Devoluções",
+    icon: "↩️"
   }, {
     id: "personalizar",
-    label: "Personalizar"
+    label: "Personalizar",
+    icon: "⚙️"
   }];
   const vendasItems = [{
     id: "vendas-rotina",
-    label: "Rotina de Hoje"
+    label: "Rotina de Hoje",
+    icon: "📋"
   }, {
     id: "vendas-home",
-    label: "Ferramentas"
+    label: "Ferramentas",
+    icon: "🛠️"
   }, {
     id: "vendas-ficha",
-    label: "Ficha Rápida"
+    label: "Ficha Rápida",
+    icon: "🔍"
   }, {
     id: "vendas-scanner",
-    label: "Scanner"
+    label: "Scanner",
+    icon: "📸"
   }, {
     id: "vendas-preditiva",
-    label: "Preditiva"
+    label: "Preditiva",
+    icon: "📈"
   }, {
     id: "vendas-atendimento",
-    label: "Fila de Atendimento"
+    label: "Fila de Atendimento",
+    icon: "👥"
   }, {
     id: "vendas-proximos",
-    label: "Clientes Próximos"
+    label: "Clientes Próximos",
+    icon: "📍"
   }, {
     id: "vendas-funil",
-    label: "Funil de Vendas"
+    label: "Funil de Vendas",
+    icon: "⚡"
   }, {
     id: "vendas-televendas",
-    label: "Televendas"
+    label: "Televendas",
+    icon: "📞"
   }, {
     id: "vendas-interacoes",
-    label: "Interações"
+    label: "Interações",
+    icon: "💬"
   }, {
     id: "vendas-agenda",
-    label: "Agenda"
+    label: "Agenda",
+    icon: "📅"
   }, {
     id: "vendas-lra",
-    label: "L.R.A"
+    label: "L.R.A",
+    icon: "⚠️"
   }, {
     id: "vendas-pedidos",
-    label: "Pedidos"
+    label: "Pedidos",
+    icon: "📦"
   }];
   const items = area === "adm" ? admItems : vendasItems;
   const irPara = id => {
@@ -2551,13 +2579,15 @@ function Sidebar({
   React.createElement("button", {
     key: it.id,
     onClick: () => irPara(it.id),
-    className: "w-full text-left mt-1 px-3 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-colors",
+    className: "w-full text-left mt-1 px-3 py-2 rounded-lg transition-colors flex items-center gap-2",
     style: {
-      color: tab === it.id ? "#fff" : "#9db3cc",
-      background: tab === it.id ? "var(--royal)" : "var(--card)",
-      border: `1px solid ${tab === it.id ? "var(--royal)" : "var(--line)"}`
+      color: tab === it.id ? "#fff" : "#a0b5cb",
+      background: tab === it.id ? "var(--royal)" : "rgba(255,255,255,0.07)",
+      border: `1px solid ${tab === it.id ? "var(--royal)" : "#1a416b"}`
     }
-  }, it.label))), /*#__PURE__*/React.createElement("div", {
+  },
+  it.icon && React.createElement("span", { style: { fontSize: "14px", lineHeight: 1, flexShrink: 0 } }, it.icon),
+  React.createElement("span", { className: "text-xs font-bold uppercase tracking-wide truncate" }, it.label)))), /*#__PURE__*/React.createElement("div", {
     className: "px-3 py-3 border-t space-y-2",
     style: {
       borderColor: "#1a416b"

@@ -1556,7 +1556,12 @@ function PonteHub({
     onOpenPreditiva: () => setTab("vendas-preditiva"),
     onOpenLRA: () => setTab("vendas-lra"),
     onOpenPedidos: () => setTab("vendas-pedidos"),
-    onOpenTelevendas: () => setTab("vendas-televendas")
+    onOpenTelevendas: () => setTab("vendas-televendas"),
+    onOpenAtendimento: () => setTab("vendas-atendimento"),
+    onOpenProximos: () => setTab("vendas-proximos"),
+    onOpenFunil: () => setTab("vendas-funil"),
+    onOpenInteracoes: () => setTab("vendas-interacoes"),
+    onOpenAgenda: () => setTab("vendas-agenda")
   }), area === "vendas" && tab === "vendas-ficha" &&
   /*#__PURE__*/
   /*#__PURE__*/
@@ -4423,6 +4428,264 @@ function RelatorioFunil({
 } // ============================================================
 // QUALIDADE DE DADO (Fase 2 do board) — checklist de limpeza/consistência
 // ============================================================
+// ------------------------------------------------------------
+// AUDITORIA DE FICHAS CADASTRAIS — Fluxo 01 (Informação Ausente)
+// Audita campos obrigatórios de cada cliente, classifica pendências por
+// criticidade (bloqueante / importante / complementar) e gera a mensagem
+// de cobrança pronta para WhatsApp ou e-mail.
+// ------------------------------------------------------------
+function AuditoriaCadastros({ clientes }) {
+  const [selecionadoId, setSelecionadoId] = React.useState(null);
+  const [canal, setCanal] = React.useState("whatsapp");
+
+  const CAMPOS = [
+    {
+      id: "__nome",
+      label: "Nome ou Razão Social",
+      critico: "bloqueante",
+      check: function(c) { return !!(c.nome && c.nome.trim() || c.razaoSocial && c.razaoSocial.trim()); }
+    },
+    {
+      id: "cnpj",
+      label: "CNPJ / CPF",
+      critico: "bloqueante",
+      check: function(c) { var d = (c.cnpj || "").replace(/\D/g, ""); return d.length === 11 || d.length === 14; }
+    },
+    {
+      id: "telefone",
+      label: "Telefone (com DDD)",
+      critico: "bloqueante",
+      check: function(c) { var d = (c.telefone || "").replace(/\D/g, ""); return d.length >= 10; }
+    },
+    {
+      id: "emailPedido",
+      label: "E-mail para pedidos",
+      critico: "bloqueante",
+      check: function(c) { return !!(c.emailPedido && c.emailPedido.includes("@")); }
+    },
+    {
+      id: "cadastroEndereco",
+      label: "Endereço",
+      critico: "bloqueante",
+      check: function(c) { return !!(c.cadastroEndereco && c.cadastroEndereco.trim()); }
+    },
+    {
+      id: "cadastroCidade",
+      label: "Cidade",
+      critico: "bloqueante",
+      check: function(c) {
+        return !!(c.cadastroCidade && c.cadastroCidade.trim() || c.municipio && c.municipio.trim());
+      }
+    },
+    {
+      id: "cadastroEstado",
+      label: "Estado",
+      critico: "bloqueante",
+      check: function(c) {
+        return !!(c.cadastroEstado && c.cadastroEstado.trim() || c.estado && c.estado.trim());
+      }
+    },
+    {
+      id: "ie",
+      label: "Inscrição Estadual",
+      critico: "importante",
+      check: function(c) { return !!(c.ie && c.ie.trim()) || c.contribuinte === "ISENTO"; }
+    },
+    {
+      id: "emailNFeBoleto",
+      label: "E-mail NF / Boleto",
+      critico: "importante",
+      check: function(c) { return !!(c.emailNFeBoleto && c.emailNFeBoleto.includes("@")); }
+    },
+    {
+      id: "rotaAtendimento",
+      label: "Rota de Atendimento",
+      critico: "importante",
+      check: function(c) { return !!(c.rotaAtendimento && c.rotaAtendimento.trim()); }
+    },
+    {
+      id: "segmento",
+      label: "Segmento",
+      critico: "complementar",
+      check: function(c) { return !!(c.segmento && c.segmento.trim()); }
+    }
+  ];
+
+  function auditar(c) {
+    var pendencias = [];
+    var ok = [];
+    CAMPOS.forEach(function(campo) {
+      if (campo.check(c)) ok.push(campo.label);
+      else pendencias.push({ id: campo.id, campo: campo.label, critico: campo.critico });
+    });
+    return { pendencias: pendencias, ok: ok };
+  }
+
+  function gerarMensagem(auditoria, canalPref) {
+    var c = auditoria.cliente;
+    var nome = c.nome || c.razaoSocial || "prezado cliente";
+    var bloq = auditoria.pendencias.filter(function(p) { return p.critico === "bloqueante"; });
+    var imp = auditoria.pendencias.filter(function(p) { return p.critico === "importante"; });
+    var lista = bloq.concat(imp).slice(0, 6);
+    if (lista.length === 0) lista = auditoria.pendencias.slice(0, 6);
+
+    if (canalPref === "whatsapp") {
+      return "Olá, " + nome + ".\n\nPara agilizar seus próximos pedidos, precisamos completar algumas informações do seu cadastro:\n\n" +
+        lista.map(function(p) { return "• " + p.campo; }).join("\n") +
+        "\n\nPode nos responder por aqui?\n\nPonte Representações";
+    } else {
+      return "Assunto: Atualização cadastral — " + nome + "\n\nOlá,\n\nPara garantir o processamento correto dos seus pedidos, solicitamos o preenchimento dos dados abaixo referentes ao cadastro " + nome + ":\n\n" +
+        lista.map(function(p, i) { return (i + 1) + ". " + p.campo; }).join("\n") +
+        "\n\nFicamos à disposição para qualquer dúvida.\n\nAtenciosamente,\nPonte Representações";
+    }
+  }
+
+  var lista = (clientes || [])
+    .filter(function(c) { return !c.consumidorFinal; })
+    .map(function(c) {
+      var aud = auditar(c);
+      return { cliente: c, pendencias: aud.pendencias, ok: aud.ok };
+    })
+    .sort(function(a, b) {
+      function score(x) {
+        if (x.pendencias.some(function(p) { return p.critico === "bloqueante"; })) return 0;
+        if (x.pendencias.length > 0) return 1;
+        return 2;
+      }
+      return score(a) - score(b);
+    });
+
+  var incompletos = lista.filter(function(a) { return a.pendencias.length > 0; });
+  var completos = lista.filter(function(a) { return a.pendencias.length === 0; });
+  var comBloq = incompletos.filter(function(a) { return a.pendencias.some(function(p) { return p.critico === "bloqueante"; }); });
+  var semBloq = incompletos.filter(function(a) { return !a.pendencias.some(function(p) { return p.critico === "bloqueante"; }); });
+
+  function badgeStyle(critico) {
+    if (critico === "bloqueante") return { fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 3, flexShrink: 0, background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" };
+    if (critico === "importante") return { fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 3, flexShrink: 0, background: "#fffbeb", color: "#d97706", border: "1px solid #fde68a" };
+    return { fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 3, flexShrink: 0, background: "var(--card3)", color: "#64748b", border: "1px solid " + LINE };
+  }
+
+  function badgeText(critico) {
+    if (critico === "bloqueante") return "🔴 bloqueante";
+    if (critico === "importante") return "🟡 importante";
+    return "🟢 complementar";
+  }
+
+  return React.createElement(Card, {
+    title: "Fichas incompletas (" + incompletos.length + ")",
+    subtitle: "Dados em branco que podem travar pedidos, NFs ou contratos"
+  },
+    incompletos.length === 0
+      ? React.createElement(EmptyState, { text: "Todas as fichas de clientes cadastrados estão completas." })
+      : React.createElement("div", { className: "space-y-2" },
+          React.createElement("div", { className: "flex gap-4 pb-1 text-xs font-semibold" },
+            React.createElement("span", { style: { color: "#ef4444" } }, "🔴 " + comBloq.length + " com bloqueio"),
+            React.createElement("span", { style: { color: "#f59e0b" } }, "🟡 " + semBloq.length + " sem bloqueio"),
+            React.createElement("span", { style: { color: "#22c55e" } }, "🟢 " + completos.length + " completos")
+          ),
+          incompletos.map(function(a) {
+            var c = a.cliente;
+            var isOpen = selecionadoId === c.id;
+            var temBloq = a.pendencias.some(function(p) { return p.critico === "bloqueante"; });
+
+            return React.createElement("div", {
+              key: c.id,
+              className: "border rounded-lg overflow-hidden",
+              style: { borderColor: LINE }
+            },
+              React.createElement("button", {
+                onClick: function() { setSelecionadoId(isOpen ? null : c.id); },
+                className: "w-full flex items-center justify-between px-3 py-2.5 text-left"
+              },
+                React.createElement("div", { className: "flex items-center gap-2 min-w-0 flex-1" },
+                  React.createElement("span", null, temBloq ? "🔴" : "🟡"),
+                  React.createElement("span", {
+                    className: "text-sm font-bold truncate",
+                    style: { color: INK }
+                  }, c.nome || c.razaoSocial || "sem nome"),
+                  React.createElement("span", {
+                    className: "text-xs flex-shrink-0",
+                    style: { color: "var(--mudo)" }
+                  }, a.pendencias.length + " campo" + (a.pendencias.length !== 1 ? "s" : ""))
+                ),
+                React.createElement("span", { className: "text-xs ml-2 flex-shrink-0", style: { color: "var(--mudo)" } }, isOpen ? "▲" : "▼")
+              ),
+              isOpen && React.createElement("div", {
+                className: "px-3 pb-3 space-y-3 border-t",
+                style: { borderColor: LINE, background: "var(--card2)" }
+              },
+                React.createElement("div", { className: "pt-2 space-y-1" },
+                  React.createElement("p", {
+                    className: "text-[11px] font-bold uppercase tracking-wide mb-1.5",
+                    style: { color: "var(--mudo)" }
+                  }, "Pendências encontradas"),
+                  a.pendencias.map(function(p, i) {
+                    return React.createElement("div", {
+                      key: i,
+                      className: "flex items-center gap-2 py-0.5"
+                    },
+                      React.createElement("span", { style: badgeStyle(p.critico) }, badgeText(p.critico)),
+                      React.createElement("span", { className: "text-xs", style: { color: INK } }, p.campo)
+                    );
+                  })
+                ),
+                React.createElement("div", { className: "space-y-2" },
+                  React.createElement("p", {
+                    className: "text-[11px] font-bold uppercase tracking-wide",
+                    style: { color: "var(--mudo)" }
+                  }, "Mensagem de cobrança"),
+                  React.createElement("div", { className: "flex gap-1.5" },
+                    React.createElement("button", {
+                      onClick: function(e) { e.stopPropagation(); setCanal("whatsapp"); },
+                      className: "text-xs px-2.5 py-1 rounded-full font-semibold transition-colors",
+                      style: {
+                        background: canal === "whatsapp" ? "var(--royal)" : "var(--card3)",
+                        color: canal === "whatsapp" ? "#fff" : INK,
+                        border: "1px solid " + (canal === "whatsapp" ? "var(--royal)" : LINE)
+                      }
+                    }, "📱 WhatsApp"),
+                    React.createElement("button", {
+                      onClick: function(e) { e.stopPropagation(); setCanal("email"); },
+                      className: "text-xs px-2.5 py-1 rounded-full font-semibold transition-colors",
+                      style: {
+                        background: canal === "email" ? "var(--royal)" : "var(--card3)",
+                        color: canal === "email" ? "#fff" : INK,
+                        border: "1px solid " + (canal === "email" ? "var(--royal)" : LINE)
+                      }
+                    }, "📧 E-mail")
+                  ),
+                  React.createElement("textarea", {
+                    readOnly: true,
+                    value: gerarMensagem(a, canal),
+                    className: "w-full text-xs rounded-lg p-2.5 resize-none leading-relaxed",
+                    rows: 9,
+                    style: {
+                      background: "var(--card3)",
+                      color: INK,
+                      border: "1px solid " + LINE,
+                      outline: "none",
+                      fontFamily: "inherit"
+                    }
+                  }),
+                  React.createElement("button", {
+                    onClick: function(e) {
+                      e.stopPropagation();
+                      if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(gerarMensagem(a, canal));
+                      }
+                    },
+                    className: "text-xs px-3 py-1.5 rounded-lg font-semibold",
+                    style: { background: "var(--royal)", color: "#fff" }
+                  }, "Copiar mensagem")
+                )
+              )
+            );
+          })
+        )
+  );
+}
+
 function QualidadeDados({
   clientes,
   pedidosEspelho,
@@ -4601,7 +4864,7 @@ function QualidadeDados({
     }
   }, n.titulo), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-slate-500"
-  }, n.clienteNome || "sem cliente"))))));
+  }, n.clienteNome || "sem cliente")))))), React.createElement(AuditoriaCadastros, { clientes: listaClientes }));
 } // ------------------------------------------------------------
 // ASSISTENTE PONTE (IA) — Fase 5
 // Chat flutuante disponível em qualquer tela (ADM ou Vendas). Manda a
@@ -5023,7 +5286,12 @@ function VendasHome({
   onOpenPreditiva,
   onOpenLRA,
   onOpenPedidos,
-  onOpenTelevendas
+  onOpenTelevendas,
+  onOpenAtendimento,
+  onOpenProximos,
+  onOpenFunil,
+  onOpenInteracoes,
+  onOpenAgenda
 }) {
   const modulos = [{
     id: "rotina",
@@ -5081,6 +5349,46 @@ function VendasHome({
     cor: "#34d399",
     ready: true,
     onClick: onOpenTelevendas
+  }, {
+    id: "atendimento",
+    title: "Fila de Atendimento",
+    desc: "Gerencie a fila de visitas e prioridades do dia.",
+    iconeKey: "users",
+    cor: "#f59e0b",
+    ready: true,
+    onClick: onOpenAtendimento
+  }, {
+    id: "proximos",
+    title: "Clientes Próximos",
+    desc: "Clientes na sua rota — visite quem está perto.",
+    iconeKey: "target",
+    cor: "#2F6FEF",
+    ready: true,
+    onClick: onOpenProximos
+  }, {
+    id: "funil",
+    title: "Funil de Vendas",
+    desc: "Pipeline de negócios, etapas e probabilidade de fechamento.",
+    iconeKey: "barChart",
+    cor: "#8b5cf6",
+    ready: true,
+    onClick: onOpenFunil
+  }, {
+    id: "interacoes",
+    title: "Interações",
+    desc: "Histórico de contatos, visitas e follow-ups com clientes.",
+    iconeKey: "clipboardCheck",
+    cor: "#06b6d4",
+    ready: true,
+    onClick: onOpenInteracoes
+  }, {
+    id: "agenda",
+    title: "Agenda",
+    desc: "Compromissos, visitas programadas e lembretes do vendedor.",
+    iconeKey: "calendar",
+    cor: "#ec4899",
+    ready: true,
+    onClick: onOpenAgenda
   }];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"

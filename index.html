@@ -5149,9 +5149,11 @@ function RotinaItem({
   /*#__PURE__*/
   React.createElement("button", {
     onClick: onAcao,
-    className: "text-[11px] font-bold uppercase tracking-wide whitespace-nowrap shrink-0",
+    className: "text-[11px] font-bold uppercase tracking-wide whitespace-nowrap shrink-0 rounded px-2.5 py-1 transition-opacity hover:opacity-80",
     style: {
-      color: ROYAL
+      backgroundColor: ROYAL,
+      color: "#fff",
+      letterSpacing: "0.04em"
     }
   }, acao, " →"));
 }
@@ -22397,7 +22399,9 @@ function Clientes({
   chaveSintegra,
   setChaveSintegra
 }) {
-  const [sub, setSub] = useState("rapido"); // "rapido" | "completa"
+  const [sub, setSub] = useState("lista"); // "rapido" | "completa" | "lista"
+  const [busca, setBusca] = useState("");
+  const clientesFiltrados = busca ? clientes.filter(c => [c.razaoSocial, c.nome, c.cnpj, c.cidade, c.municipio].filter(Boolean).some(f => norm(f).includes(norm(busca)))) : clientes;
   const [clienteParaAbrir, setClienteParaAbrir] = useState(null);
   const abrirFicha = id => {
     setClienteParaAbrir(id);
@@ -22660,6 +22664,9 @@ function Clientes({
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex gap-2"
   }, /*#__PURE__*/React.createElement(ToggleBtn, {
+    active: sub === "lista",
+    onClick: () => setSub("lista")
+  }, "Clientes"), /*#__PURE__*/React.createElement(ToggleBtn, {
     active: sub === "rapido",
     onClick: () => setSub("rapido")
   }, "Cadastro rápido"), /*#__PURE__*/React.createElement(ToggleBtn, {
@@ -22800,22 +22807,33 @@ function Clientes({
     subtitle: "Casa cada contato pelo Código do Cliente ou CNPJ/CPF — os clientes precisam já estar cadastrados",
     campos: CAMPOS_CONTATO_IMPORT,
     onConfirmar: importarContatosMapeado
-  }), /*#__PURE__*/React.createElement(Card, {
-    title: `Clientes cadastrados (${clientes.length})`
-  }, clientes.length === 0 ?
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(EmptyState, {
-    text: "Nenhum cliente cadastrado ainda."
+  })),
+  sub === "lista" && /*#__PURE__*/React.createElement(React.Fragment, null,
+  /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "search",
+    value: busca,
+    onChange: e => setBusca(e.target.value),
+    placeholder: "Buscar por nome, razão social, CNPJ, cidade...",
+    className: "flex-1 border rounded-md px-3 py-2 text-sm",
+    style: { borderColor: LINE }
+  }), busca && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setBusca(""),
+    className: "text-xs font-semibold text-slate-500 hover:text-red-600 border rounded px-2 py-1 whitespace-nowrap",
+    style: { borderColor: LINE }
+  }, "✕ Limpar")), /*#__PURE__*/React.createElement(Card, {
+    title: `Clientes (${clientesFiltrados.length})`
+  }, clientesFiltrados.length === 0 ?
+  /*#__PURE__*/React.createElement(EmptyState, {
+    text: busca ? `Nenhum resultado para "${busca}".` : "Nenhum cliente cadastrado ainda."
   }) :
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement("div", {
+  /*#__PURE__*/React.createElement("div", {
     className: "space-y-2"
-  }, clientes.map(c => {
+  }, clientesFiltrados.map(c => {
     const v = vendedores.find(v => v.id === c.vendedorId);
     const meta = v ? colorMeta(v.cor) : null;
-    return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
+    return /*#__PURE__*/React.createElement("div", {
       key: c.id,
       className: "flex items-center justify-between border rounded-md px-3 py-2",
       style: {
@@ -22830,8 +22848,6 @@ function Clientes({
         color: INK
       }
     }, c.razaoSocial && c.razaoSocial.trim() ? c.razaoSocial : c.nome), c.provisorio &&
-    /*#__PURE__*/
-    /*#__PURE__*/
     React.createElement("span", {
       className: "text-[10px] font-bold px-1.5 py-0.5 rounded border border-amber-400 text-amber-700 bg-amber-100"
     }, "Provisório")), c.razaoSocial && c.razaoSocial.trim() && c.nome && c.nome.trim() && c.razaoSocial.trim() !== c.nome.trim() && /*#__PURE__*/React.createElement("p", {
@@ -22841,18 +22857,12 @@ function Clientes({
     }, [c.cidade || c.municipio, c.estado].filter(Boolean).join(" · ") || (c.provisorio ? "Importado do Funil — complete o cadastro" : "—"), c.cnpj ? ` · ${c.cnpj}` : "", c.telefone ? ` · ${c.telefone}` : "")), /*#__PURE__*/React.createElement("div", {
       className: "flex items-center gap-3"
     }, c.provisorio ?
-    /*#__PURE__*/
-    /*#__PURE__*/
     React.createElement("span", {
       className: "text-[11px] font-bold px-2 py-1 rounded border border-amber-300 text-amber-600"
     }, "Aguardando cadastro") : v ?
-    /*#__PURE__*/
-    /*#__PURE__*/
     React.createElement("span", {
       className: `text-[11px] font-bold px-2 py-1 rounded border ${meta.chip}`
     }, v.nome) :
-    /*#__PURE__*/
-    /*#__PURE__*/
     React.createElement("span", {
       className: "text-[11px] font-bold px-2 py-1 rounded border border-slate-300 text-slate-500"
     }, "Direto (100% Ponte)"), /*#__PURE__*/React.createElement("button", {

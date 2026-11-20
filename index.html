@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="light dark" />
 <meta name="theme-color" content="#2F6FEF" />
-<!-- PWA manifest embutido (evita 404 em app single-file) -->
-<script>(function(){try{var m={name:"Ponte Hub",short_name:"Ponte Hub",description:"ERP Comercial Ponte Representações",start_url:"/",display:"standalone",background_color:"#0B1220",theme_color:"#2F6FEF",icons:[]};var b=new Blob([JSON.stringify(m)],{type:"application/manifest+json"});var l=document.createElement("link");l.rel="manifest";l.href=URL.createObjectURL(b);document.head.appendChild(l);}catch(e){}})();</script>
+<link rel="manifest" href="/manifest.json" />
 <!-- PWA iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Ponte Hub" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<!-- PWA Service Worker -->
+<script>if("serviceWorker"in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
 <!-- PWA Android / Chrome -->
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="application-name" content="Ponte Hub" />

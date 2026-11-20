@@ -266,8 +266,9 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.8.0";
+const APP_VERSAO = "1.8.1";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
+const APP_CHECK_URL = "https://ponte-hub.vercel.app";
 const NAVY = "#0B1220";
 const NAVY_SOFT = "#111C34";
 const ROYAL = "var(--royal)";
@@ -1046,6 +1047,23 @@ function PonteHub({
     } catch (e) {}
     document.documentElement.setAttribute("data-tema", tema);
   }, [tema]);
+  // Banner de nova versão disponível
+  const [novaVersao, setNovaVersao] = useState(null);
+  const [avisoDismissed, setAvisoDismissed] = useState(false);
+  useEffect(() => {
+    const checar = () => {
+      fetch(APP_CHECK_URL + "?_v=" + Date.now())
+        .then(r => r.text())
+        .then(html => {
+          const m = html.match(/APP_VERSAO\s*=\s*"([^"]+)"/);
+          if (m && m[1] && m[1] !== APP_VERSAO) { setNovaVersao(m[1]); setAvisoDismissed(false); }
+        })
+        .catch(() => {});
+    };
+    checar();
+    const id = setInterval(checar, 30 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
   // Popup de novidades — aparece automaticamente na primeira vez que o usuário abre esta versão
   const [popupNovidades, setPopupNovidades] = useState(false);
   const fecharNovidades = () => {
@@ -1624,7 +1642,27 @@ function PonteHub({
     lancamentos: lancamentos,
     negociosFunil: negociosFunil,
     vendedores: vendedores
-  }), popupNovidades &&
+  }), novaVersao && !avisoDismissed &&
+  /*#__PURE__*/
+  React.createElement("div", {
+    style: {
+      position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)",
+      zIndex: 9999, background: "#1d4ed8", color: "#fff",
+      borderRadius: 12, padding: "12px 20px", display: "flex", alignItems: "center",
+      gap: 12, boxShadow: "0 4px 24px rgba(0,0,0,0.35)", fontSize: 14, fontWeight: 500,
+      maxWidth: "calc(100vw - 32px)", whiteSpace: "nowrap"
+    }
+  },
+  React.createElement("span", null, "🚀 Nova vers\xE3o disponível (v", novaVersao, ") — recarregue para atualizar"),
+  React.createElement("button", {
+    onClick: () => window.location.reload(),
+    style: { background: "#fff", color: "#1d4ed8", border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 700, cursor: "pointer", fontSize: 13 }
+  }, "Atualizar"),
+  React.createElement("button", {
+    onClick: () => setAvisoDismissed(true),
+    style: { background: "transparent", color: "rgba(255,255,255,0.7)", border: "none", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "0 4px" }
+  }, "×")
+  ), popupNovidades &&
   /*#__PURE__*/
   /*#__PURE__*/
   React.createElement(PopupNovidades, {

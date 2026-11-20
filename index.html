@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="light dark" />
 <meta name="theme-color" content="#2F6FEF" />
-<link rel="manifest" href="/manifest.json" />
+<!-- PWA manifest embutido (evita 404 em app single-file) -->
+<script>(function(){try{var m={name:"Ponte Hub",short_name:"Ponte Hub",description:"ERP Comercial Ponte Representações",start_url:"/",display:"standalone",background_color:"#0B1220",theme_color:"#2F6FEF",icons:[]};var b=new Blob([JSON.stringify(m)],{type:"application/manifest+json"});var l=document.createElement("link");l.rel="manifest";l.href=URL.createObjectURL(b);document.head.appendChild(l);}catch(e){}})();</script>
 <!-- PWA iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Ponte Hub" />
-<link rel="apple-touch-icon" href="/icons/icon-192.png" />
 <!-- PWA Android / Chrome -->
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="application-name" content="Ponte Hub" />
@@ -1052,10 +1052,10 @@ function PonteHub({
   const [avisoDismissed, setAvisoDismissed] = useState(false);
   useEffect(() => {
     const checar = () => {
-      fetch(APP_CHECK_URL + "?_v=" + Date.now())
-        .then(r => r.text())
+      fetch(APP_CHECK_URL + "?_nc=" + Date.now(), { cache: "no-store" })
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
         .then(html => {
-          const m = html.match(/APP_VERSAO\s*=\s*"([^"]+)"/);
+          const m = html.match(/const APP_VERSAO\s*=\s*"([^"]+)"/);
           if (m && m[1] && m[1] !== APP_VERSAO) { setNovaVersao(m[1]); setAvisoDismissed(false); }
         })
         .catch(() => {});

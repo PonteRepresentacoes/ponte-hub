@@ -979,6 +979,18 @@ function PonteHub({
   const restritoAVendas = sessao && sessao.tipo === "vendedor";
   const [area, setArea] = useState(restritoAVendas ? "vendas" : "adm"); // "adm" | "vendas"
   const [tab, setTab] = useState(restritoAVendas ? "vendas-rotina" : "dashboard");
+  // ── Keep-alive: tabs mantêm estado ao navegar ──────────────────────────────
+  const visitedTabsRef = React.useRef(new Set());
+  React.useEffect(() => { visitedTabsRef.current.add(area + "|" + tab); }, [area, tab]);
+  const KA = (a, t, el) => {
+    const active = area === a && tab === t;
+    if (active) visitedTabsRef.current.add(a + "|" + t);
+    if (!active && !visitedTabsRef.current.has(a + "|" + t)) return null;
+    return React.createElement("div", {
+      "data-ka": a + "|" + t,
+      style: { display: active ? undefined : "none" }
+    }, el);
+  };
   const changeArea = a => {
     if (restritoAVendas && a === "adm") return; // vendedor não acessa o ADM
     setArea(a);
@@ -1363,10 +1375,7 @@ function PonteHub({
     className: "text-xs text-red-600 mt-1"
   }, "Por segurança, o salvamento automático está desligado nesta aba pra não sobrescrever seus dados reais com uma tela vazia. Feche esta aba sem mexer em nada e tente entrar de novo em alguns minutos (verifique sua internet). Se continuar assim, avise quem cuida do sistema antes de continuar usando."))), /*#__PURE__*/React.createElement("main", {
     className: `${["vendas-funil", "vendas-televendas", "vendas-atendimento", "vendas-lra"].includes(tab) ? "max-w-none" : "max-w-7xl"} mx-auto px-3 sm:px-4 pt-5 sm:pt-6 pb-28 lg:pb-6`
-  }, area === "adm" && tab === "dashboard" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Dashboard, {
+  }, KA("adm", "dashboard", React.createElement(Dashboard, {
     vendedores: vendedores,
     clientes: clientes,
     produtos: produtos,
@@ -1391,16 +1400,10 @@ function PonteHub({
       setArea(a);
       setTab(t);
     }
-  }), area === "adm" && tab === "equipe" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Equipe, {
+  })), KA("adm", "equipe", React.createElement(Equipe, {
     vendedores: vendedores,
     setVendedores: setVendedores
-  }), area === "adm" && tab === "clientes" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Clientes, {
+  })), KA("adm", "clientes", React.createElement(Clientes, {
     clientes: clientes,
     setClientes: setClientes,
     vendedores: vendedores,
@@ -1409,10 +1412,7 @@ function PonteHub({
     camposOcultosCliente: camposOcultos.cliente,
     chaveSintegra: chaveSintegra,
     setChaveSintegra: setChaveSintegra
-  }), area === "adm" && tab === "linha-tempo" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(LinhaDoTempo, {
+  })), KA("adm", "linha-tempo", React.createElement(LinhaDoTempo, {
     clientes: clientes,
     filaAtendimento: filaAtendimento,
     negociosFunil: negociosFunil,
@@ -1421,48 +1421,30 @@ function PonteHub({
     pedidosEspelho: pedidosEspelho,
     chamadosLRA: chamadosLRA,
     vendedores: vendedores
-  }), area === "adm" && tab === "produtos" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Produtos, {
+  })), KA("adm", "produtos", React.createElement(Produtos, {
     produtos: produtos,
     setProdutos: setProdutos,
     pedidosEspelho: pedidosEspelho,
     camposOcultosProduto: camposOcultos.produto,
     representadasCadastro: representadasCadastro
-  }), area === "adm" && tab === "condicoes" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(CondicoesPagamentoCadastro, {
+  })), KA("adm", "condicoes", React.createElement(CondicoesPagamentoCadastro, {
     condicoes: condicoesPagamentoCadastro,
     setCondicoes: setCondicoesPagamentoCadastro,
     representadasCadastro: representadasCadastro
-  }), area === "adm" && tab === "representadas" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(RepresentadasCadastro, {
+  })), KA("adm", "representadas", React.createElement(RepresentadasCadastro, {
     representadas: representadasCadastro,
     setRepresentadas: setRepresentadasCadastro,
     chaveSintegra: chaveSintegra
-  }), area === "adm" && tab === "transportadoras" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(TransportadorasCadastro, {
+  })), KA("adm", "transportadoras", React.createElement(TransportadorasCadastro, {
     transportadoras: transportadorasCadastro,
     setTransportadoras: setTransportadorasCadastro
-  }), area === "adm" && tab === "metas" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Metas, {
+  })), KA("adm", "metas", React.createElement(Metas, {
     metas: metas,
     setMetas: setMetas,
     vendedores: vendedores,
     pedidosEspelho: pedidosEspelho,
     representadasCadastro: representadasCadastro
-  }), area === "adm" && tab === "financeiro" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Financeiro, {
+  })), KA("adm", "financeiro", React.createElement(Financeiro, {
     clientes: clientes,
     vendedores: vendedores,
     lancamentos: lancamentos,
@@ -1485,31 +1467,22 @@ function PonteHub({
     contasReceber: contasReceber,
     setContasReceber: setContasReceber,
     representadasCadastro: representadasCadastro
-  }), area === "adm" && tab === "relatorios" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(ModuloRelatorios, {
+  })), KA("adm", "relatorios", React.createElement(ModuloRelatorios, {
     pedidosEspelho: pedidosEspelho,
     clientes: clientes,
     representadasCadastro: representadasCadastro,
     lancamentos: lancamentos,
     negociosFunil: negociosFunil,
     metas: metas
-  }), area === "adm" && tab === "qualidade" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(QualidadeDados, {
+  })), KA("adm", "qualidade", React.createElement(QualidadeDados, {
     clientes: clientes,
     pedidosEspelho: pedidosEspelho,
     negociosFunil: negociosFunil
-  }), area === "adm" && tab === "devolucoes" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(ModuloDevolucoes, {
+  })), KA("adm", "devolucoes", React.createElement(ModuloDevolucoes, {
     clientes: clientes,
     devolucoesNFD: devolucoesNFD,
     setDevolucoesNFD: setDevolucoesNFD
-  }), area === "adm" && tab === "pedidos" && /*#__PURE__*/React.createElement(PedidosADM, {
+  })), KA("adm", "pedidos", React.createElement(PedidosADM, {
     key: "pedidos",
     clientesAmostra: clientesAmostra,
     setClientesAmostra: setClientesAmostra,
@@ -1519,7 +1492,7 @@ function PonteHub({
     vendedores: vendedores,
     representadasCadastro: representadasCadastro,
     condicoesPagamentoCadastro: condicoesPagamentoCadastro
-  }), area === "adm" && tab === "importar-historico" && /*#__PURE__*/React.createElement(PedidosADM, {
+  })), KA("adm", "importar-historico", React.createElement(PedidosADM, {
     key: "importar",
     subInicial: "importar",
     clientesAmostra: clientesAmostra,
@@ -1530,26 +1503,17 @@ function PonteHub({
     vendedores: vendedores,
     representadasCadastro: representadasCadastro,
     condicoesPagamentoCadastro: condicoesPagamentoCadastro
-  }), area === "adm" && tab === "personalizar" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(ConfiguracaoCampos, {
+  })), KA("adm", "personalizar", React.createElement(ConfiguracaoCampos, {
     camposOcultos: camposOcultos,
     setCamposOcultos: setCamposOcultos
-  }), area === "vendas" && tab === "vendas-rotina" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(RotinaHoje, {
+  })), KA("vendas", "vendas-rotina", React.createElement(RotinaHoje, {
     sessao: sessao,
     clientes: clientes,
     pedidosEspelho: pedidosEspelho,
     negociosFunil: negociosFunil,
     compromissos: compromissos,
     onNavigate: setTab
-  }), area === "vendas" && tab === "vendas-home" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(VendasHome, {
+  })), KA("vendas", "vendas-home", React.createElement(VendasHome, {
     onOpenRotina: () => setTab("vendas-rotina"),
     onOpenFicha: () => setTab("vendas-ficha"),
     onOpenScanner: () => setTab("vendas-scanner"),
@@ -1562,10 +1526,7 @@ function PonteHub({
     onOpenFunil: () => setTab("vendas-funil"),
     onOpenInteracoes: () => setTab("vendas-interacoes"),
     onOpenAgenda: () => setTab("vendas-agenda")
-  }), area === "vendas" && tab === "vendas-ficha" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(FichaRapida, {
+  })), KA("vendas", "vendas-ficha", React.createElement(FichaRapida, {
     clientes: clientes,
     setClientes: setClientes,
     vendedores: vendedores,
@@ -1573,10 +1534,7 @@ function PonteHub({
     camposOcultosCliente: camposOcultos.cliente,
     chaveSintegra: chaveSintegra,
     podeConfigurarChave: false
-  }), area === "vendas" && tab === "vendas-scanner" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(ScannerOportunidades, {
+  })), KA("vendas", "vendas-scanner", React.createElement(ScannerOportunidades, {
     clientes: clientes,
     oportunidades: oportunidades,
     setOportunidades: setOportunidades,
@@ -1584,10 +1542,7 @@ function PonteHub({
     mixClientes: mixClientes,
     contagens: contagens,
     representadasCadastro: representadasCadastro
-  }), area === "vendas" && tab === "vendas-preditiva" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(VendaPreditiva, {
+  })), KA("vendas", "vendas-preditiva", React.createElement(VendaPreditiva, {
     somenteLeitura: restritoAVendas,
     clientes: clientes,
     produtosGiro: produtosGiro,
@@ -1600,34 +1555,22 @@ function PonteHub({
     representadasCadastro: representadasCadastro,
     contagens: contagens,
     setContagens: setContagens
-  }), area === "vendas" && tab === "vendas-lra" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(ModuloLRA, {
+  })), KA("vendas", "vendas-lra", React.createElement(ModuloLRA, {
     clientes: clientes,
     chamadosLRA: chamadosLRA,
     setChamadosLRA: setChamadosLRA
-  }), area === "vendas" && tab === "vendas-atendimento" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(FilaAtendimento, {
+  })), KA("vendas", "vendas-atendimento", React.createElement(FilaAtendimento, {
     fila: filaAtendimento,
     setFila: setFilaAtendimento,
     clientes: clientes,
     vendedores: vendedores,
     negocios: negociosFunil,
     setNegocios: setNegociosFunil
-  }), area === "vendas" && tab === "vendas-proximos" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(ClientesProximos, {
+  })), KA("vendas", "vendas-proximos", React.createElement(ClientesProximos, {
     clientes: clientes,
     vendedores: vendedores,
     sessao: sessao
-  }), area === "vendas" && tab === "vendas-funil" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(FunilVendas, {
+  })), KA("vendas", "vendas-funil", React.createElement(FunilVendas, {
     sessao: sessao,
     negocios: negociosFunil,
     setNegocios: setNegociosFunil,
@@ -1636,18 +1579,12 @@ function PonteHub({
     vendedores: vendedores,
     representadasCadastro: representadasCadastro,
     pedidosEspelho: pedidosEspelho
-  }), area === "vendas" && tab === "vendas-televendas" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Televendas, {
+  })), KA("vendas", "vendas-televendas", React.createElement(Televendas, {
     leads: leadsTelevendas,
     setLeads: setLeadsTelevendas,
     vendedores: vendedores,
     representadasCadastro: representadasCadastro
-  }), area === "vendas" && tab === "vendas-interacoes" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Interacoes, {
+  })), KA("vendas", "vendas-interacoes", React.createElement(Interacoes, {
     interacoes: interacoes,
     setInteracoes: setInteracoes,
     clientes: clientes,
@@ -1656,10 +1593,7 @@ function PonteHub({
     representadasCadastro: representadasCadastro,
     chamadosLRA: chamadosLRA,
     setChamadosLRA: setChamadosLRA
-  }), area === "vendas" && tab === "vendas-agenda" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Agenda, {
+  })), KA("vendas", "vendas-agenda", React.createElement(Agenda, {
     compromissos: compromissos,
     setCompromissos: setCompromissos,
     clientes: clientes,
@@ -1667,10 +1601,7 @@ function PonteHub({
     negociosFunil: negociosFunil,
     checklistVisitaModelo: checklistVisitaModelo,
     setChecklistVisitaModelo: setChecklistVisitaModelo
-  }), area === "vendas" && tab === "vendas-pedidos" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(CentralPedidos, {
+  })), KA("vendas", "vendas-pedidos", React.createElement(CentralPedidos, {
     somenteLeitura: restritoAVendas,
     clientes: clientes,
     vendedores: vendedores,
@@ -1683,7 +1614,7 @@ function PonteHub({
     condicoesPagamentoCadastro: condicoesPagamentoCadastro,
     negocios: negociosFunil,
     setNegocios: setNegociosFunil
-  })), loaded && !loadFailed &&
+  }))), loaded && !loadFailed &&
   /*#__PURE__*/
   /*#__PURE__*/
   React.createElement(AssistenteIA, {
@@ -17525,6 +17456,18 @@ function PedidosADM({
   setClientesAmostra
 }) {
   const [sub, setSub] = useState(subInicial || "lista"); // "lista" | "importar" | "tabela" | "nfe"
+  // ── Keep-alive sub-abas ──────────────────────────────────────────────────
+  const visitedSubRef = React.useRef(new Set());
+  React.useEffect(() => { visitedSubRef.current.add(sub); }, [sub]);
+  const ks = (s, el) => {
+    const active = sub === s;
+    if (active) visitedSubRef.current.add(s);
+    if (!active && !visitedSubRef.current.has(s)) return null;
+    return React.createElement("div", {
+      "data-ks": s,
+      style: { display: active ? undefined : "none" }
+    }, el);
+  };
   const ativos = pedidosEspelho.filter(p => !p.excluido);
   const semRep = ativos.filter(p => !p.representada).length;
   const aguardandoNF = ativos.filter(p => p.pedidoStatus === "Aguardando Faturamento").length;
@@ -17583,14 +17526,14 @@ function PedidosADM({
   }, "Tabela completa"), /*#__PURE__*/React.createElement(ToggleBtn, {
     active: sub === "nfe",
     onClick: () => setSub("nfe")
-  }, "🧾 NF-e (XML) e comparador de preços")), sub === "lista" && /*#__PURE__*/React.createElement(ListaPedidosEspelho, {
+  }, "🧾 NF-e (XML) e comparador de preços")), ks("lista", React.createElement(ListaPedidosEspelho, {
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
     clientes: clientes,
     vendedores: vendedores,
     representadasCadastro: representadasCadastro,
     condicoesPagamentoCadastro: condicoesPagamentoCadastro
-  }), sub === "importar" && /*#__PURE__*/React.createElement(ImportarHistoricoPedidos, {
+  })), ks("importar", React.createElement(ImportarHistoricoPedidos, {
     clientesAmostra: clientesAmostra,
     setClientesAmostra: setClientesAmostra,
     pedidosEspelho: pedidosEspelho,
@@ -17598,16 +17541,16 @@ function PedidosADM({
     clientes: clientes,
     vendedores: vendedores,
     representadasCadastro: representadasCadastro
-  }), sub === "tabela" && /*#__PURE__*/React.createElement(TabelaPedidos, {
+  })), ks("tabela", React.createElement(TabelaPedidos, {
     pedidosEspelho: pedidosEspelho,
     clientes: clientes
-  }), sub === "nfe" && /*#__PURE__*/React.createElement(NFeComparadorADM, {
+  })), ks("nfe", React.createElement(NFeComparadorADM, {
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
     clientes: clientes,
     vendedores: vendedores,
     representadasCadastro: representadasCadastro
-  }));
+  })));
 }
 function CentralPedidos({
   somenteLeitura = false,
@@ -17624,6 +17567,18 @@ function CentralPedidos({
   setNegocios
 }) {
   const [sub, setSub] = useState("novo"); // "novo" | "lista" | "icms"
+  // ── Keep-alive sub-abas ──────────────────────────────────────────────────
+  const visitedSubRef = React.useRef(new Set());
+  React.useEffect(() => { visitedSubRef.current.add(sub); }, [sub]);
+  const ks = (s, el) => {
+    const active = sub === s;
+    if (active) visitedSubRef.current.add(s);
+    if (!active && !visitedSubRef.current.has(s)) return null;
+    return React.createElement("div", {
+      "data-ks": s,
+      style: { display: active ? undefined : "none" }
+    }, el);
+  };
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
   }, /*#__PURE__*/React.createElement("div", {
@@ -17658,22 +17613,13 @@ function CentralPedidos({
   }, "Acompanhamento das Vendas"), /*#__PURE__*/React.createElement(ToggleBtn, {
     active: sub === "icms",
     onClick: () => setSub("icms")
-  }, "Tabela de ICMS")), sub === "icms" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(TabelaICMS, {
+  }, "Tabela de ICMS")), ks("icms", React.createElement(TabelaICMS, {
     tabelaICMS: tabelaICMS,
     setTabelaICMS: setTabelaICMS
-  }), sub === "tabela" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(TabelaPedidos, {
+  })), ks("tabela", React.createElement(TabelaPedidos, {
     pedidosEspelho: pedidosEspelho,
     clientes: clientes
-  }), sub === "orcamentos" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(Orcamentos, {
+  })), ks("orcamentos", React.createElement(Orcamentos, {
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
     clientes: clientes,
@@ -17683,17 +17629,11 @@ function CentralPedidos({
     produtos: produtos,
     negocios: negocios,
     setNegocios: setNegocios
-  }), sub === "acompanhamento" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(AcompanhamentoVendas, {
+  })), ks("acompanhamento", React.createElement(AcompanhamentoVendas, {
     pedidosEspelho: pedidosEspelho,
     vendedores: vendedores,
     clientes: clientes
-  }), sub === "novo" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(NovoPedidoEspelho, {
+  })), ks("novo", React.createElement(NovoPedidoEspelho, {
     clientes: clientes,
     vendedores: vendedores,
     tabelaICMS: tabelaICMS,
@@ -17706,10 +17646,7 @@ function CentralPedidos({
     onIrICMS: () => setSub("icms"),
     negocios: negocios,
     setNegocios: setNegocios
-  }), sub === "lista" &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement(ListaPedidosEspelho, {
+  })), ks("lista", React.createElement(ListaPedidosEspelho, {
     somenteLeitura: somenteLeitura,
     pedidosEspelho: pedidosEspelho,
     setPedidosEspelho: setPedidosEspelho,
@@ -17717,7 +17654,7 @@ function CentralPedidos({
     vendedores: vendedores,
     representadasCadastro: representadasCadastro,
     condicoesPagamentoCadastro: condicoesPagamentoCadastro
-  }));
+  })));
 }
 function TabelaICMS({
   tabelaICMS,
@@ -17857,6 +17794,64 @@ function NovoPedidoEspelho({
   const [volumes, setVolumes] = useState("");
   const [erro, setErro] = useState("");
   const [resultado, setResultado] = useState(null);
+  const [rascunhoRestaurado, setRascunhoRestaurado] = useState(false);
+  const DRAFT_KEY = "pontehub_rascunho_novopedido";
+  // Restaura rascunho ao montar (sair pra ver WhatsApp e voltar não perde o que foi digitado)
+  useEffect(() => {
+    try {
+      const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+      if (!d || !d._tem_dados) return;
+      if (d.representada) setRepresentada(d.representada);
+      if (d.clienteId) setClienteId(d.clienteId);
+      if (d.consumidorFinal != null) setConsumidorFinal(d.consumidorFinal);
+      if (d.vendedorId) setVendedorId(d.vendedorId);
+      if (d.status) setStatus(d.status);
+      if (d.situacao) setSituacao(d.situacao);
+      if (d.dataEmissao) setDataEmissao(d.dataEmissao);
+      if (d.dataFaturamento) setDataFaturamento(d.dataFaturamento);
+      if (d.dataEntrega) setDataEntrega(d.dataEntrega);
+      if (d.condicaoPagamento) setCondicaoPagamento(d.condicaoPagamento);
+      if (d.formaPagamento) setFormaPagamento(d.formaPagamento);
+      if (d.ordemCompra) setOrdemCompra(d.ordemCompra);
+      if (d.numeroNaIndustria) setNumeroNaIndustria(d.numeroNaIndustria);
+      if (d.origem) setOrigem(d.origem);
+      if (d.rotaAtendimento) setRotaAtendimento(d.rotaAtendimento);
+      if (d.tabelaPreco) setTabelaPreco(d.tabelaPreco);
+      if (d.nfNumero) setNfNumero(d.nfNumero);
+      if (d.obsCliente) setObsCliente(d.obsCliente);
+      if (d.obsRepresentada) setObsRepresentada(d.obsRepresentada);
+      if (d.itens && d.itens.length > 0) setItens(d.itens);
+      if (d.frete) setFrete(d.frete);
+      if (d.transportadora) setTransportadora(d.transportadora);
+      if (d.peso) setPeso(d.peso);
+      if (d.volumes) setVolumes(d.volumes);
+      if (d.descComercial != null) setDescComercial(Number(d.descComercial));
+      if (d.descPromocional != null) setDescPromocional(Number(d.descPromocional));
+      if (d.caixaMaster != null) setCaixaMaster(Number(d.caixaMaster));
+      setRascunhoRestaurado(true);
+    } catch(e) {}
+  }, []);
+  // Auto-salva rascunho com 2s de debounce (não salva formulário vazio)
+  useEffect(() => {
+    if (!representada && !clienteId && itens.length === 0) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          _tem_dados: true,
+          representada, clienteId, consumidorFinal, vendedorId, status, situacao,
+          dataEmissao, dataFaturamento, dataEntrega, condicaoPagamento, formaPagamento,
+          ordemCompra, numeroNaIndustria, origem, rotaAtendimento, tabelaPreco, nfNumero,
+          obsCliente, obsRepresentada, itens, frete, transportadora, peso, volumes,
+          descComercial, descPromocional, caixaMaster
+        }));
+      } catch(e) {}
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [representada, clienteId, consumidorFinal, vendedorId, status, situacao,
+      dataEmissao, dataFaturamento, dataEntrega, condicaoPagamento, formaPagamento,
+      ordemCompra, numeroNaIndustria, origem, rotaAtendimento, tabelaPreco, nfNumero,
+      obsCliente, obsRepresentada, itens, frete, transportadora, peso, volumes,
+      descComercial, descPromocional, caixaMaster]);
   const cliente = clientes.find(c => c.id === clienteId);
   const municipioCliente = cliente ? cliente.municipio || cliente.cidade || "" : "";
   const elegibilSuframa = MUNICIPIOS_SUFRAMA.includes(norm(municipioCliente));
@@ -18178,6 +18173,7 @@ function NovoPedidoEspelho({
         }]);
       }
     }
+    try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
     onSalvo();
   };
   const AbaBtn = ({
@@ -18196,7 +18192,15 @@ function NovoPedidoEspelho({
   }, children);
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, rascunhoRestaurado && /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm font-medium",
+    style: { backgroundColor: "#fefce8", border: "1px solid #fde68a", color: "#92400e" }
+  }, /*#__PURE__*/React.createElement("span", null, "📋 Rascunho restaurado — continue de onde parou."),
+  /*#__PURE__*/React.createElement("button", {
+    onClick: () => { try { localStorage.removeItem(DRAFT_KEY); } catch(e) {} setRepresentada(""); setClienteId(""); setConsumidorFinal(false); setVendedorId(""); setStatus("Pedido"); setSituacao(""); setDataEmissao(new Date().toISOString().slice(0, 10)); setDataFaturamento(""); setDataEntrega(""); setCondicaoPagamento("À vista"); setFormaPagamento(""); setOrdemCompra(""); setNumeroNaIndustria(""); setOrigem(""); setRotaAtendimento(""); setTabelaPreco(""); setNfNumero(""); setObsCliente(""); setObsRepresentada(""); setItens([]); setFrete("CIF"); setTransportadora(""); setPeso(""); setVolumes(""); setDescComercial(0); setDescPromocional(0); setCaixaMaster(0); setRascunhoRestaurado(false); },
+    className: "text-xs font-bold underline whitespace-nowrap",
+    style: { color: "#92400e" }
+  }, "Descartar")), /*#__PURE__*/React.createElement("div", {
     className: "bg-white rounded-xl border shadow-sm",
     style: {
       borderColor: LINE
@@ -19156,6 +19160,20 @@ function Orcamentos({
   const [busca, setBusca] = useState("");
   const [filtroSituacao, setFiltroSituacao] = useState("");
   const [expandidos, setExpandidos] = useState(new Set());
+  // ── Rascunho de orçamento em edição ─────────────────────────────────────
+  const ORC_DRAFT_KEY = "pontehub_rascunho_orcamento";
+  React.useEffect(() => {
+    if (!form || !editandoId) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(ORC_DRAFT_KEY, JSON.stringify({ editandoId, form }));
+      } catch(e) {}
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [form, editandoId]);
+  const descartarRascunhoOrc = () => {
+    try { localStorage.removeItem(ORC_DRAFT_KEY); } catch(e) {}
+  };
   const SITUACOES_ORC = ["Aguardando cliente", "Em negociação", "Aprovado", "Recusado"];
   const COR_SITUACAO_ORC = {
     "Aguardando cliente": "#B45309",

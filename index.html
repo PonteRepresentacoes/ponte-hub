@@ -19160,6 +19160,7 @@ function Orcamentos({
   const [busca, setBusca] = useState("");
   const [filtroSituacao, setFiltroSituacao] = useState("");
   const [expandidos, setExpandidos] = useState(new Set());
+  const [semPreco, setSemPreco] = useState(false);
   // ── Rascunho de orçamento em edição ─────────────────────────────────────
   const ORC_DRAFT_KEY = "pontehub_rascunho_orcamento";
   React.useEffect(() => {
@@ -19396,6 +19397,51 @@ function Orcamentos({
     setPedidosEspelho(pedidosEspelho.map(p => p.id === editandoId ? atualizado : p));
     sincronizarComFunil(atualizado);
     fecharEdicao();
+  };
+  // ── Gerador de PDF / Catálogo ─────────────────────────────────────────────
+  const gerarPDFOrcamento = (pedidoOriginal, formAtual, ocultarPrecos, catalogo) => {
+    const orc = { ...pedidoOriginal, ...formAtual };
+    const itens = formAtual.itens || [];
+    const totalVal = itens.reduce((s, it) => s + (it.quantidade || 0) * (it.precoUnitario || 0), 0);
+    const fmtBrl = v => Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const colsPreco = ocultarPrecos ? '' : '<th>Preço unit.</th><th>Subtotal</th>';
+    const linhas = itens.map(it => {
+      const sub = (it.quantidade || 0) * (it.precoUnitario || 0);
+      return `<tr><td>${it.codigo || '—'}</td><td>${it.produto || ''}</td><td style="text-align:center">${it.quantidade || 0}</td>${ocultarPrecos ? '' : `<td style="text-align:right">R$ ${fmtBrl(it.precoUnitario)}</td><td style="text-align:right">R$ ${fmtBrl(sub)}</td>`}</tr>`;
+    }).join('');
+    const catalogoCards = itens.map(it => `<div class="icard"><div class="icod">${it.codigo || ''}</div><div class="inome">${it.produto || ''}</div><div class="iqtd">Qtd: ${it.quantidade || 0}${it.qtdCaixaMaster ? ` &nbsp;(cx.${it.qtdCaixaMaster})` : ''}</div>${ocultarPrecos ? '' : `<div class="ipreco">R$ ${fmtBrl(it.precoUnitario)}</div><div class="isub">Subtotal: R$ ${fmtBrl((it.quantidade || 0) * (it.precoUnitario || 0))}</div>`}</div>`).join('');
+    const bodyHTML = catalogo
+      ? `<div class="catalogo">${catalogoCards}</div>${ocultarPrecos ? '' : `<div class="total">Total geral: R$ ${fmtBrl(totalVal)}</div>`}`
+      : `<table><thead><tr><th>Código</th><th>Produto</th><th>Qtd</th>${colsPreco}</tr></thead><tbody>${linhas}</tbody></table>${ocultarPrecos ? '' : `<div class="total">Total: R$ ${fmtBrl(totalVal)}</div>`}`;
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Orçamento ${orc.protocolo || ''}</title><style>
+body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#1e293b;margin:0}
+.htop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;border-bottom:3px solid #1e3a5f;padding-bottom:10px}
+.empresa{font-size:17px;font-weight:900;color:#1e3a5f;letter-spacing:-0.5px}
+.proto{font-size:12px;color:#64748b;margin-top:2px}
+.info{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;margin-bottom:14px;font-size:12px}
+.info dt{font-weight:bold;color:#64748b;display:inline}.info dd{display:inline;margin:0}
+table{width:100%;border-collapse:collapse}
+th{background:#1e3a5f;color:#fff;padding:7px 8px;text-align:left;font-size:11px}
+td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11px}
+tr:nth-child(even) td{background:#f8fafc}
+.total{text-align:right;font-size:14px;font-weight:bold;margin-top:10px;color:#1e3a5f}
+.catalogo{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:4px}
+.icard{border:1px solid #e2e8f0;border-radius:8px;padding:10px}
+.icod{font-size:10px;color:#94a3b8}.inome{font-size:12px;font-weight:bold;margin:3px 0;color:#1e293b}
+.iqtd{font-size:11px;color:#64748b}.ipreco{font-size:13px;font-weight:bold;color:#1e3a5f;margin-top:5px}
+.isub{font-size:10px;color:#94a3b8}.obs{margin-top:14px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:8px}
+@media print{body{padding:8px}}
+</style></head><body>
+<div class="htop"><div><div class="empresa">Ponte Representações</div><div class="proto">Orçamento ${orc.protocolo || ''} · ${orc.representada || ''}</div></div><div style="text-align:right;font-size:11px;color:#64748b">Emissão: ${orc.dataEmissao || '—'}<br>Situação: ${orc.situacaoOrcamento || 'Aguardando cliente'}</div></div>
+<dl class="info"><div><dt>Cliente: </dt><dd>${orc.clienteNome || '—'}</dd></div><div><dt>Condição: </dt><dd>${orc.condicaoPagamento || '—'}</dd></div><div><dt>Vendedor: </dt><dd>${orc.vendedorNome || 'Venda direta (Ponte)'}</dd></div>${orc.ordemCompra ? `<div><dt>OC: </dt><dd>${orc.ordemCompra}</dd></div>` : ''}</dl>
+${bodyHTML}
+${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</div>` : ''}
+</body></html>`;
+    const w = window.open('', '_blank');
+    if (!w) { alert('Habilite pop-ups no navegador para gerar o PDF.'); return; }
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 450);
   };
   const inputCls = "w-full border rounded-md px-3 py-2 text-sm";
   const estiloLinha = {
@@ -19866,21 +19912,47 @@ function Orcamentos({
       className: inputCls,
       style: estiloLinha
     })), /*#__PURE__*/React.createElement("div", {
-      className: "flex gap-2"
-    }, /*#__PURE__*/React.createElement("button", {
+      className: "flex flex-wrap gap-2 pt-1 border-t mt-2",
+      style: { borderColor: LINE }
+    },
+    /*#__PURE__*/React.createElement("button", {
+      onClick: () => gerarPDFOrcamento(pedidoEmEdicao, form, semPreco, false),
+      className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+      style: { background: "#2563EB" }
+    }, "📄 Gerar PDF"),
+    /*#__PURE__*/React.createElement("button", {
+      onClick: () => gerarPDFOrcamento(pedidoEmEdicao, form, semPreco, true),
+      className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+      style: { borderColor: LINE, color: INK }
+    }, "📋 Catálogo do orçamento"),
+    /*#__PURE__*/React.createElement("button", {
+      onClick: () => setSemPreco(v => !v),
+      className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
+      style: { borderColor: semPreco ? "#2563EB" : LINE, color: semPreco ? "#2563EB" : INK, background: semPreco ? "#EFF6FF" : undefined }
+    }, semPreco ? "✓ Sem preço" : "Sem preço"),
+    (() => {
+      const clienteObjWa = clientesOrdenados.find(c => c.id === form.clienteId) || {};
+      const telWa = (clienteObjWa.whatsapp || clienteObjWa.telefone || "").replace(/\D/g, "");
+      const itensTxt = (form.itens || []).map(it => `  • ${it.produto} × ${it.quantidade}${semPreco ? '' : ' — R$ ' + Number(it.precoUnitario || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`).join("\n");
+      const totalTxt = semPreco ? '' : `\nTotal: R$ ${(form.itens || []).reduce((s, it) => s + (it.quantidade || 0) * (it.precoUnitario || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+      const msgWa = `Olá${clienteObjWa.nome ? ' ' + clienteObjWa.nome.split(' ')[0] : ''}! Segue orçamento ${pedidoEmEdicao.protocolo} — ${form.representada}:\n\n${itensTxt}${totalTxt}\n\nCondição: ${form.condicaoPagamento || '—'}\nQualquer dúvida, estou à disposição!`;
+      const hrefWa = telWa ? `https://wa.me/55${telWa}?text=${encodeURIComponent(msgWa)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(msgWa)}`;
+      return /*#__PURE__*/React.createElement("a", {
+        href: hrefWa, target: "_blank", rel: "noopener noreferrer",
+        className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md text-white",
+        style: { background: "#25D366" }
+      }, "💬 Enviar por WhatsApp");
+    })(),
+    /*#__PURE__*/React.createElement("button", {
       onClick: salvarEdicao,
       className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
-      style: {
-        background: "#047857"
-      }
-    }, "Salvar alterações"), /*#__PURE__*/React.createElement("button", {
+      style: { background: "#047857" }
+    }, "Salvar orçamento"),
+    /*#__PURE__*/React.createElement("button", {
       onClick: fecharEdicao,
       className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border",
-      style: {
-        borderColor: LINE,
-        color: INK
-      }
-    }, "Cancelar")))));
+      style: { borderColor: LINE, color: INK }
+    }, "Limpar")))));
   })));
 }
 // Edição de pedidos (2026-09-28): depois de salvo/importado, o pedido só tinha "Excluir"

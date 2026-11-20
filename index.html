@@ -23029,6 +23029,7 @@ function blankProduto() {
     nome: "",
     embalagem: "",
     qtdEmbalagem: "",
+    qtdMinima: "",
     precoCompra: "",
     custo: "",
     markup: "",
@@ -23162,6 +23163,14 @@ const COLUNAS_PRODUTOS = [{
   label: "Embalagem",
   get: p => p.embalagem || "—"
 }, {
+  id: "qtdMinima",
+  label: "Qtd. Mínima",
+  get: p => p.qtdMinima || "—"
+}, {
+  id: "qtdEmbalagem",
+  label: "Caixa Master",
+  get: p => p.qtdEmbalagem || "—"
+}, {
   id: "precoCompra",
   label: "Compra R$",
   get: p => brl(Number(p.precoCompra) || 0)
@@ -23242,7 +23251,7 @@ const COLUNAS_PRODUTOS = [{
   label: "Observação",
   get: p => p.observacao || "—"
 }];
-const COLUNAS_PRODUTOS_PADRAO = ["foto", "codigo", "nome", "embalagem", "custo", "markup", "venda", "categoria", "fornecedor", "marca", "estoqueAtual"];
+const COLUNAS_PRODUTOS_PADRAO = ["foto", "codigo", "nome", "embalagem", "qtdMinima", "qtdEmbalagem", "referenciaFabrica", "custo", "markup", "venda", "categoria", "fornecedor", "marca", "estoqueAtual"];
 const CAMPOS_VINCULO_FOTO = [{
   id: "codigo",
   label: "Código do Produto"
@@ -23588,7 +23597,7 @@ const CAMPOS_TABELA_PRECO_IMPORT = [{
 // em cada seção e 8 colunas de preço. O importador comum usa a 1ª linha como cabeçalho e não
 // enxergava nada. Aqui o sistema acha o cabeçalho sozinho, reconhece cada coluna de preço como
 // uma faixa e importa tudo de uma vez (em vez de repetir a importação uma vez por faixa).
-const PAPEIS_COLUNA_FABRICA = [["ean", c => c.includes("ean") || c.includes("codigo de barras") && !c.includes("dun")], ["dun", c => c.includes("dun")], ["codigo", c => /^cod(\.|igo)?\b/.test(c) && !c.includes("barra")], ["descricao", c => c.includes("descri")], ["cor", c => c === "cor"], ["caract", c => c.includes("caracteristica")], ["caixa", c => c.includes("caixa master") || c.includes("qtd") && c.includes("caixa")], ["unidade", c => c.includes("unidade")], ["marca", c => c === "marca"], ["ipi", c => c === "ipi" || c.startsWith("ipi ")], ["ncm", c => c === "ncm"], ["ignorar", c => c.includes("imagem") || c.includes("prazo") || c.includes("peso") || c.includes("filial")]];
+const PAPEIS_COLUNA_FABRICA = [["ean", c => c.includes("ean") || c.includes("codigo de barras") && !c.includes("dun")], ["dun", c => c.includes("dun")], ["codigo", c => /^cod(\.|igo)?\b/.test(c) && !c.includes("barra")], ["descricao", c => c.includes("descri")], ["cor", c => c === "cor"], ["caract", c => c.includes("caracteristica")], ["caixa", c => c.includes("caixa master") || c.includes("qtd") && c.includes("caixa")], ["qtdMinima", c => (c.includes("qtd") || c.includes("quantidade")) && (c.includes("min") || c.includes("m\xEDn"))], ["unidade", c => c.includes("unidade") || c === "un" || c === "un."], ["familia", c => c === "familia" || c === "fam\xEDlia" || c.startsWith("famil")], ["certificadoAprovacao", c => c === "c.a." || c === "ca" || c.includes("certificado")], ["referenciaFabrica", c => c === "estruturado" || (c.includes("refer") && !c.includes("descri"))], ["marca", c => c === "marca"], ["ipi", c => c === "ipi" || c.startsWith("ipi ")], ["ncm", c => c === "ncm"], ["ignorar", c => c.includes("imagem") || c.includes("prazo") || c.includes("peso") || c.includes("filial") || c === "tabela" || c === "grupo"]];
 function nomeFaixaCurto(rotulo) {
   const t = String(rotulo || "").replace(/\s+/g, " ").trim();
   const valores = [...t.matchAll(/(\d{1,3}(?:\.\d{3})*),\d{2}/g)].map(m => m[1]);
@@ -23666,7 +23675,11 @@ function lerTabelaFaixasFabrica(linhas) {
         cor: g("cor"),
         medida: g("caract"),
         qtdCaixa: g("caixa"),
+        qtdMinima: g("qtdMinima"),
         unidade: g("unidade"),
+        familia: g("familia"),
+        certificadoAprovacao: g("certificadoAprovacao"),
+        referenciaFabrica: g("referenciaFabrica"),
         marca: g("marca"),
         ipi: isFinite(ipiN) ? String(ipiN > 0 && ipiN < 1 ? Math.round(ipiN * 10000) / 100 : ipiN) : "",
         ncm: g("ncm"),
@@ -23769,13 +23782,16 @@ function ImportarFaixasFabrica({
         cor: p.cor,
         medida: p.medida,
         qtdEmbalagem: p.qtdCaixa,
-        embalagem: p.qtdCaixa ? "Caixa master" : "",
+        embalagem: p.unidade || "",
         unidade: p.unidade,
         marca: p.marca,
         ipi: p.ipi,
         ncm: p.ncm,
         gtinBarra: p.ean,
-        categoria: p.categoria
+        categoria: p.familia || p.categoria,
+        referenciaFabrica: p.referenciaFabrica,
+        certificadoAprovacao: p.certificadoAprovacao,
+        qtdMinima: p.qtdMinima
       };
       const idx = lista.findIndex(x => daRepresentada(x) && norm(x.codigo) === norm(p.codigo));
       if (idx >= 0) {

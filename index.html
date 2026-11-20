@@ -268,7 +268,7 @@ const {
 // ---------- Brand tokens ----------
 const APP_VERSAO = "1.8.1";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
-const APP_CHECK_URL = "https://ponte-hub.vercel.app";
+const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
 const NAVY_SOFT = "#111C34";
 const ROYAL = "var(--royal)";
@@ -2649,7 +2649,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Badge de versão e popup de Novidades — clique em v" + APP_VERSAO + " na sidebar para rever.", "Saída automática por inatividade — configure na sidebar (15 min · 30 min · 1h · 2h · Nunca).", "Sidebar com botões pill — itens com borda e fundo visível no estado inativo.", "Design system Ponte Hub aplicado — paleta navy, tipografia Sora + Jakarta Sans, componentes arredondados."];
+  const novidadesLista = ["Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {

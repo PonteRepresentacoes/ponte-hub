@@ -24450,6 +24450,18 @@ function ImportarTabelaPrecoRepresentada({
   const [nomeTabela, setNomeTabela] = useState("");
   const representadasAtivas = (representadasCadastro || []).filter(r => !r.excluida);
   const representadaSelecionada = representadasAtivas.find(r => r.id === representadaId);
+  const produtosRep = representadaSelecionada ? (produtos || []).filter(p => !p.excluido && norm(p.representada) === norm(representadaSelecionada.nome)) : [];
+  const faixasExistentes = (() => {
+    const map = {};
+    produtosRep.forEach(p => (p.tabelasPreco || []).forEach(t => {
+      if (!t.nome) return;
+      if (!map[t.nome]) map[t.nome] = { count: 0, min: Infinity, max: -Infinity };
+      map[t.nome].count++;
+      if (t.preco > map[t.nome].max) map[t.nome].max = t.preco;
+      if (t.preco < map[t.nome].min) map[t.nome].min = t.preco;
+    }));
+    return Object.entries(map).sort((a, b) => a[0].localeCompare(b[0], "pt-BR"));
+  })();
   const importarMapeado = linhas => {
     if (!representadaSelecionada) return "Selecione uma representada antes de importar.";
     const faixa = nomeTabela.trim();
@@ -24536,7 +24548,31 @@ function ImportarTabelaPrecoRepresentada({
   }, r.nome))))), representadaId ?
   /*#__PURE__*/
   /*#__PURE__*/
-  React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(ImportarFaixasFabrica, {
+  React.createElement(React.Fragment, null,
+    React.createElement("div", { style: { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "12px 16px", marginBottom: 16 } },
+      React.createElement("div", { style: { fontWeight: 700, fontSize: 13, color: INK, marginBottom: 8 } },
+        "📋 Tabelas cadastradas para " + representadaSelecionada.nome + " (" + produtosRep.length + " produto" + (produtosRep.length !== 1 ? "s" : "") + ")"
+      ),
+      faixasExistentes.length > 0
+        ? React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 8 } },
+            faixasExistentes.map(function([nome, s]) {
+              return React.createElement("div", { key: nome, style: { background: "rgba(47,111,239,0.1)", border: "1px solid rgba(47,111,239,0.25)", borderRadius: 8, padding: "8px 14px" } },
+                React.createElement("div", { style: { fontWeight: 700, fontSize: 13, color: INK } }, nome),
+                React.createElement("div", { style: { fontSize: 11, color: "#9db3cc", marginTop: 2 } },
+                  s.count + " produto(s)  ·  de R$ " + (s.min === Infinity ? "—" : s.min.toFixed(2).replace(".", ",")) + " a R$ " + (s.max === -Infinity ? "—" : s.max.toFixed(2).replace(".", ","))
+                )
+              );
+            })
+          )
+        : produtosRep.length > 0
+          ? React.createElement("p", { style: { fontSize: 12, color: "#f59e0b", margin: 0 } },
+              "⚠️ " + produtosRep.length + " produto(s) cadastrado(s), mas sem faixas de preço nomeadas. Os preços estão no campo \"Venda (R$)\" padrão — para aparecer como opção selecionável no pedido, reimporte usando o campo \"Nome da faixa/tabela\" preenchido abaixo."
+            )
+          : React.createElement("p", { style: { fontSize: 12, color: "#9db3cc", margin: 0 } },
+              "Nenhum produto cadastrado ainda para esta representada."
+            )
+    ),
+    /*#__PURE__*/React.createElement(ImportarFaixasFabrica, {
     representada: representadaSelecionada,
     produtos: produtos,
     setProdutos: setProdutos

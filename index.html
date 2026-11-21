@@ -24837,6 +24837,7 @@ function Produtos({
   const [importMsgProdutos, setImportMsgProdutos] = useState("");
   const [mostrarImportPlanilha, setMostrarImportPlanilha] = useState(false);
   const [mostrarImportTabelaPreco, setMostrarImportTabelaPreco] = useState(false);
+  const [mostrarVisaoTabelas, setMostrarVisaoTabelas] = useState(false);
   const CAMPOS_PRODUTO_IMPORT = [{
     id: "nome",
     label: "Nome do produto",
@@ -25453,7 +25454,11 @@ function Produtos({
       borderColor: LINE,
       color: INK
     }
-  }, "💲 Importar Tabela de Preços"), /*#__PURE__*/React.createElement("div", {
+  }, "💲 Importar Tabela de Preços"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => { setMostrarVisaoTabelas(m => !m); setMostrarImportTabelaPreco(false); },
+    className: "text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md border cursor-pointer",
+    style: { borderColor: mostrarVisaoTabelas ? ROYAL : LINE, color: mostrarVisaoTabelas ? ROYAL : INK }
+  }, "📋 Ver tabelas"), /*#__PURE__*/React.createElement("div", {
     className: "relative"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setMenuRelatoriosAberto(m => !m),
@@ -25521,7 +25526,47 @@ function Produtos({
     setProdutos: setProdutos,
     representadasCadastro: representadasCadastro,
     onFechar: () => setMostrarImportTabelaPreco(false)
-  }), mostrarImportFotos &&
+  }), mostrarVisaoTabelas &&
+  React.createElement(Card, { title: "📋 Tabelas de Preço Cadastradas", subtitle: "Faixas de preço registradas por representada" },
+    React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
+      (representadasCadastro || []).filter(r => !r.excluida).map(rep => {
+        const prods = (produtos || []).filter(p => !p.excluido && norm(p.representada) === norm(rep.nome));
+        const faixasMap = {};
+        prods.forEach(p => (p.tabelasPreco || []).forEach(t => {
+          if (!t.nome) return;
+          if (!faixasMap[t.nome]) faixasMap[t.nome] = { count: 0, min: Infinity, max: -Infinity };
+          faixasMap[t.nome].count++;
+          if (t.preco > faixasMap[t.nome].max) faixasMap[t.nome].max = t.preco;
+          if (t.preco < faixasMap[t.nome].min) faixasMap[t.nome].min = t.preco;
+        }));
+        const faixas = Object.entries(faixasMap).sort((a, b) => a[0].localeCompare(b[0], "pt-BR"));
+        if (prods.length === 0) return null;
+        return React.createElement("div", { key: rep.id, style: { borderBottom: "1px solid rgba(255,255,255,0.07)", paddingBottom: 14 } },
+          React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: INK, marginBottom: 8 } },
+            rep.nome, React.createElement("span", { style: { fontWeight: 400, fontSize: 12, color: "#9db3cc", marginLeft: 8 } }, prods.length + " produto(s)")
+          ),
+          faixas.length > 0
+            ? React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 8 } },
+                faixas.map(function([nome, s]) {
+                  return React.createElement("div", { key: nome, style: { background: "rgba(47,111,239,0.1)", border: "1px solid rgba(47,111,239,0.25)", borderRadius: 8, padding: "8px 14px" } },
+                    React.createElement("div", { style: { fontWeight: 700, fontSize: 13, color: INK } }, nome),
+                    React.createElement("div", { style: { fontSize: 11, color: "#9db3cc", marginTop: 2 } },
+                      s.count + " produto(s)  ·  de R$ " + (s.min === Infinity ? "—" : s.min.toFixed(2).replace(".", ",")) + " a R$ " + (s.max === -Infinity ? "—" : s.max.toFixed(2).replace(".", ","))
+                    )
+                  );
+                })
+              )
+            : React.createElement("span", { style: { fontSize: 12, color: "#f59e0b" } },
+                "⚠️ Sem faixas nomeadas — preços no campo padrão. Reimporte usando '💲 Importar Tabela de Preços' com o campo Nome da faixa preenchido."
+              )
+        );
+      }).filter(Boolean),
+      React.createElement("button", {
+        onClick: () => setMostrarVisaoTabelas(false),
+        style: { background: "rgba(255,255,255,0.08)", color: "#9db3cc", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, cursor: "pointer", alignSelf: "flex-start" }
+      }, "Fechar")
+    )
+  ), mostrarImportFotos &&
   /*#__PURE__*/
   /*#__PURE__*/
   React.createElement(ImportacaoFotosLote, {

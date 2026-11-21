@@ -1049,21 +1049,26 @@ function PonteHub({
     } catch (e) {}
     document.documentElement.setAttribute("data-tema", tema);
   }, [tema]);
-  // Banner de nova versão disponível
-  const [novaVersao, setNovaVersao] = useState(null);
+  // Banner de atualização — detecta novo deploy via ETag (igual ao Vercel)
+  const ETAG_KEY = "ponte-hub-deploy-etag";
+  const [novaVersao, setNovaVersao] = useState(false);
   const [avisoDismissed, setAvisoDismissed] = useState(false);
   useEffect(() => {
     const checar = () => {
-      fetch(APP_CHECK_URL + "?_nc=" + Date.now(), { cache: "no-store" })
-        .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-        .then(html => {
-          const m = html.match(/const APP_VERSAO\s*=\s*"([^"]+)"/);
-          if (m && m[1] && m[1] !== APP_VERSAO) { setNovaVersao(m[1]); setAvisoDismissed(false); }
+      fetch(APP_CHECK_URL, { method: "HEAD", cache: "no-store" })
+        .then(r => {
+          const tag = r.headers.get("etag") || r.headers.get("last-modified") || "";
+          if (!tag) return;
+          try {
+            const anterior = localStorage.getItem(ETAG_KEY);
+            if (!anterior) { localStorage.setItem(ETAG_KEY, tag); }
+            else if (anterior !== tag) { setNovaVersao(true); setAvisoDismissed(false); }
+          } catch(e) {}
         })
         .catch(() => {});
     };
     checar();
-    const id = setInterval(checar, 30 * 60 * 1000);
+    const id = setInterval(checar, 5 * 60 * 1000);
     return () => clearInterval(id);
   }, []);
   // Popup de novidades — aparece automaticamente na primeira vez que o usuário abre esta versão
@@ -1545,7 +1550,8 @@ function PonteHub({
     onOpenProximos: () => setTab("vendas-proximos"),
     onOpenFunil: () => setTab("vendas-funil"),
     onOpenInteracoes: () => setTab("vendas-interacoes"),
-    onOpenAgenda: () => setTab("vendas-agenda")
+    onOpenAgenda: () => setTab("vendas-agenda"),
+    onOpenProspeccao: () => setTab("vendas-prospeccao")
   })), KA("vendas", "vendas-ficha", React.createElement(FichaRapida, {
     clientes: clientes,
     setClientes: setClientes,
@@ -1634,6 +1640,12 @@ function PonteHub({
     condicoesPagamentoCadastro: condicoesPagamentoCadastro,
     negocios: negociosFunil,
     setNegocios: setNegociosFunil
+  })), KA("vendas", "vendas-prospeccao", React.createElement(ProspeccaoVendas, {
+    sessao: sessao,
+    clientes: clientes,
+    setClientes: setClientes,
+    compromissos: compromissos,
+    setCompromissos: setCompromissos
   }))), loaded && !loadFailed &&
   /*#__PURE__*/
   /*#__PURE__*/
@@ -1655,9 +1667,9 @@ function PonteHub({
       maxWidth: "calc(100vw - 32px)", whiteSpace: "nowrap"
     }
   },
-  React.createElement("span", null, "🚀 Nova vers\xE3o disponível (v", novaVersao, ") — recarregue para atualizar"),
+  React.createElement("span", null, "🚀 Nova vers\xE3o dispon\xEDvel — recarregue para atualizar"),
   React.createElement("button", {
-    onClick: () => window.location.reload(),
+    onClick: () => { try { localStorage.removeItem("ponte-hub-deploy-etag"); } catch(e) {} window.location.reload(); },
     style: { background: "#fff", color: "#1d4ed8", border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 700, cursor: "pointer", fontSize: 13 }
   }, "Atualizar"),
   React.createElement("button", {
@@ -2442,6 +2454,10 @@ function Sidebar({
     id: "vendas-agenda",
     label: "Agenda",
     icon: "📅"
+  }, {
+    id: "vendas-prospeccao",
+    label: "Prospecção",
+    icon: "🎯"
   }, {
     id: "vendas-lra",
     label: "L.R.A",
@@ -3567,18 +3583,6 @@ function Dashboard({
     }
   };
   const acessoRapido = [{
-    id: "pedidos",
-    titulo: "Montar pedido",
-    desc: "Propostas para clientes",
-    iconeKey: "fileText",
-    cor: "#f59e0b"
-  }, {
-    id: "pedidos",
-    titulo: "Orçamentos",
-    desc: "Do catálogo e feitos no painel",
-    iconeKey: "receipt",
-    cor: "#10b981"
-  }, {
     id: "pedidos",
     titulo: "Pedidos",
     desc: "Faturamento e entrega",
@@ -5249,7 +5253,221 @@ function RotinaHoje({
     acao: "Ver Clientes Próximos",
     onAcao: () => onNavigate("vendas-proximos")
   }))))));
-} // ============================================================
+}
+// ============================================================
+// PROSPECÇÃO — Leads novos + reativação de inativos
+// ============================================================
+function ProspeccaoVendas({ sessao, clientes, setClientes, compromissos, setCompromissos }) {
+  const meuId = sessao && sessao.tipo === "vendedor" ? sessao.vendedorId : null;
+  const hoje = dataLocalISO(new Date());
+  const [sub, setSub] = React.useState("alvos");
+  const [logAberto, setLogAberto] = React.useState(null);
+  const [logForm, setLogForm] = React.useState({ tipo: "Ligação", resultado: "Positivo", obs: "", proxData: "" });
+  const [addAberto, setAddAberto] = React.useState(false);
+  const [novoLead, setNovoLead] = React.useState({ nome: "", empresa: "", telefone: "", segmento: "", obs: "" });
+  const [scriptAberto, setScriptAberto] = React.useState(null);
+
+  const leads = (clientes || []).filter(c => !c.excluido && c.tipo === "lead" && c.statusProspecto !== "convertido");
+  const leadsHoje = leads.filter(l => l.statusProspecto !== "sem interesse" && (!l.proximoContatoProspecto || l.proximoContatoProspecto <= hoje));
+  const alvosHoje = leadsHoje;
+
+  const registrarContato = id => {
+    const alvo = (clientes || []).find(c => c.id === id);
+    setClientes((clientes || []).map(c => {
+      if (c.id !== id) return c;
+      return {
+        ...c,
+        statusProspecto: logForm.resultado === "Sem interesse" ? "sem interesse" : "em abordagem",
+        ultimoContatoProspecto: hoje,
+        proximoContatoProspecto: logForm.proxData || c.proximoContatoProspecto || "",
+        historicoProspecto: [...(c.historicoProspecto || []), { data: hoje, tipo: logForm.tipo, resultado: logForm.resultado, obs: logForm.obs }]
+      };
+    }));
+    if (logForm.proxData && alvo) {
+      setCompromissos([...(compromissos || []), {
+        ...blankCompromisso(),
+        titulo: "Prospecção — " + (alvo.nome || alvo.razaoSocial || "Lead"),
+        data: logForm.proxData,
+        clienteId: id,
+        clienteNome: alvo.nome || alvo.razaoSocial || "",
+        tipo: logForm.tipo,
+        observacao: logForm.obs,
+        ...(meuId ? { vendedorId: meuId } : {})
+      }]);
+    }
+    setLogAberto(null);
+    setLogForm({ tipo: "Ligação", resultado: "Positivo", obs: "", proxData: "" });
+  };
+
+  const adicionarLead = () => {
+    if (!novoLead.nome.trim()) return;
+    setClientes([...(clientes || []), {
+      ...blankFicha(),
+      nome: novoLead.nome.trim(),
+      razaoSocial: novoLead.empresa.trim(),
+      telefone: novoLead.telefone.trim(),
+      segmento: novoLead.segmento.trim(),
+      observacao: novoLead.obs.trim(),
+      tipo: "lead",
+      statusProspecto: "para contatar",
+      origemCliente: "Prospecção ativa",
+      ...(meuId ? { vendedorId: meuId } : {})
+    }]);
+    setNovoLead({ nome: "", empresa: "", telefone: "", segmento: "", obs: "" });
+    setAddAberto(false);
+  };
+
+  const scriptLead = nome => '"Bom dia' + (nome ? ", " + nome.split(" ")[0] : "") + '! Aqui é o Carlos, da Ponte Representações — trabalho com Brinox, Kalipso EPI, Coza e outras marcas líderes. Estou passando pra apresentar nossas linhas e ver se tem alguma demanda no momento. Posso marcar uma visita rápida?"';
+  const scriptReativacao = nome => '"Bom dia' + (nome ? ", " + nome.split(" ")[0] : "") + '! Carlos aqui, da Ponte. Faz um tempo que a gente não tinha novidades! Passando pra ver se tem alguma necessidade no momento — chegaram produtos novos que podem ser do interesse de vocês. Posso passar aí essa semana?"';
+
+  const renderAlvo = c => {
+    const isLead = c.tipo === "lead";
+    const tel = c.telefone || c.whatsapp || "";
+    const script = isLead ? scriptLead(c.nome) : scriptReativacao(c.nome);
+    const dias = !isLead && c.ultimaCompra ? Math.round((new Date(hoje) - new Date(c.ultimaCompra)) / 86400000) : null;
+    const logOpen = logAberto === c.id;
+    const scriptOpen = scriptAberto === c.id;
+    return React.createElement("div", {
+      key: c.id,
+      style: { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "12px 14px", marginBottom: 8 }
+    },
+      React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 } },
+        React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+          React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: INK, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } },
+            c.nome || c.razaoSocial || "Sem nome"
+          ),
+          React.createElement("div", { style: { fontSize: 12, color: "#9db3cc", marginTop: 2 } },
+            [isLead ? "🆕 Lead" : "⚠️ Inativo há " + dias + " dias", c.segmento || c.municipio].filter(Boolean).join("  ·  ")
+          )
+        ),
+        React.createElement("div", { style: { display: "flex", gap: 6, flexShrink: 0 } },
+          tel && React.createElement("a", {
+            href: "https://wa.me/55" + tel.replace(/\D/g, ""),
+            target: "_blank", rel: "noopener noreferrer",
+            style: { background: "#10b981", color: "#fff", border: "none", borderRadius: 6, padding: "5px 10px", fontSize: 12, fontWeight: 700, textDecoration: "none", cursor: "pointer", display: "inline-block" }
+          }, "📱 WA"),
+          React.createElement("button", {
+            onClick: () => { setLogAberto(logOpen ? null : c.id); setLogForm({ tipo: "Ligação", resultado: "Positivo", obs: "", proxData: "" }); },
+            style: { background: "#2F6FEF", color: "#fff", border: "none", borderRadius: 6, padding: "5px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }
+          }, "✍ Log")
+        )
+      ),
+      React.createElement("button", {
+        onClick: () => setScriptAberto(scriptOpen ? null : c.id),
+        style: { background: "none", border: "none", color: "#9db3cc", fontSize: 12, cursor: "pointer", padding: "6px 0 0 0", display: "block" }
+      }, scriptOpen ? "▾ Esconder script" : "▸ Script de abordagem"),
+      scriptOpen && React.createElement("div", {
+        style: { background: "rgba(47,111,239,0.08)", border: "1px solid rgba(47,111,239,0.2)", borderRadius: 8, padding: "10px 12px", marginTop: 6, fontSize: 13, color: INK, lineHeight: 1.5, fontStyle: "italic" }
+      }, script),
+      logOpen && React.createElement("div", {
+        style: { background: "#0f1b2d", border: "1px solid rgba(47,111,239,0.3)", borderRadius: 10, padding: 14, marginTop: 10 }
+      },
+        React.createElement("div", { style: { fontWeight: 700, color: INK, marginBottom: 10, fontSize: 13 } }, "Registrar contato"),
+        React.createElement("div", { style: { marginBottom: 8 } },
+          React.createElement("div", { style: { fontSize: 11, color: "#9db3cc", marginBottom: 5 } }, "Tipo"),
+          React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } },
+            ["Ligação", "Visita", "WhatsApp"].map(t =>
+              React.createElement("button", {
+                key: t, onClick: () => setLogForm(f => ({ ...f, tipo: t })),
+                style: { padding: "5px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none", background: logForm.tipo === t ? "#2F6FEF" : "rgba(255,255,255,0.08)", color: logForm.tipo === t ? "#fff" : "#9db3cc" }
+              }, t)
+            )
+          )
+        ),
+        React.createElement("div", { style: { marginBottom: 8 } },
+          React.createElement("div", { style: { fontSize: 11, color: "#9db3cc", marginBottom: 5 } }, "Resultado"),
+          React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } },
+            [["Positivo", "#10b981"], ["Neutro", "#f59e0b"], ["Sem interesse", "#ef4444"]].map(([r, cor]) =>
+              React.createElement("button", {
+                key: r, onClick: () => setLogForm(f => ({ ...f, resultado: r })),
+                style: { padding: "5px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none", background: logForm.resultado === r ? cor : "rgba(255,255,255,0.08)", color: logForm.resultado === r ? "#fff" : "#9db3cc" }
+              }, r)
+            )
+          )
+        ),
+        React.createElement("textarea", {
+          placeholder: "Observação (opcional)", value: logForm.obs,
+          onChange: e => setLogForm(f => ({ ...f, obs: e.target.value })),
+          style: { width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: 8, color: INK, fontSize: 13, resize: "vertical", minHeight: 56, boxSizing: "border-box", marginBottom: 8 }
+        }),
+        React.createElement("label", { style: { fontSize: 11, color: "#9db3cc", display: "block", marginBottom: 4 } }, "Próximo contato (opcional)"),
+        React.createElement("input", {
+          type: "date", value: logForm.proxData,
+          onChange: e => setLogForm(f => ({ ...f, proxData: e.target.value })),
+          style: { width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 10px", color: INK, fontSize: 13, marginBottom: 10, boxSizing: "border-box" }
+        }),
+        React.createElement("div", { style: { display: "flex", gap: 8 } },
+          React.createElement("button", {
+            onClick: () => registrarContato(c.id),
+            style: { background: "#2F6FEF", color: "#fff", border: "none", borderRadius: 8, padding: "8px 0", fontSize: 13, fontWeight: 700, cursor: "pointer", flex: 1 }
+          }, "Salvar"),
+          React.createElement("button", {
+            onClick: () => setLogAberto(null),
+            style: { background: "rgba(255,255,255,0.08)", color: "#9db3cc", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 13, cursor: "pointer" }
+          }, "Cancelar")
+        )
+      ),
+      c.ultimoContatoProspecto && React.createElement("div", {
+        style: { fontSize: 11, color: "#9db3cc", marginTop: 8 }
+      }, "Último contato: " + formatarDataBR(c.ultimoContatoProspecto) + (c.statusProspecto ? "  ·  " + c.statusProspecto : ""))
+    );
+  };
+
+  return React.createElement("div", { className: "space-y-6" },
+    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+      React.createElement("div", null,
+        React.createElement("h2", { className: "text-xl font-black", style: { color: INK } }, "Prospecção"),
+        React.createElement("p", { className: "text-sm text-slate-500" }, "Pipeline de leads novos — alvos do dia, script e log de contato.")
+      ),
+      React.createElement("button", {
+        onClick: () => setAddAberto(!addAberto),
+        style: { background: "#2F6FEF", color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer" }
+      }, addAberto ? "× Fechar" : "+ Novo lead")
+    ),
+    addAberto && React.createElement(Card, { title: "Novo lead" },
+      React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+        [["Nome / Fantasia *", "nome", "text"], ["Razão Social", "empresa", "text"], ["Telefone / WhatsApp", "telefone", "tel"], ["Segmento", "segmento", "text"]].map(([label, field, type]) =>
+          React.createElement("div", { key: field },
+            React.createElement("label", { style: { fontSize: 12, color: "#9db3cc", display: "block", marginBottom: 3 } }, label),
+            React.createElement("input", {
+              type, value: novoLead[field],
+              onChange: e => setNovoLead(f => ({ ...f, [field]: e.target.value })),
+              style: { width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 10px", color: INK, fontSize: 13, boxSizing: "border-box" }
+            })
+          )
+        ),
+        React.createElement("textarea", {
+          placeholder: "Observação inicial",
+          value: novoLead.obs, onChange: e => setNovoLead(f => ({ ...f, obs: e.target.value })),
+          style: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: 8, color: INK, fontSize: 13, resize: "vertical", minHeight: 56, boxSizing: "border-box" }
+        }),
+        React.createElement("div", { style: { display: "flex", gap: 8 } },
+          React.createElement("button", {
+            onClick: adicionarLead, disabled: !novoLead.nome.trim(),
+            style: { flex: 1, background: novoLead.nome.trim() ? "#2F6FEF" : "rgba(255,255,255,0.1)", color: "#fff", border: "none", borderRadius: 8, padding: "9px 0", fontWeight: 700, fontSize: 13, cursor: novoLead.nome.trim() ? "pointer" : "default" }
+          }, "Salvar lead"),
+          React.createElement("button", {
+            onClick: () => setAddAberto(false),
+            style: { background: "rgba(255,255,255,0.08)", color: "#9db3cc", border: "none", borderRadius: 8, padding: "9px 14px", fontSize: 13, cursor: "pointer" }
+          }, "Cancelar")
+        )
+      )
+    ),
+    React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } },
+      React.createElement(ToggleBtn, { active: sub === "alvos", onClick: () => setSub("alvos") }, "Alvos de hoje (", alvosHoje.length, ")"),
+      React.createElement(ToggleBtn, { active: sub === "leads", onClick: () => setSub("leads") }, "Todos os leads (", leads.length, ")")
+    ),
+    sub === "alvos" && (alvosHoje.length === 0
+      ? React.createElement(Card, null, React.createElement(EmptyState, { text: "Sem alvos pra hoje.", hint: "Adicione leads com '+ Novo lead'. Eles aparecem aqui conforme o prazo de retorno." }))
+      : React.createElement("div", null, alvosHoje.map(c => renderAlvo(c)))
+    ),
+    sub === "leads" && (leads.length === 0
+      ? React.createElement(Card, null, React.createElement(EmptyState, { text: "Nenhum lead ainda.", hint: "Clique em '+ Novo lead' para começar." }))
+      : React.createElement("div", null, leads.map(c => renderAlvo(c)))
+    )
+  );
+}
+// ============================================================
 // APP DE VENDAS (placeholder — próximos módulos)
 // ============================================================
 function VendasHome({
@@ -5264,7 +5482,8 @@ function VendasHome({
   onOpenProximos,
   onOpenFunil,
   onOpenInteracoes,
-  onOpenAgenda
+  onOpenAgenda,
+  onOpenProspeccao
 }) {
   const modulos = [{
     id: "rotina",
@@ -5362,6 +5581,14 @@ function VendasHome({
     cor: "#ec4899",
     ready: true,
     onClick: onOpenAgenda
+  }, {
+    id: "prospeccao",
+    title: "Prospecção",
+    desc: "Pipeline de leads novos — alvos do dia, script de abordagem e log de contato.",
+    iconeKey: "target",
+    cor: "#f59e0b",
+    ready: true,
+    onClick: onOpenProspeccao
   }];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
@@ -5555,7 +5782,14 @@ function blankFicha(cnpj = "") {
       email: "",
       telefone: "",
       mesmoQueComercial: false
-    }
+    },
+    tipo: "",
+    // "lead" = prospect ainda não convertido; "" / undefined = cliente ativo
+    statusProspecto: "",
+    // "para contatar" | "em abordagem" | "sem interesse" | "convertido"
+    ultimoContatoProspecto: "",
+    proximoContatoProspecto: "",
+    historicoProspecto: []
   };
 }
 const MESES_ABREV = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];

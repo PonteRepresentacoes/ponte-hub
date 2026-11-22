@@ -912,6 +912,7 @@ const ehClienteAmostra = (nomes, clientesAmostra) => {
 const STORAGE_KEY_PEDIDOS = "ponte-hub-pedidos";
 const STORAGE_KEY_MIX = "ponte-hub-mix";
 const STORAGE_KEY_CONTAGENS = "ponte-hub-contagens";
+const STORAGE_KEY_PRODUTOS = "ponte-hub-produtos";
 // Rascunho da contagem fica só no aparelho até o repositor salvar: a loja pode não ter sinal,
 // e gravar no Firestore a cada item leria erro de rede no meio da visita (16/10/2026, Carlos:
 // "não dá pra confiar no sinal").
@@ -970,7 +971,13 @@ async function gravarHub(dadosPrincipais, pedidosEspelho, mixClientes, contagens
   const contagensComprimidas = await comprimirTexto(JSON.stringify(contagens || []));
   if (contagensComprimidas.length > 1000000) throw new Error("Contagens passaram de 1 MB mesmo comprimidas — avise o suporte.");
   await window.storage.set(STORAGE_KEY_CONTAGENS, contagensComprimidas, false);
-  const principal = JSON.stringify(dadosPrincipais);
+  // Produtos ficam em documento separado comprimido (igual pedidos) para não
+  // estourar o limite de 1 MB do documento principal quando há muitas faixas de preço.
+  const produtosComprimidos = await comprimirTexto(JSON.stringify(dadosPrincipais.produtos || []));
+  if (produtosComprimidos.length > 1000000) throw new Error("Produtos passaram de 1 MB mesmo comprimidos — avise o suporte.");
+  await window.storage.set(STORAGE_KEY_PRODUTOS, produtosComprimidos, false);
+  const semProdutos = Object.assign({}, dadosPrincipais, { produtos: [] });
+  const principal = JSON.stringify(semProdutos);
   if (principal.length > 1000000) throw new Error(`Dados principais com ${(principal.length / 1048576).toFixed(2)} MB — acima do limite de 1 MB do banco.`);
   const ok = await window.storage.set(STORAGE_KEY, principal, false);
   return !!ok;
@@ -1146,6 +1153,15 @@ function PonteHub({
         } catch (eCont) {
           if (!(eCont && eCont.message === "not found")) throw eCont;
         }
+        // Produtos: documento próprio comprimido. "not found" = formato antigo (dentro do
+        // principal) — fallback lê data.produtos normalmente.
+        let produtosSeparados = null;
+        try {
+          const resProd = await window.storage.get(STORAGE_KEY_PRODUTOS, false);
+          if (resProd && resProd.value) produtosSeparados = JSON.parse(await descomprimirTexto(resProd.value));
+        } catch (eProd) {
+          if (!(eProd && eProd.message === "not found")) throw eProd;
+        }
         if (res && res.value) {
           const data = JSON.parse(res.value);
           // Junta as duas fontes em vez de escolher uma (2026-09-28): enquanto a versão antiga
@@ -1175,7 +1191,7 @@ function PonteHub({
           setChamadosLRA(data.chamadosLRA || []);
           setPedidosEspelho(data.pedidosEspelho || []);
           setTabelaICMS(data.tabelaICMS || []);
-          setProdutos(data.produtos || []);
+          setProdutos(produtosSeparados !== null ? produtosSeparados : (data.produtos || []));
           setCondicoesPagamentoCadastro(data.condicoesPagamentoCadastro || []);
           setRepresentadasCadastro(data.representadasCadastro || []);
           setTransportadorasCadastro(data.transportadorasCadastro || []);

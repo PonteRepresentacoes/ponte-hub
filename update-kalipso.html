@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atualizar Fotos Kalipso — Ponte Hub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:15px/1.6 system-ui,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#1e293b;border-radius:14px;padding:28px;max-width:600px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+h1{font-size:20px;font-weight:700;color:#38bdf8;margin-bottom:4px}
+.sub{font-size:13px;color:#94a3b8;margin-bottom:24px}
+button{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border:none;border-radius:8px;font:600 14px system-ui;cursor:pointer;transition:.15s}
+.btn-primary{background:#0ea5e9;color:#fff}
+.btn-primary:hover{background:#38bdf8}
+.btn-primary:disabled{background:#334155;color:#64748b;cursor:default}
+.status{margin-top:18px;font-size:13px;color:#94a3b8;min-height:20px}
+#progress-wrap{display:none;margin-top:18px}
+.bar-bg{height:8px;background:#334155;border-radius:4px;overflow:hidden;margin-top:6px}
+.bar{height:100%;background:#0ea5e9;border-radius:4px;width:0;transition:width .3s}
+#log{margin-top:14px;max-height:220px;overflow-y:auto;background:#0f172a;border-radius:8px;padding:12px;font:12px/1.7 'JetBrains Mono',monospace;display:none}
+.ok{color:#34d399}.warn{color:#fbbf24}.err{color:#f87171}.info{color:#94a3b8}
+#result-box{display:none;margin-top:18px;background:#0f172a;border-radius:8px;padding:14px}
+.stat{font-size:28px;font-weight:700;color:#34d399}
+.stat-label{font-size:12px;color:#64748b}
+#user-info{font-size:12px;color:#64748b;margin-bottom:16px;display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🔄 Atualizar Fotos Kalipso</h1>
+  <p class="sub">Lê todos os produtos do Firestore e preenche <code>fotoUrl</code> para os 114 modelos Kalipso com CA mapeado.</p>
+  <div id="user-info"></div>
+  <button id="btn-login" class="btn-primary" style="display:none">🔐 Entrar com Google</button>
+  <button id="btn-run" class="btn-primary" disabled>🚀 Atualizar Produtos Kalipso</button>
+  <div class="status" id="status">Verificando autenticação…</div>
+  <div id="progress-wrap">
+    <div style="font-size:12px;color:#64748b" id="progress-label">0 / 0</div>
+    <div class="bar-bg"><div class="bar" id="bar"></div></div>
+  </div>
+  <div id="log"></div>
+  <div id="result-box">
+    <div style="display:flex;gap:24px;margin-bottom:8px">
+      <div><div class="stat" id="r-match">0</div><div class="stat-label">produtos com foto</div></div>
+      <div><div class="stat" id="r-skip">0</div><div class="stat-label">já tinham foto (mantidos)</div></div>
+      <div><div class="stat" id="r-no">0</div><div class="stat-label">sem CA mapeado</div></div>
+    </div>
+    <div style="font-size:12px;color:#64748b" id="r-msg"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
+import { getAuth, signInWithPopup, onAuthStateChanged, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
+import { getFirestore, collection, getDocs, writeBatch, doc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCTjE53vhBz9sQrD_6e_6t0fQjkQciwvZU",
+  authDomain: "ponte-hub.firebaseapp.com",
+  projectId: "ponte-hub",
+  storageBucket: "ponte-hub.firebasestorage.app",
+  messagingSenderId: "591701694553",
+  appId: "1:591701694553:web:92f941ca92c7c19ed3b948"
+};
+
+// CA → {id, nome, url} mapping (114 modelos)
+const CA_MAP = {"34493":{"id":"4","nome":"Tricotada Branca","url":"https://ponte-hub.vercel.app/img/kalipso/4.webp"},"34473":{"id":"5","nome":"Tricotada Mesclada","url":"https://ponte-hub.vercel.app/img/kalipso/5.webp"},"34492":{"id":"6","nome":"Tricotada Preta","url":"https://ponte-hub.vercel.app/img/kalipso/6.webp"},"39670":{"id":"12","nome":"Helanca Pro Preta","url":"https://ponte-hub.vercel.app/img/kalipso/12.webp"},"34491":{"id":"11","nome":"Tatex Preta","url":"https://ponte-hub.vercel.app/img/kalipso/11.webp"},"34474":{"id":"9","nome":"Tatex Mesclada","url":"https://ponte-hub.vercel.app/img/kalipso/9.webp"},"39669":{"id":"27","nome":"Helanca Pro Pigmentada","url":"https://ponte-hub.vercel.app/img/kalipso/27.webp"},"15616":{"id":"21","nome":"Helanca","url":"https://ponte-hub.vercel.app/img/kalipso/21.webp"},"15617":{"id":"23","nome":"Helanca Pigmentada","url":"https://ponte-hub.vercel.app/img/kalipso/23.webp"},"14470":{"id":"26","nome":"K10","url":"https://ponte-hub.vercel.app/img/kalipso/26.webp"},"54017":{"id":"28","nome":"K30","url":"https://ponte-hub.vercel.app/img/kalipso/28.webp"},"16050":{"id":"29","nome":"K40","url":"https://ponte-hub.vercel.app/img/kalipso/29.webp"},"37919":{"id":"30","nome":"Ark Light","url":"https://ponte-hub.vercel.app/img/kalipso/30.webp"},"37918":{"id":"31","nome":"Ark Plus","url":"https://ponte-hub.vercel.app/img/kalipso/31.webp"},"13959":{"id":"32","nome":"Latex Amarela","url":"https://ponte-hub.vercel.app/img/kalipso/32.webp"},"38090":{"id":"33","nome":"Latex Light","url":"https://ponte-hub.vercel.app/img/kalipso/33.webp"},"44957":{"id":"34","nome":"Rã Perfurado","url":"https://ponte-hub.vercel.app/img/kalipso/34.webp"},"11285":{"id":"35","nome":"Rã Valvulado","url":"https://ponte-hub.vercel.app/img/kalipso/35.webp"},"15685":{"id":"36","nome":"Neoprex","url":"https://ponte-hub.vercel.app/img/kalipso/36.webp"},"20857":{"id":"37","nome":"Angra","url":"https://ponte-hub.vercel.app/img/kalipso/37.webp"},"41414":{"id":"38","nome":"Neoprex Light","url":"https://ponte-hub.vercel.app/img/kalipso/38.webp"},"32728":{"id":"41","nome":"Super Silver Azul","url":"https://ponte-hub.vercel.app/img/kalipso/41.webp"},"32499":{"id":"43","nome":"Latex Orange","url":"https://ponte-hub.vercel.app/img/kalipso/43.webp"},"25716":{"id":"44","nome":"Aruba","url":"https://ponte-hub.vercel.app/img/kalipso/44.webp"},"39668":{"id":"45","nome":"Blue Flex","url":"https://ponte-hub.vercel.app/img/kalipso/45.webp"},"25715":{"id":"46","nome":"Tahiti","url":"https://ponte-hub.vercel.app/img/kalipso/46.webp"},"20858":{"id":"47","nome":"Orange Flex","url":"https://ponte-hub.vercel.app/img/kalipso/47.webp"},"34485":{"id":"48","nome":"Vancouver","url":"https://ponte-hub.vercel.app/img/kalipso/48.webp"},"38961":{"id":"49","nome":"Eco Flex","url":"https://ponte-hub.vercel.app/img/kalipso/49.webp"},"39506":{"id":"50","nome":"Genebra","url":"https://ponte-hub.vercel.app/img/kalipso/50.webp"},"15915":{"id":"52","nome":"Confortex Plus","url":"https://ponte-hub.vercel.app/img/kalipso/52.webp"},"10346":{"id":"53","nome":"Jaguar","url":"https://ponte-hub.vercel.app/img/kalipso/53.webp"},"37091":{"id":"54","nome":"Confortato","url":"https://ponte-hub.vercel.app/img/kalipso/54.webp"},"41415":{"id":"57","nome":"Red Grip","url":"https://ponte-hub.vercel.app/img/kalipso/57.webp"},"11268":{"id":"59","nome":"Leopardo","url":"https://ponte-hub.vercel.app/img/kalipso/59.webp"},"38091":{"id":"60","nome":"Blue Grip","url":"https://ponte-hub.vercel.app/img/kalipso/60.webp"},"39507":{"id":"61","nome":"Lêmure","url":"https://ponte-hub.vercel.app/img/kalipso/61.webp"},"20954":{"id":"62","nome":"Black Grip","url":"https://ponte-hub.vercel.app/img/kalipso/62.webp"},"11832":{"id":"63","nome":"Jaguar II","url":"https://ponte-hub.vercel.app/img/kalipso/63.webp"},"10345":{"id":"64","nome":"Lince","url":"https://ponte-hub.vercel.app/img/kalipso/64.webp"},"38092":{"id":"65","nome":"Black Wave","url":"https://ponte-hub.vercel.app/img/kalipso/65.webp"},"10344":{"id":"66","nome":"Panda","url":"https://ponte-hub.vercel.app/img/kalipso/66.webp"},"32498":{"id":"68","nome":"Nitrili-ka 05","url":"https://ponte-hub.vercel.app/img/kalipso/68.webp"},"11769":{"id":"69","nome":"Nitrili-ka 10","url":"https://ponte-hub.vercel.app/img/kalipso/69.webp"},"27598":{"id":"70","nome":"Nitrili-ka 15","url":"https://ponte-hub.vercel.app/img/kalipso/70.webp"},"36755":{"id":"72","nome":"Nitrisensi Soft","url":"https://ponte-hub.vercel.app/img/kalipso/72.webp"},"15618":{"id":"73","nome":"Castor II","url":"https://ponte-hub.vercel.app/img/kalipso/73.webp"},"25717":{"id":"75","nome":"Bali","url":"https://ponte-hub.vercel.app/img/kalipso/75.webp"},"44042":{"id":"76","nome":"Nitrili-ka 10 Light","url":"https://ponte-hub.vercel.app/img/kalipso/76.webp"},"25714":{"id":"77","nome":"Capri","url":"https://ponte-hub.vercel.app/img/kalipso/77.webp"},"16900":{"id":"78","nome":"Guepardo","url":"https://ponte-hub.vercel.app/img/kalipso/78.webp"},"20028":{"id":"79","nome":"Hawai","url":"https://ponte-hub.vercel.app/img/kalipso/79.webp"},"20029":{"id":"80","nome":"Java","url":"https://ponte-hub.vercel.app/img/kalipso/80.webp"},"34712":{"id":"156","nome":"Saara Punho Longo","url":"https://ponte-hub.vercel.app/img/kalipso/156.webp"},"18422":{"id":"82","nome":"Koala","url":"https://ponte-hub.vercel.app/img/kalipso/82.webp"},"34456":{"id":"83","nome":"Sonora","url":"https://ponte-hub.vercel.app/img/kalipso/83.webp"},"20030":{"id":"84","nome":"Paraty","url":"https://ponte-hub.vercel.app/img/kalipso/84.webp"},"50280":{"id":"85","nome":"Sonora Pro","url":"https://ponte-hub.vercel.app/img/kalipso/85.webp"},"15684":{"id":"86","nome":"Pallas","url":"https://ponte-hub.vercel.app/img/kalipso/86.webp"},"35158":{"id":"88","nome":"Ibiza Haste Marrom","url":"https://ponte-hub.vercel.app/img/kalipso/88.webp"},"35156":{"id":"89","nome":"Jamaica","url":"https://ponte-hub.vercel.app/img/kalipso/89.webp"},"35157":{"id":"90","nome":"Veneza","url":"https://ponte-hub.vercel.app/img/kalipso/90.webp"},"45873":{"id":"141","nome":"Cancun Haste Vermelha","url":"https://ponte-hub.vercel.app/img/kalipso/141.webp"},"43773":{"id":"92","nome":"NBR Wave","url":"https://ponte-hub.vercel.app/img/kalipso/92.webp"},"50279":{"id":"93","nome":"NBR Wave Pro","url":"https://ponte-hub.vercel.app/img/kalipso/93.webp"},"43750":{"id":"94","nome":"Antártida","url":"https://ponte-hub.vercel.app/img/kalipso/94.webp"},"45752":{"id":"96","nome":"Impact Plus","url":"https://ponte-hub.vercel.app/img/kalipso/96.webp"},"34713":{"id":"97","nome":"Atacama","url":"https://ponte-hub.vercel.app/img/kalipso/97.webp"},"34714":{"id":"98","nome":"Atacama Pro","url":"https://ponte-hub.vercel.app/img/kalipso/98.webp"},"50892":{"id":"99","nome":"Sumatra","url":"https://ponte-hub.vercel.app/img/kalipso/99.webp"},"35953":{"id":"101","nome":"Nitrili-ka 20","url":"https://ponte-hub.vercel.app/img/kalipso/101.webp"},"48700":{"id":"102","nome":"Nitrili-ka 25","url":"https://ponte-hub.vercel.app/img/kalipso/102.webp"},"50807":{"id":"103","nome":"Nitrili-ka 30","url":"https://ponte-hub.vercel.app/img/kalipso/103.webp"},"48701":{"id":"104","nome":"Nitrili-ka 35","url":"https://ponte-hub.vercel.app/img/kalipso/104.webp"},"50347":{"id":"105","nome":"Nitrili-ka 40","url":"https://ponte-hub.vercel.app/img/kalipso/105.webp"},"25254":{"id":"106","nome":"Nitrili-ka Premium","url":"https://ponte-hub.vercel.app/img/kalipso/106.webp"},"15271":{"id":"108","nome":"NBR Preta","url":"https://ponte-hub.vercel.app/img/kalipso/108.webp"},"50278":{"id":"110","nome":"NBR PRO Preta","url":"https://ponte-hub.vercel.app/img/kalipso/110.webp"},"44304":{"id":"111","nome":"Nbr Foam","url":"https://ponte-hub.vercel.app/img/kalipso/111.webp"},"15272":{"id":"114","nome":"PU Preta","url":"https://ponte-hub.vercel.app/img/kalipso/114.webp"},"21420":{"id":"117","nome":"PVC 45 cm","url":"https://ponte-hub.vercel.app/img/kalipso/117.webp"},"32726":{"id":"118","nome":"Vinil","url":"https://ponte-hub.vercel.app/img/kalipso/118.webp"},"9070":{"id":"119","nome":"Work","url":"https://ponte-hub.vercel.app/img/kalipso/119.webp"},"43565":{"id":"138","nome":"Flex Foam","url":"https://ponte-hub.vercel.app/img/kalipso/138.webp"},"45045":{"id":"139","nome":"Maiorca","url":"https://ponte-hub.vercel.app/img/kalipso/139.webp"},"48789":{"id":"144","nome":"Macacão de Proteção KT6","url":"https://ponte-hub.vercel.app/img/kalipso/144.webp"},"49679":{"id":"145","nome":"Black Rock","url":"https://ponte-hub.vercel.app/img/kalipso/145.webp"},"49675":{"id":"146","nome":"K-Argon Pro","url":"https://ponte-hub.vercel.app/img/kalipso/146.webp"},"50739":{"id":"147","nome":"Dual Grip","url":"https://ponte-hub.vercel.app/img/kalipso/147.webp"},"50277":{"id":"148","nome":"K-Argon","url":"https://ponte-hub.vercel.app/img/kalipso/148.webp"},"50803":{"id":"149","nome":"K-Argon Ultra","url":"https://ponte-hub.vercel.app/img/kalipso/149.webp"},"50682":{"id":"150","nome":"Blue Eco","url":"https://ponte-hub.vercel.app/img/kalipso/150.webp"},"50185":{"id":"151","nome":"Impact Ultra","url":"https://ponte-hub.vercel.app/img/kalipso/151.webp"},"50287":{"id":"152","nome":"Marrocos","url":"https://ponte-hub.vercel.app/img/kalipso/152.webp"},"50750":{"id":"153","nome":"Impact Pro","url":"https://ponte-hub.vercel.app/img/kalipso/153.webp"},"50683":{"id":"154","nome":"NBR Ultra","url":"https://ponte-hub.vercel.app/img/kalipso/154.webp"},"50681":{"id":"155","nome":"Orange Eco","url":"https://ponte-hub.vercel.app/img/kalipso/155.webp"},"49319":{"id":"157","nome":"Kronos","url":"https://ponte-hub.vercel.app/img/kalipso/157.webp"},"50793":{"id":"158","nome":"Dual Grip Cut","url":"https://ponte-hub.vercel.app/img/kalipso/158.webp"},"50838":{"id":"159","nome":"Ilhabela","url":"https://ponte-hub.vercel.app/img/kalipso/159.webp"},"50882":{"id":"160","nome":"Impact Pro Full","url":"https://ponte-hub.vercel.app/img/kalipso/160.webp"},"50881":{"id":"162","nome":"Saara Light","url":"https://ponte-hub.vercel.app/img/kalipso/162.webp"},"51094":{"id":"163","nome":"Antártida 101-201","url":"https://ponte-hub.vercel.app/img/kalipso/163.webp"},"51060":{"id":"164","nome":"Hyperguard Food 70-001","url":"https://ponte-hub.vercel.app/img/kalipso/164.webp"},"51093":{"id":"165","nome":"Antártida 101-202","url":"https://ponte-hub.vercel.app/img/kalipso/165.webp"},"51130":{"id":"166","nome":"Impact Reinforced","url":"https://ponte-hub.vercel.app/img/kalipso/166.webp"},"51035":{"id":"167","nome":"Antártida Iceland 94-201","url":"https://ponte-hub.vercel.app/img/kalipso/167.webp"},"51207":{"id":"178","nome":"Impact Endurance 68-002","url":"https://ponte-hub.vercel.app/img/kalipso/178.webp"},"51229":{"id":"171","nome":"Super Silver Light Verde","url":"https://ponte-hub.vercel.app/img/kalipso/171.webp"},"51240":{"id":"173","nome":"Chemblock - 122-002 - 35cm","url":"https://ponte-hub.vercel.app/img/kalipso/173.webp"},"50695":{"id":"176","nome":"Nitrili-ka 03 Verde","url":"https://ponte-hub.vercel.app/img/kalipso/176.webp"},"50839":{"id":"177","nome":"Mônaco","url":"https://ponte-hub.vercel.app/img/kalipso/177.webp"}};
+
+function normCA(v){ return String(v||'').replace(/[\s.\-]/g,'').trim(); }
+function log(cls,msg){ const el=document.getElementById('log'); el.style.display='block'; el.innerHTML+=`<span class="${cls}">${msg}</span>\n`; el.scrollTop=el.scrollHeight; }
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const btnLogin = document.getElementById('btn-login');
+const btnRun   = document.getElementById('btn-run');
+const status   = document.getElementById('status');
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById('user-info').style.display = 'block';
+    document.getElementById('user-info').textContent = `✓ Logado como ${user.email}`;
+    btnLogin.style.display = 'none';
+    btnRun.disabled = false;
+    status.textContent = 'Pronto. Clique em Atualizar para processar os produtos.';
+  } else {
+    btnLogin.style.display = 'inline-flex';
+    btnRun.disabled = true;
+    status.textContent = 'Faça login para continuar.';
+  }
+});
+
+btnLogin.onclick = async () => {
+  try {
+    btnLogin.disabled = true;
+    status.textContent = 'Abrindo janela de login…';
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  } catch(e) {
+    status.textContent = 'Erro no login: ' + e.message;
+    btnLogin.disabled = false;
+  }
+};
+
+btnRun.onclick = async () => {
+  btnRun.disabled = true;
+  status.textContent = 'Lendo produtos do Firestore…';
+  document.getElementById('progress-wrap').style.display = 'block';
+
+  try {
+    const snap = await getDocs(collection(db, 'produtos'));
+    const total = snap.size;
+    status.textContent = `${total} produtos lidos. Processando…`;
+    log('info', `Total de produtos: ${total}`);
+
+    const toUpdate = [], skipped = [], noMatch = [];
+
+    snap.forEach(d => {
+      const p = d.data();
+      const ca = normCA(p.ca || p.certificado || '');
+      if (ca && CA_MAP[ca]) {
+        if (p.fotoUrl && p.fotoUrl.includes('kalipso')) {
+          skipped.push({nome: p.nome, ca});
+        } else {
+          toUpdate.push({id: d.id, url: CA_MAP[ca].url, nome: p.nome || CA_MAP[ca].nome, ca});
+        }
+      } else {
+        noMatch.push(p.nome || d.id);
+      }
+    });
+
+    log('info', `A atualizar: ${toUpdate.length} | Já OK: ${skipped.length} | Sem CA mapeado: ${noMatch.length}`);
+
+    // Batch update (max 500/batch)
+    let done = 0;
+    const batchSize = 400;
+    for (let i = 0; i < toUpdate.length; i += batchSize) {
+      const chunk = toUpdate.slice(i, i + batchSize);
+      const batch = writeBatch(db);
+      chunk.forEach(({id, url}) => batch.update(doc(db,'produtos',id), {fotoUrl: url}));
+      await batch.commit();
+      done += chunk.length;
+      const pct = Math.round((done / toUpdate.length) * 100);
+      document.getElementById('bar').style.width = pct + '%';
+      document.getElementById('progress-label').textContent = `${done} / ${toUpdate.length}`;
+      chunk.forEach(({nome, ca, url}) => log('ok', `✓ ${nome} (CA ${ca}) → ${url.split('/').pop()}`));
+    }
+
+    skipped.forEach(({nome, ca}) => log('warn', `↷ ${nome} (CA ${ca}) — já tinha foto`));
+
+    // Show results
+    document.getElementById('result-box').style.display = 'block';
+    document.getElementById('r-match').textContent = toUpdate.length;
+    document.getElementById('r-skip').textContent = skipped.length;
+    document.getElementById('r-no').textContent = noMatch.length;
+    document.getElementById('r-msg').textContent = `Concluído! ${toUpdate.length} produtos receberam fotoUrl Kalipso do GitHub/Vercel.`;
+    status.textContent = '✅ Atualização concluída!';
+    document.getElementById('bar').style.width = '100%';
+
+  } catch(e) {
+    status.textContent = '❌ Erro: ' + e.message;
+    log('err', 'Erro: ' + e.message);
+    btnRun.disabled = false;
+  }
+};
+</script>
+</body>
+</html>

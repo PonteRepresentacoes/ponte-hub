@@ -18073,6 +18073,8 @@ function NovoPedidoEspelho({
   const [itemQtd, setItemQtd] = useState(1);
   const [itemPreco, setItemPreco] = useState("");
   const [itemProdutoId, setItemProdutoId] = useState("");
+  const [vistaGridNovoPedido, setVistaGridNovoPedido] = useState(false);
+  const [filtroMarcaNovoPedido, setFiltroMarcaNovoPedido] = useState("Todos");
   const [descComercial, setDescComercial] = useState(0);
   const [descPromocional, setDescPromocional] = useState(0);
   const [caixaMaster, setCaixaMaster] = useState(0);
@@ -18903,7 +18905,24 @@ function NovoPedidoEspelho({
     style: {
       background: ROYAL
     }
-  }, "+"))), itemProduto.trim() && produtosDaRepresentada.length > 0 &&
+  }, "+"))), produtosDaRepresentada.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: function() { setVistaGridNovoPedido(function(v) { return !v; }); setFiltroMarcaNovoPedido("Todos"); },
+    className: "text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-md border mt-1",
+    style: { borderColor: vistaGridNovoPedido ? ROYAL : LINE, color: vistaGridNovoPedido ? ROYAL : INK }
+  }, vistaGridNovoPedido ? "☰ Fechar catálogo" : "⊞ Ver catálogo"), vistaGridNovoPedido && produtosDaRepresentada.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: { maxHeight: 440, overflowY: "auto", padding: "6px 0" }
+  }, /*#__PURE__*/React.createElement(CatalogoGrid, {
+    filtrados: produtosDaRepresentada,
+    marcas: ["Todos"].concat([...new Set(produtosDaRepresentada.map(function(p) { return p.marca; }).filter(Boolean))]),
+    filtroMarca: filtroMarcaNovoPedido,
+    setFiltroMarca: setFiltroMarcaNovoPedido,
+    onEditar: function(p) {
+      setItemProduto(rotuloCatalogo(p).replace(/\s+/g, " ").trim());
+      setItemProdutoId(p.id);
+      setItemPreco(String(precoNaTabela(p, tabelaPreco) || ""));
+      setVistaGridNovoPedido(false);
+    }
+  })), itemProduto.trim() && produtosDaRepresentada.length > 0 &&
   /*#__PURE__*/
   /*#__PURE__*/
   React.createElement("p", {

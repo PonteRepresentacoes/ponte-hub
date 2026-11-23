@@ -2678,7 +2678,11 @@ function Sidebar({
       color: "#F87171",
       background: "rgba(248,113,113,0.08)"
     }
-  }, "🔄 Tentar sincronizar novamente")))));
+  }, "🔄 Tentar sincronizar novamente")), sessao && sessao.tipo === "master" && /*#__PURE__*/React.createElement("button", {
+    onClick: () => { if(window.confirm('Atualizar fotos Kalipso no Firestore?')) window.atualizarFotosKalipso(); },
+    className: "w-full text-[11px] font-bold px-2.5 py-1.5 rounded-md border",
+    style: { borderColor: "#2d6a4f", color: "#52b788", background: "rgba(82,183,136,0.08)" }
+  }, "🖼️ Fotos Kalipso"))))));
 }
 function PopupNovidades({
   onFechar
@@ -31698,4 +31702,37 @@ root.render(
 /*#__PURE__*/
 /*#__PURE__*/
 React.createElement(AuthGate, null));
+
+// === ADMIN: Atualizar fotos Kalipso por CA ===
+window.atualizarFotosKalipso = async function() {
+  const CA_MAP = {"34493":"4","34473":"5","34492":"6","39670":"12","34491":"11","34474":"9","39669":"27","15616":"21","15617":"23","14470":"26","54017":"28","16050":"29","37919":"30","37918":"31","13959":"32","38090":"33","44957":"34","11285":"35","15685":"36","20857":"37","41414":"38","32728":"41","32499":"43","25716":"44","39668":"45","25715":"46","20858":"47","34485":"48","38961":"49","39506":"50","15915":"52","10346":"53","37091":"54","41415":"57","11268":"59","38091":"60","39507":"61","20954":"62","11832":"63","10345":"64","38092":"65","10344":"66","32498":"68","11769":"69","27598":"70","36755":"72","15618":"73","25717":"75","44042":"76","25714":"77","16900":"78","20028":"79","20029":"80","34712":"156","18422":"82","34456":"83","20030":"84","50280":"85","15684":"86","35158":"88","35156":"89","35157":"90","45873":"141","43773":"92","50279":"93","43750":"94","45752":"96","34713":"97","34714":"98","50892":"99","35953":"101","48700":"102","50807":"103","48701":"104","50347":"105","25254":"106","15271":"108","50278":"110","44304":"111","15272":"114","21420":"117","32726":"118","9070":"119","43565":"138","45045":"139","48789":"144","49679":"145","49675":"146","50739":"147","50277":"148","50803":"149","50682":"150","50185":"151","50287":"152","50750":"153","50683":"154","50681":"155","49319":"157","50793":"158","50838":"159","50882":"160","50881":"162","51094":"163","51060":"164","51093":"165","51130":"166","51035":"167","51207":"178","51229":"171","51240":"173","50695":"176","50839":"177"};
+  const BASE = "https://ponte-hub.vercel.app/img/kalipso/";
+  const f = v => String(v||'').replace(/[\s.\-]/g,'').trim();
+  try {
+    const db = firebase.firestore();
+    const snap = await db.collection('produtos').get();
+    console.log('Produtos lidos:', snap.size);
+    if (snap.size === 0) { alert('⚠️ Nenhum produto encontrado. Verifique se está logado.'); return; }
+    const batches = [];
+    let cur = db.batch();
+    let n = 0, total = 0;
+    snap.forEach(d => {
+      const p = d.data();
+      const ca = f(p.ca || '');
+      if (ca && CA_MAP[ca] && !(p.fotoUrl || '').includes('kalipso')) {
+        cur.update(d.ref, { fotoUrl: BASE + CA_MAP[ca] + '.webp' });
+        n++;
+        if (n % 490 === 0) { batches.push(cur); cur = db.batch(); }
+      }
+    });
+    if (n % 490 !== 0) batches.push(cur);
+    total = n;
+    if (!total) { alert('ℹ️ Nenhum produto Kalipso sem foto para atualizar.'); return; }
+    for (const b of batches) await b.commit();
+    alert('✅ ' + total + ' produtos atualizados com foto Kalipso!');
+  } catch(e) {
+    console.error(e);
+    alert('❌ Erro: ' + e.message);
+  }
+};
 </script></body></html>

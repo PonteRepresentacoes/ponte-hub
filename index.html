@@ -19451,6 +19451,8 @@ function Orcamentos({
   const [filtroSituacao, setFiltroSituacao] = useState("");
   const [expandidos, setExpandidos] = useState(new Set());
   const [semPreco, setSemPreco] = useState(false);
+  const [vistaGridPedido, setVistaGridPedido] = useState(false);
+  const [filtroMarcaPedido, setFiltroMarcaPedido] = useState("Todos");
   // ── Rascunho de orçamento em edição ─────────────────────────────────────
   const ORC_DRAFT_KEY = "pontehub_rascunho_orcamento";
   React.useEffect(() => {
@@ -20181,7 +20183,26 @@ ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</di
       style: {
         background: ROYAL
       }
-    }, "+"))), novoItem.produto.trim() && produtosDaRep.length > 0 && /*#__PURE__*/React.createElement("p", {
+    }, "+"))), produtosDaRep.length > 0 && /*#__PURE__*/React.createElement("button", {
+      onClick: function() { setVistaGridPedido(function(v) { return !v; }); setFiltroMarcaPedido("Todos"); },
+      className: "text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-md border mt-1",
+      style: { borderColor: vistaGridPedido ? ROYAL : LINE, color: vistaGridPedido ? ROYAL : INK }
+    }, vistaGridPedido ? "☰ Fechar catálogo" : "⊞ Ver catálogo"), vistaGridPedido && produtosDaRep.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: { maxHeight: 440, overflowY: "auto", padding: "6px 0" }
+    }, /*#__PURE__*/React.createElement(CatalogoGrid, {
+      filtrados: produtosDaRep,
+      marcas: ["Todos"].concat([...new Set(produtosDaRep.map(function(p) { return p.marca; }).filter(Boolean))]),
+      filtroMarca: filtroMarcaPedido,
+      setFiltroMarca: setFiltroMarcaPedido,
+      onEditar: function(p) {
+        setNovoItem({
+          produto: rotuloProdutoCatalogo(p).replace(/\s+/g, " ").trim(),
+          qtd: 1,
+          preco: String(precoNaTabela(p, tabelaDoPedido) || "")
+        });
+        setVistaGridPedido(false);
+      }
+    })), novoItem.produto.trim() && produtosDaRep.length > 0 && /*#__PURE__*/React.createElement("p", {
       "data-testid": "orc-item-hint",
       className: "text-[11px] font-semibold",
       style: {

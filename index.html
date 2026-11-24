@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.6";
+const APP_VERSAO = "1.9.7";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -24933,8 +24933,56 @@ function filtrarCatalogoPorTexto(lista, texto) {
     return palavras.every(w => h.includes(w));
   });
 }
+// Linha do produto (agrupa o catálogo). Usa o campo "linha" se existir; na Kalipso deduz pelo nome
+// (ex.: OCULOS JAGUAR CINZA AF -> Jaguar; LUVA TATEX BRANCA -> Tatex; LUVA NITRILI-KA 03 -> Nitrili-Ka).
+const LINHA_STOP = /^(T\.?|T\.\d.*|P|M|G|GG|XG|PP|\d[\d\-.\/]*|PTA|PRETA|PRETO|BCA|BRANCA|BRANCO|CZ|CINZA|AM|AMAR\.?|AMARELO|AMARELA|LAR|AZ|AZUL|VM|VERMELHA|VERMELHO|MARROM|VERDE|MESCLADA|PIG\.?|LARANJA|INC|INCOLOR|LENTE|AF|IR|ESPELHADO|S\/BLISTER|C\/.*|PERF\.?|COM|SEM|EMB.*|\(.*)$/;
+const LINHA_FAMILIAS = ["NITRILI-KA", "ANTARTIDA", "SAARA", "ATACAMA", "SONORA", "MARROCOS", "NEOPREX", "K-ARGON", "HELANCA", "IMPACT", "NBR", "ENDURANCE", "CONFORTEX", "CONFORTATO", "PU"];
+const LINHA_ORDEM_CATEGORIAS = ["Óculos", "Luvas", "Coletes", "Vestimentas", "Proteção auditiva", "Filtros e lentes", "Sinalização", "Especiais", "Fitas"];
+function linhaTitulo(txt) {
+  return txt.split(" ").map(w => w.split("-").map(x => x.length <= 3 && !/^(KAL|PRO)$/.test(x) ? x.toUpperCase() : x.charAt(0).toUpperCase() + x.slice(1).toLowerCase()).join("-")).join(" ");
+}
+function linhaDoProduto(p) {
+  if (p.linha) return String(p.linha);
+  if (!/kalipso/i.test(p.representada || "")) return "";
+  const n = String(p.nome || "").toUpperCase().replace(/\s+/g, " ").trim();
+  const cat = p.categoria || "";
+  if (/^OCULOS /.test(n) || cat === "Óculos") {
+    const t = n.replace(/^OCULOS /, "").split(" ");
+    const m = [];
+    for (const x of t) { if (LINHA_STOP.test(x)) break; m.push(x); }
+    return linhaTitulo(m.join(" ") || t[0]);
+  }
+  if (/^LUVA /.test(n)) {
+    if (n.includes("TATEX")) return "Tatex";
+    const t = n.replace(/^LUVA /, "").replace(/^DE /, "").split(" ");
+    const m = [];
+    for (const x of t) { if (LINHA_STOP.test(x)) break; m.push(x); if (m.length === 2) break; }
+    let r = m.join(" ") || t[0];
+    const f = LINHA_FAMILIAS.find(c => r === c || r.startsWith(c + " "));
+    if (f) r = f;
+    return linhaTitulo(r);
+  }
+  return cat || "Outros";
+}
 function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar, precoDoProduto }) {
   const filtradosPorMarca = filtroMarca === "Todos" ? filtrados : filtrados.filter(p => p.marca === filtroMarca);
+  const [linhaSel, setLinhaSel] = useState("Todas");
+  // Agrupa por linha (só quando há mais de uma linha na lista).
+  const grupos = new Map();
+  filtradosPorMarca.forEach(p => {
+    const l = linhaDoProduto(p) || "Outros";
+    if (!grupos.has(l)) grupos.set(l, { cat: p.categoria || "", itens: [] });
+    grupos.get(l).itens.push(p);
+  });
+  const temLinhas = grupos.size > 1 && filtradosPorMarca.some(p => linhaDoProduto(p));
+  const idxCat = c => { const i = LINHA_ORDEM_CATEGORIAS.indexOf(c); return i < 0 ? 99 : i; };
+  const gruposOrdenados = [...grupos.entries()].sort((a, b) => idxCat(a[1].cat) - idxCat(b[1].cat) || a[0].localeCompare(b[0], "pt-BR"));
+  const selAtual = grupos.has(linhaSel) ? linhaSel : "Todas";
+  const listaFinal = temLinhas
+    ? gruposOrdenados.filter(([nome]) => selAtual === "Todas" || nome === selAtual).flatMap(([nome, g]) => [{ __cab: nome + " · " + g.itens.length + (g.itens.length === 1 ? " item" : " itens") }].concat(g.itens))
+    : filtradosPorMarca;
+  const porCategoria = {};
+  gruposOrdenados.forEach(([nome, g]) => { (porCategoria[g.cat || "Outros"] = porCategoria[g.cat || "Outros"] || []).push([nome, g.itens.length]); });
   return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
     marcas.length > 1 && React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 8 } },
       marcas.map(function(m) {
@@ -24952,6 +25000,20 @@ function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar
         }, m);
       })
     ),
+    temLinhas && React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" } },
+      React.createElement("label", { style: { fontSize: 12, fontWeight: 700, color: INK } }, "Linha:"),
+      React.createElement("select", {
+        value: selAtual,
+        onChange: function(e) { setLinhaSel(e.target.value); },
+        style: { fontSize: 13, padding: "6px 10px", borderRadius: 8, border: "1px solid " + LINE, background: "var(--card)", color: INK, maxWidth: "100%" }
+      },
+        React.createElement("option", { value: "Todas" }, "Todas as linhas (" + filtradosPorMarca.length + " itens)"),
+        Object.keys(porCategoria).sort((a, b) => idxCat(a) - idxCat(b)).map(function(cat) {
+          return React.createElement("optgroup", { key: cat, label: cat },
+            porCategoria[cat].map(function(x) { return React.createElement("option", { key: x[0], value: x[0] }, x[0] + " (" + x[1] + ")"); }));
+        })
+      )
+    ),
     filtradosPorMarca.length === 0
       ? React.createElement(EmptyState, { text: "Nenhum produto encontrado." })
       : React.createElement("div", {
@@ -24961,7 +25023,11 @@ function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar
             gap: 16
           }
         },
-        filtradosPorMarca.map(function(p) {
+        listaFinal.map(function(p) {
+          if (p.__cab) return React.createElement("div", {
+            key: "cab-" + p.__cab,
+            style: { gridColumn: "1 / -1", fontSize: 13, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: ROYAL, borderBottom: "2px solid " + ROYAL, paddingBottom: 4, marginTop: 8 }
+          }, p.__cab);
           const semEstoque = (Number(p.estoqueAtual) || 0) === 0;
           const estoqueOk = (Number(p.estoqueAtual) || 0) > (Number(p.estoqueMinimo) || 0);
           return React.createElement("div", {

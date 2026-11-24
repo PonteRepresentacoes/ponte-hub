@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.4";
+const APP_VERSAO = "1.9.5";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -25003,6 +25003,21 @@ function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar
       )
   );
 }
+// Busca de imagens: endereço do Worker do Cloudflare (ponte-imagens). Vazio = usa /api/imagens (Vercel),
+// que o Bing/DuckDuckGo costumam bloquear. Preencher com o endereço .workers.dev depois de publicar o Worker.
+const IMAGENS_BUSCA_URL = "https://ponte-imagens.ponterepresentacoes.workers.dev/";
+// Foto escolhida na busca é copiada pro Cloudinary (conta fsilapsf, preset sem assinatura).
+const CLOUDINARY_CLOUD = "fsilapsf";
+const CLOUDINARY_PRESET = "ponte-hub-produtos";
+async function guardarImagemNoCloudinary(url) {
+  const fd = new FormData();
+  fd.append("file", url);
+  fd.append("upload_preset", CLOUDINARY_PRESET);
+  const r = await fetch("https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD + "/image/upload", { method: "POST", body: fd });
+  const j = await r.json();
+  if (!r.ok || !j.secure_url) throw new Error(j && j.error && j.error.message || "Cloudinary recusou");
+  return j.secure_url;
+}
 function BuscaImagemProduto({
   consultaInicial,
   onEscolher
@@ -25018,7 +25033,7 @@ function BuscaImagemProduto({
     setCarregando(true);
     setErro("");
     try {
-      const r = await fetch("/api/imagens?q=" + encodeURIComponent(termo));
+      const r = await fetch((IMAGENS_BUSCA_URL || "/api/imagens") + "?q=" + encodeURIComponent(termo));
       const j = await r.json();
       if (!r.ok) throw new Error(j && j.erro || "Falha na busca");
       setResultados(j.resultados || []);
@@ -25031,9 +25046,19 @@ function BuscaImagemProduto({
     }
   };
   useEffect(() => { if (consultaInicial) buscar(consultaInicial); }, []);
-  // Usa a imagem original; se o site dela bloquear o uso em outros sites, cai pra miniatura.
-  const escolher = (r) => {
+  // Copia a imagem escolhida pro Cloudinary (o Cloudinary baixa direto do site de origem). Se não der,
+  // usa o endereço original; se o site dela bloquear o uso em outros sites, cai pra miniatura.
+  const escolher = async (r) => {
     setEscolhendo(r.imagem);
+    for (const alvo of [r.imagem, r.miniatura]) {
+      if (!alvo) continue;
+      try {
+        const guardada = await guardarImagemNoCloudinary(alvo);
+        setEscolhendo("");
+        onEscolher(guardada);
+        return;
+      } catch (e) { /* tenta a próxima */ }
+    }
     const teste = new Image();
     teste.onload = () => { setEscolhendo(""); onEscolher(r.imagem); };
     teste.onerror = () => { setEscolhendo(""); onEscolher(r.miniatura || r.imagem); };

@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.3";
+const APP_VERSAO = "1.9.4";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -18178,6 +18178,25 @@ function NovoPedidoEspelho({
     // Trocou de representada — a tabela escolhida antes pode não existir mais nessa aqui.
     if (tabelaPreco && !tabelasDisponiveis.includes(tabelaPreco)) setTabelaPreco("");
   }, [representada]);
+  // Kalipso: sugere a tabela de preço pela classificação do cliente (Premium/Standard = comissão 3%,
+  // Basic ou cliente novo = faixas 7% a 3%, começa na 5%). Não sobrescreve escolha manual nem rascunho.
+  const tabelaAutoKalipsoRef = useRef("");
+  useEffect(() => {
+    if (!cliente || !/kalipso/i.test(representada || "")) return;
+    const cls = String(cliente.classificacao || "").toUpperCase();
+    const alvo = cls.startsWith("PREMIUM") ? "Kalipso Premium (3%)" : cls.startsWith("STAND") ? "Kalipso Standard (3%)" : "Kalipso Basic 5%";
+    if (!tabelasDisponiveis.includes(alvo)) return;
+    if (tabelaPreco === "" || tabelaPreco === tabelaAutoKalipsoRef.current) {
+      tabelaAutoKalipsoRef.current = alvo;
+      setTabelaPreco(alvo);
+    }
+  }, [clienteId, representada, tabelasDisponiveis.length]);
+  const infoKalipso = (() => {
+    if (!cliente || !/kalipso/i.test(representada || "")) return "";
+    const cls = String(cliente.classificacao || "").toUpperCase();
+    const com = (String(tabelaPreco).match(/^Kalipso .*?(\d+)%/) || [])[1];
+    return `Cliente ${cls || "sem classificação (tratado como Basic/novo)"} na Kalipso${com ? " · comissão " + com + "%" : ""}.`;
+  })();
   useEffect(() => {
     // Escolheu (ou trocou) a tabela de preço — reajusta o preço de todo item que bate com o
     // catálogo (pelo nome) e também o preço que já está sendo digitado pra um item novo. Só entra
@@ -18768,7 +18787,7 @@ function NovoPedidoEspelho({
   /*#__PURE__*/
   React.createElement("p", {
     className: "text-[11px] text-slate-400 mt-1"
-  }, "Escolher a faixa já ajusta o preço dos itens que estiverem no catálogo dessa representada.")), /*#__PURE__*/React.createElement(Field, {
+  }, "Escolher a faixa já ajusta o preço dos itens que estiverem no catálogo dessa representada." + (infoKalipso ? " " + infoKalipso : ""))), /*#__PURE__*/React.createElement(Field, {
     label: "Observação para o cliente"
   }, /*#__PURE__*/React.createElement("textarea", {
     value: obsCliente,

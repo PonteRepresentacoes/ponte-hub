@@ -39,6 +39,20 @@ async function buscarBing(q) {
   return out;
 }
 
+async function buscarBingPagina(q) {
+  // Mesmo método do Worker da Vesh: página normal de imagens do Bing, campo murl.
+  const r = await fetch(`https://www.bing.com/images/search?q=${encodeURIComponent(q)}&form=HDRSC2&first=1&setlang=pt-BR`, {
+    headers: { "User-Agent": UA, "Accept-Language": "pt-BR,pt;q=0.9" }
+  });
+  if (!r.ok) throw new Error("bing-pagina " + r.status);
+  const t = await r.text();
+  const out = [];
+  for (const m of t.matchAll(/murl&quot;:&quot;(https?:[^&]+?)&quot;/g)) {
+    out.push({ imagem: m[1].replace(/\\u002f/gi, "/"), miniatura: m[1].replace(/\\u002f/gi, "/"), titulo: "", site: "" });
+  }
+  return out;
+}
+
 export default async function handler(req, res) {
   const q = String((req.query && req.query.q) || "").trim().slice(0, 150);
   if (!q) {
@@ -47,20 +61,19 @@ export default async function handler(req, res) {
   }
   let resultados = [];
   let fonte = "";
-  try {
-    resultados = await buscarDuckDuckGo(q);
-    fonte = "duckduckgo";
-  } catch (e) { /* tenta o Bing */ }
-  if (!resultados.length) {
+  const diag = [];
+  for (const [nome, fn] of [["duckduckgo", buscarDuckDuckGo], ["bing-pagina", buscarBingPagina], ["bing", buscarBing]]) {
+    if (resultados.length) break;
     try {
-      resultados = await buscarBing(q);
-      fonte = "bing";
-    } catch (e) { /* sem resultado */ }
+      resultados = await fn(q);
+      fonte = nome;
+      if (!resultados.length) diag.push(nome + ": 0 resultados");
+    } catch (e) { diag.push(nome + ": " + (e && e.message || "erro")); }
   }
   const vistos = new Set();
   const lista = resultados
     .filter(x => /^https:\/\//i.test(x.imagem || "") && !vistos.has(x.imagem) && vistos.add(x.imagem))
     .slice(0, 30);
   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate");
-  res.status(200).json({ resultados: lista, fonte });
+  res.status(200).json({ resultados: lista, fonte, diag: lista.length ? undefined : diag });
 }

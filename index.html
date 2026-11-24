@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.2";
+const APP_VERSAO = "1.9.3";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -24984,6 +24984,75 @@ function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar
       )
   );
 }
+function BuscaImagemProduto({
+  consultaInicial,
+  onEscolher
+}) {
+  const [q, setQ] = useState(consultaInicial || "");
+  const [resultados, setResultados] = useState([]);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
+  const [escolhendo, setEscolhendo] = useState("");
+  const buscar = async (texto) => {
+    const termo = String(texto != null ? texto : q).trim();
+    if (!termo) return;
+    setCarregando(true);
+    setErro("");
+    try {
+      const r = await fetch("/api/imagens?q=" + encodeURIComponent(termo));
+      const j = await r.json();
+      if (!r.ok) throw new Error(j && j.erro || "Falha na busca");
+      setResultados(j.resultados || []);
+      if (!(j.resultados || []).length) setErro("Nenhuma imagem encontrada. Tente outro termo ou use \"Abrir busca de imagens\".");
+    } catch (e) {
+      setResultados([]);
+      setErro("Não consegui buscar agora (" + e.message + "). Use \"Abrir busca de imagens\" e cole o endereço da imagem.");
+    } finally {
+      setCarregando(false);
+    }
+  };
+  useEffect(() => { if (consultaInicial) buscar(consultaInicial); }, []);
+  // Usa a imagem original; se o site dela bloquear o uso em outros sites, cai pra miniatura.
+  const escolher = (r) => {
+    setEscolhendo(r.imagem);
+    const teste = new Image();
+    teste.onload = () => { setEscolhendo(""); onEscolher(r.imagem); };
+    teste.onerror = () => { setEscolhendo(""); onEscolher(r.miniatura || r.imagem); };
+    teste.src = r.imagem;
+  };
+  return React.createElement("div", {
+    className: "mt-3 border rounded-md p-3",
+    style: { borderColor: LINE }
+  }, React.createElement("div", { className: "flex gap-2 mb-2" }, React.createElement("input", {
+    value: q,
+    onChange: e => setQ(e.target.value),
+    onKeyDown: e => { if (e.key === "Enter") buscar(); },
+    placeholder: "O que buscar? (ex.: óculos Jaguar Kalipso verde)",
+    className: "flex-1 border rounded-md px-3 py-2 text-sm",
+    style: { borderColor: LINE }
+  }), React.createElement("button", {
+    onClick: () => buscar(),
+    disabled: carregando,
+    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md",
+    style: { background: ROYAL, opacity: carregando ? 0.6 : 1 }
+  }, carregando ? "Buscando…" : "Buscar")), erro && React.createElement("p", { className: "text-xs text-amber-600 mb-2" }, erro), resultados.length > 0 && React.createElement("div", {
+    className: "gap-2",
+    style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))" }
+  }, resultados.map((r, i) => React.createElement("button", {
+    key: i,
+    type: "button",
+    title: r.titulo || "Usar esta imagem",
+    onClick: () => escolher(r),
+    className: "border rounded-md overflow-hidden bg-white",
+    style: { borderColor: LINE, opacity: escolhendo && escolhendo !== r.imagem ? 0.5 : 1 }
+  }, React.createElement("img", {
+    src: r.miniatura || r.imagem,
+    alt: r.titulo || "",
+    loading: "lazy",
+    className: "w-full h-24",
+    style: { objectFit: "contain" }
+  })))), resultados.length > 0 && React.createElement("p", { className: "text-[10px] text-slate-400 mt-2" }, "Clique na imagem para usar no produto. Confira os direitos de uso antes de publicar."));
+}
 function Produtos({
   produtos,
   setProdutos,
@@ -25014,6 +25083,7 @@ function Produtos({
   const [mostrarVisaoTabelas, setMostrarVisaoTabelas] = useState(false);
   const [vistaGrid, setVistaGrid] = useState(false);
   const [filtroMarca, setFiltroMarca] = useState("Todos");
+  const [mostrarBuscaImg, setMostrarBuscaImg] = useState(false);
   // Configuração de fotos automáticas por representada (somente master)
   const FOTOS_CONF = {
     "Kalipso": { baseUrl: "https://ponte-hub.vercel.app/img/kalipso/", caMap: {"34493":"4","34473":"5","34492":"6","39670":"12","34491":"11","34474":"9","39669":"27","15616":"21","15617":"23","14470":"26","54017":"28","16050":"29","37919":"30","37918":"31","13959":"32","38090":"33","44957":"34","11285":"35","15685":"36","20857":"37","41414":"38","32728":"41","32499":"43","25716":"44","39668":"45","25715":"46","20858":"47","34485":"48","38961":"49","39506":"50","15915":"52","10346":"53","37091":"54","41415":"57","11268":"59","38091":"60","39507":"61","20954":"62","11832":"63","10345":"64","38092":"65","10344":"66","32498":"68","11769":"69","27598":"70","36755":"72","15618":"73","25717":"75","44042":"76","25714":"77","16900":"78","20028":"79","20029":"80","34712":"156","18422":"82","34456":"83","20030":"84","50280":"85","15684":"86","35158":"88","35156":"89","35157":"90","45873":"141","43773":"92","50279":"93","43750":"94","45752":"96","34713":"97","34714":"98","50892":"99","35953":"101","48700":"102","50807":"103","48701":"104","50347":"105","25254":"106","15271":"108","50278":"110","44304":"111","15272":"114","21420":"117","32726":"118","9070":"119","43565":"138","45045":"139","48789":"144","49679":"145","49675":"146","50739":"147","50277":"148","50803":"149","50682":"150","50185":"151","50287":"152","50750":"153","50683":"154","50681":"155","49319":"157","50793":"158","50838":"159","50882":"160","50881":"162","51094":"163","51060":"164","51093":"165","51130":"166","51035":"167","51207":"178","51229":"171","51240":"173","50695":"176","50839":"177"} },
@@ -25903,28 +25973,42 @@ function Produtos({
     style: {
       borderColor: LINE
     }
-  }, "Sem foto"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md cursor-pointer inline-block",
-    style: {
-      background: ROYAL,
-      opacity: enviandoFoto ? 0.6 : 1
-    }
-  }, enviandoFoto ? "Enviando…" : "Escolher foto principal", /*#__PURE__*/React.createElement("input", {
+  }, "Sem foto"), /*#__PURE__*/React.createElement("div", { className: "flex-1 min-w-0" }, React.createElement("label", {
+    className: "block text-[11px] text-slate-400 mb-1"
+  }, "Imagem (endereço)"), React.createElement("input", {
+    value: form.fotoUrl || "",
+    onChange: set("fotoUrl"),
+    placeholder: "https://…",
+    className: "w-full border rounded-md px-3 py-2 text-sm mb-2",
+    style: { borderColor: LINE }
+  }), React.createElement("div", { className: "flex flex-wrap gap-2" }, React.createElement("button", {
+    type: "button",
+    onClick: () => setMostrarBuscaImg(v => !v),
+    className: "text-white text-xs font-bold px-4 py-2 rounded-md",
+    style: { background: ROYAL }
+  }, "Buscar na web"), React.createElement("button", {
+    type: "button",
+    onClick: () => window.open("https://www.google.com/search?tbm=isch&q=" + encodeURIComponent([form.nome, form.marca || form.representada, form.codigo].filter(Boolean).join(" ")), "_blank", "noopener"),
+    className: "text-xs font-bold px-4 py-2 rounded-md border",
+    style: { borderColor: LINE, color: INK }
+  }, "Abrir busca de imagens"), React.createElement("label", {
+    className: "text-xs font-bold px-4 py-2 rounded-md border cursor-pointer inline-block",
+    style: { borderColor: LINE, color: INK, opacity: enviandoFoto ? 0.6 : 1 }
+  }, enviandoFoto ? "Enviando…" : "Enviar do aparelho", React.createElement("input", {
     type: "file",
     accept: "image/*",
     onChange: uploadFotoUnica,
     disabled: enviandoFoto,
     className: "hidden"
-  })), form.fotoUrl &&
-  /*#__PURE__*/
-  /*#__PURE__*/
-  React.createElement("button", {
-    onClick: () => setForm(f => ({
-      ...f,
-      fotoUrl: ""
-    })),
-    className: "text-[11px] font-semibold text-slate-500 hover:text-red-600 ml-3"
-  }, "Remover foto"))), /*#__PURE__*/React.createElement("p", {
+  })), form.fotoUrl && React.createElement("button", {
+    type: "button",
+    onClick: () => setForm(f => ({ ...f, fotoUrl: "" })),
+    className: "text-xs font-bold px-4 py-2 rounded-md border",
+    style: { borderColor: "#7f1d1d", color: "#f87171" }
+  }, "Remover imagem")), mostrarBuscaImg && React.createElement(BuscaImagemProduto, {
+    consultaInicial: [form.nome, form.marca || form.representada].filter(Boolean).join(" "),
+    onEscolher: url => { setForm(f => ({ ...f, fotoUrl: url })); setMostrarBuscaImg(false); }
+  }))), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2"
   }, "Identificação"), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-3 gap-3 mb-4"

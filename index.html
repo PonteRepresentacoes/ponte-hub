@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.5";
+const APP_VERSAO = "1.9.6";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -18216,7 +18216,11 @@ function NovoPedidoEspelho({
     setItemProduto(valor);
     const prod = acharNoCatalogo(valor);
     setItemProdutoId(prod ? prod.id : "");
-    if (prod) setItemPreco(String(precoNaTabela(prod, tabelaPreco) || ""));
+    if (prod) {
+      setItemPreco(String(precoNaTabela(prod, tabelaPreco) || ""));
+      const mm = multiploMinimoDe(prod);
+      if (mm) setItemQtd(q => ajustarAoMultiplo(q, mm));
+    }
   };
   const addItem = () => {
     if (!itemProduto.trim() || !Number(itemPreco)) return;
@@ -18229,7 +18233,7 @@ function NovoPedidoEspelho({
         codigo: prod.codigo || "",
         qtdCaixaMaster: Number(prod.qtdEmbalagem) > 0 ? Number(prod.qtdEmbalagem) : 0
       } : {}),
-      quantidade: Number(itemQtd) || 1,
+      quantidade: prod ? ajustarAoMultiplo(itemQtd, multiploMinimoDe(prod)) : Number(itemQtd) || 1,
       precoUnitario: Number(itemPreco)
     }]);
     setItemProduto("");
@@ -18882,6 +18886,7 @@ function NovoPedidoEspelho({
     placeholder: representada && produtosDaRepresentada.length ? "Código ou nome do produto" : "Produto",
     "aria-label": "Produto",
     list: "novo-pedido-catalogo-produtos",
+    onKeyDown: e => { if (e.key === "Enter") { e.preventDefault(); setVistaGridNovoPedido(true); } },
     className: "col-span-3 md:col-span-2 border rounded-md px-3 py-2 text-sm",
     style: {
       borderColor: LINE
@@ -18896,9 +18901,11 @@ function NovoPedidoEspelho({
     value: rotuloCatalogo(p).replace(/\s+/g, " ").trim()
   }))), /*#__PURE__*/React.createElement("input", {
     type: "number",
-    min: 1,
+    min: multiploMinimoDe(produtoDigitado) || 1,
+    step: multiploMinimoDe(produtoDigitado) || 1,
     value: itemQtd,
     onChange: e => setItemQtd(e.target.value),
+    onBlur: () => { const m = multiploMinimoDe(produtoDigitado); if (m) setItemQtd(ajustarAoMultiplo(itemQtd, m)); },
     placeholder: "Qtd",
     "aria-label": "Quantidade",
     className: "col-span-1 border rounded-md px-3 py-2 text-sm",
@@ -18931,7 +18938,8 @@ function NovoPedidoEspelho({
   }, vistaGridNovoPedido ? "☰ Fechar catálogo" : "⊞ Ver catálogo"), vistaGridNovoPedido && produtosDaRepresentada.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: { maxHeight: 440, overflowY: "auto", padding: "6px 0" }
   }, /*#__PURE__*/React.createElement(CatalogoGrid, {
-    filtrados: produtosDaRepresentada,
+    filtrados: filtrarCatalogoPorTexto(produtosDaRepresentada, itemProduto),
+    precoDoProduto: function(p) { return precoNaTabela(p, tabelaPreco); },
     marcas: ["Todos"].concat([...new Set(produtosDaRepresentada.map(function(p) { return p.marca; }).filter(Boolean))]),
     filtroMarca: filtroMarcaNovoPedido,
     setFiltroMarca: setFiltroMarcaNovoPedido,
@@ -18939,6 +18947,7 @@ function NovoPedidoEspelho({
       setItemProduto(rotuloCatalogo(p).replace(/\s+/g, " ").trim());
       setItemProdutoId(p.id);
       setItemPreco(String(precoNaTabela(p, tabelaPreco) || ""));
+      setItemQtd(multiploMinimoDe(p) || 1);
       setVistaGridNovoPedido(false);
     }
   })), itemProduto.trim() && produtosDaRepresentada.length > 0 &&
@@ -18950,7 +18959,7 @@ function NovoPedidoEspelho({
     style: {
       color: produtoDigitado ? "#047857" : "#B45309"
     }
-  }, produtoDigitado ? `✓ ${rotuloCatalogo(produtoDigitado).replace(/\s+/g, " ").trim()} · ${brl(precoNaTabela(produtoDigitado, tabelaPreco))}${tabelaPreco ? ` (${tabelaPreco})` : ""}${produtoDigitado.qtdEmbalagem ? ` · Caixa master: ${produtoDigitado.qtdEmbalagem} un` : ""}` : `Ainda não achei no catálogo da ${representada} — digite o código ou escolha uma sugestão da lista.`), itens.length === 0 ?
+  }, produtoDigitado ? `✓ ${rotuloCatalogo(produtoDigitado).replace(/\s+/g, " ").trim()} · ${brl(precoNaTabela(produtoDigitado, tabelaPreco))}${tabelaPreco ? ` (${tabelaPreco})` : ""}${multiploMinimoDe(produtoDigitado) ? ` · Qtd. mínima/múltiplo: ${multiploMinimoDe(produtoDigitado)}` : ""}${produtoDigitado.qtdEmbalagem ? ` · Caixa master: ${produtoDigitado.qtdEmbalagem} un` : ""}` : `Ainda não achei no catálogo da ${representada} — digite o código ou escolha uma sugestão da lista.`), itens.length === 0 ?
   /*#__PURE__*/
   /*#__PURE__*/
   React.createElement(EmptyState, {
@@ -18966,6 +18975,7 @@ function NovoPedidoEspelho({
       [campo]: campo === "produto" ? e.target.value : Number(e.target.value)
     } : it));
     const qtdCx = caixaMasterDoItem(i, produtosDaRepresentada);
+    const multLinha = multiploMinimoDe(produtoDoItem(i)) || 1;
     const cxs = qtdCx > 0 ? i.quantidade / qtdCx : 0;
     const restoCx = qtdCx > 0 ? i.quantidade % qtdCx : 0;
     const arredondarCx = qtdCx > 0 ? Math.ceil(cxs) * qtdCx : 0;
@@ -19085,7 +19095,7 @@ function NovoPedidoEspelho({
       type: "button",
       onClick: () => setItens(prev => prev.map(it => it.id === i.id ? {
         ...it,
-        quantidade: Math.max(1, it.quantidade - 1)
+        quantidade: Math.max(multLinha, it.quantidade - multLinha)
       } : it)),
       style: {
         width: 44,
@@ -19099,9 +19109,11 @@ function NovoPedidoEspelho({
       }
     }, "−"), /*#__PURE__*/React.createElement("input", {
       type: "number",
-      min: 1,
+      min: multLinha,
+      step: multLinha,
       value: i.quantidade,
       onChange: editarItem("quantidade"),
+      onBlur: () => { if (multLinha > 1) setItens(prev => prev.map(it => it.id === i.id ? { ...it, quantidade: ajustarAoMultiplo(it.quantidade, multLinha) } : it)); },
       style: {
         width: 52,
         height: 46,
@@ -19119,7 +19131,7 @@ function NovoPedidoEspelho({
       type: "button",
       onClick: () => setItens(prev => prev.map(it => it.id === i.id ? {
         ...it,
-        quantidade: it.quantidade + 1
+        quantidade: it.quantidade + multLinha
       } : it)),
       style: {
         width: 44,
@@ -19687,7 +19699,7 @@ function Orcamentos({
         codigo: prod.codigo || "",
         qtdCaixaMaster: Number(prod.qtdEmbalagem) > 0 ? Number(prod.qtdEmbalagem) : 0
       } : {}),
-      quantidade: Number(novoItem.qtd) || 1,
+      quantidade: prod ? ajustarAoMultiplo(novoItem.qtd, multiploMinimoDe(prod)) : Number(novoItem.qtd) || 1,
       precoUnitario: Number(novoItem.preco)
     };
     setForm(f => ({
@@ -20188,6 +20200,7 @@ ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</di
       placeholder: produtosDaRep.length ? "Código ou nome do produto" : "Produto",
       "aria-label": "Novo item do orçamento",
       list: "orcamento-catalogo-produtos",
+      onKeyDown: e => { if (e.key === "Enter") { e.preventDefault(); setVistaGridPedido(true); } },
       className: "col-span-3 md:col-span-2 border rounded-md px-3 py-2 text-sm",
       style: estiloLinha
     }), /*#__PURE__*/React.createElement("datalist", {
@@ -20197,7 +20210,9 @@ ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</di
       value: rotuloProdutoCatalogo(x).replace(/\s+/g, " ").trim()
     }))), /*#__PURE__*/React.createElement("input", {
       type: "number",
-      min: 1,
+      min: multiploMinimoDe(prodNovoItem) || 1,
+      step: multiploMinimoDe(prodNovoItem) || 1,
+      onBlur: () => { const m = multiploMinimoDe(prodNovoItem); if (m) setNovoItem(n => ({ ...n, qtd: ajustarAoMultiplo(n.qtd, m) })); },
       value: novoItem.qtd,
       onChange: e => setNovoItem(n => ({
         ...n,
@@ -20236,14 +20251,15 @@ ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</di
     }, vistaGridPedido ? "☰ Fechar catálogo" : "⊞ Ver catálogo"), vistaGridPedido && produtosDaRep.length > 0 && /*#__PURE__*/React.createElement("div", {
       style: { maxHeight: 440, overflowY: "auto", padding: "6px 0" }
     }, /*#__PURE__*/React.createElement(CatalogoGrid, {
-      filtrados: produtosDaRep,
+      filtrados: filtrarCatalogoPorTexto(produtosDaRep, novoItem.produto),
+      precoDoProduto: function(p) { return precoNaTabela(p, tabelaDoPedido); },
       marcas: ["Todos"].concat([...new Set(produtosDaRep.map(function(p) { return p.marca; }).filter(Boolean))]),
       filtroMarca: filtroMarcaPedido,
       setFiltroMarca: setFiltroMarcaPedido,
       onEditar: function(p) {
         setNovoItem({
           produto: rotuloProdutoCatalogo(p).replace(/\s+/g, " ").trim(),
-          qtd: 1,
+          qtd: multiploMinimoDe(p) || 1,
           preco: String(precoNaTabela(p, tabelaDoPedido) || "")
         });
         setVistaGridPedido(false);
@@ -20254,7 +20270,7 @@ ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</di
       style: {
         color: prodNovoItem ? "#047857" : "#B45309"
       }
-    }, prodNovoItem ? `✓ ${rotuloProdutoCatalogo(prodNovoItem).replace(/\s+/g, " ").trim()} · ${brl(precoNaTabela(prodNovoItem, tabelaDoPedido))}${prodNovoItem.qtdEmbalagem ? ` · Caixa master: ${prodNovoItem.qtdEmbalagem} un` : ""}` : `Ainda não achei no catálogo da ${form.representada || "representada"} — digite o código ou escolha uma sugestão da lista.`), totaisEdit && /*#__PURE__*/React.createElement("p", {
+    }, prodNovoItem ? `✓ ${rotuloProdutoCatalogo(prodNovoItem).replace(/\s+/g, " ").trim()} · ${brl(precoNaTabela(prodNovoItem, tabelaDoPedido))}${multiploMinimoDe(prodNovoItem) ? ` · Qtd. mínima/múltiplo: ${multiploMinimoDe(prodNovoItem)}` : ""}${prodNovoItem.qtdEmbalagem ? ` · Caixa master: ${prodNovoItem.qtdEmbalagem} un` : ""}` : `Ainda não achei no catálogo da ${form.representada || "representada"} — digite o código ou escolha uma sugestão da lista.`), totaisEdit && /*#__PURE__*/React.createElement("p", {
       "data-testid": "orc-totais-edit",
       className: "text-sm font-bold text-right",
       style: {
@@ -24896,7 +24912,28 @@ function ImportacaoFotosLote({
 // ============================================================
 // CATÁLOGO GRID — visão em cards dos produtos
 // ============================================================
-function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar }) {
+// Múltiplo mínimo de digitação do item no pedido (Qtd. mínima do cadastro do produto). 0 = sem regra.
+function multiploMinimoDe(prod) {
+  const m = parseFloat(String(prod && prod.qtdMinima != null ? prod.qtdMinima : "").replace(",", "."));
+  return m > 0 ? m : 0;
+}
+// Arredonda pra cima até o próximo múltiplo do mínimo (e nunca abaixo do mínimo).
+function ajustarAoMultiplo(qtd, mult) {
+  const q = Number(qtd) || 0;
+  if (!(mult > 0)) return q || 1;
+  return Math.max(mult, Math.ceil(q / mult) * mult);
+}
+// Filtra a lista de produtos pelo texto digitado (todas as palavras precisam aparecer; ignora acento e maiúscula).
+function filtrarCatalogoPorTexto(lista, texto) {
+  const sa = v => String(v == null ? "" : v).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const palavras = sa(texto).split(/\s+/).filter(Boolean);
+  if (!palavras.length) return lista;
+  return lista.filter(p => {
+    const h = sa([p.codigo, p.nome, p.marca, p.referenciaFabrica, p.gtinBarra, p.certificadoAprovacao, p.categoria].filter(Boolean).join(" "));
+    return palavras.every(w => h.includes(w));
+  });
+}
+function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar, precoDoProduto }) {
   const filtradosPorMarca = filtroMarca === "Todos" ? filtrados : filtrados.filter(p => p.marca === filtroMarca);
   return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
     marcas.length > 1 && React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 8 } },
@@ -24981,14 +25018,17 @@ function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar
                 style: { fontSize: 10, color: "#9db3cc", marginBottom: 8 }
               }, "Cód. ", p.codigo),
               p.embalagem && React.createElement("div", {
-                style: { fontSize: 10, color: "#7a95b0", marginBottom: 8 }
+                style: { fontSize: 10, color: "#7a95b0", marginBottom: 4 }
               }, p.embalagem),
+              (multiploMinimoDe(p) > 0 || Number(p.qtdEmbalagem) > 0) && React.createElement("div", {
+                style: { fontSize: 11, fontWeight: 600, color: "#7a95b0", marginBottom: 6 }
+              }, [multiploMinimoDe(p) > 0 ? "Qtd. mín.: " + p.qtdMinima : "", Number(p.qtdEmbalagem) > 0 ? "Cx. master: " + p.qtdEmbalagem : ""].filter(Boolean).join(" · ")),
               React.createElement("div", {
                 style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }
               },
                 React.createElement("span", {
                   style: { fontWeight: 800, fontSize: 15, color: INK }
-                }, p.vendaPreco ? "R$ " + Number(p.vendaPreco).toFixed(2).replace(".", ",") : "—"),
+                }, (function() { const v = precoDoProduto ? Number(precoDoProduto(p)) : Number(p.vendaPreco); return v > 0 ? "R$ " + v.toFixed(2).replace(".", ",") : "—"; })()),
                 React.createElement("span", {
                   style: {
                     fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20,

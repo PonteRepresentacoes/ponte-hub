@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.1";
+const APP_VERSAO = "1.9.2";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -25063,6 +25063,24 @@ function Produtos({
     if (/PU PTA CRISTAL/.test(N)) return 114;
     return null;
   };
+  // Fotos por cor de lente (pasta img/kalipso/i/<idModelo>-lente-<cor>.webp)
+  const FOTOS_VARIANTES = new Set(["157-lente-cinza-af", "157-lente-incolor-af", "177-lente-cinza-af", "34-lente-incolor", "37-lente-incolor-af", "44-lente-cinza-af", "44-lente-verde-af", "46-lente-cinza-af", "50-lente-incolor-af", "53-lente-amarela", "53-lente-cinza", "53-lente-incolor", "53-lente-incolor-af", "53-lente-verde", "59-lente-cinza", "59-lente-incolor", "59-lente-incolor-espelhada", "59-lente-verde", "61-lente-cinza", "63-lente-amarela", "63-lente-incolor", "63-lente-verde", "64-lente-amarela", "64-lente-cinza", "64-lente-incolor", "66-lente-cinza", "66-lente-incolor", "66-lente-verde", "75-lente-cinza", "75-lente-incolor", "77-lente-amarela", "77-lente-cinza", "78-lente-amarela", "78-lente-cinza", "78-lente-cinza-af", "78-lente-incolor", "78-lente-incolor-af", "78-lente-incolor-espelhada", "79-lente-cinza", "80-lente-cinza", "82-lente-cinza", "82-lente-incolor", "84-lente-cinza", "84-lente-incolor", "86-lente-cinza", "86-lente-incolor", "89-lente-cinza", "89-lente-cinza-espelhada", "90-lente-azul-espelhada", "90-lente-cinza", "90-lente-cinza-espelhada", "90-lente-incolor", "91-armacao-preta-lente-cinza", "91-armacao-preta-lente-incolor"]);
+  const fotoKalipsoVariante = (p, conf) => {
+    const N = String(p.nome || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+    if (!/OCULOS/.test(N) || / IR\b/.test(N)) return null;
+    const ca = String(p.certificadoAprovacao || p.ca || "").replace(/\D/g, "");
+    let id = conf.caMap[ca];
+    if (!id) return null;
+    let prefix = id + "-lente-";
+    if (ca === "45873") { if (/VERM/.test(N)) return null; prefix = "91-armacao-preta-lente-"; }
+    const T = " " + N + " ";
+    const cor = /AMAR/.test(N) ? "amarela" : / CZ |CINZA/.test(T) ? "cinza" : /INC/.test(N) ? "incolor" : /VERDE/.test(N) ? "verde" : /AZUL/.test(N) ? "azul" : null;
+    if (!cor) return null;
+    const esp = /ESP/.test(N), af = / AF\b/.test(N);
+    const tentativas = [esp ? cor + "-espelhada" : af ? cor + "-af" : cor, cor + (af ? "-af" : ""), cor];
+    for (const t of tentativas) if (FOTOS_VARIANTES.has(prefix + t)) return "i/" + prefix + t;
+    return null;
+  };
   const atualizarFotosCA = (nomeRep, conf) => {
     const dig = v => String(v || "").replace(/\D/g, "");
     let n = 0;
@@ -25071,7 +25089,7 @@ function Produtos({
       const atual = String(p.fotoUrl || "");
       // Não mexe em foto subida à mão (Cloudinary etc.): só vazia ou já da pasta da Kalipso.
       if (atual && !atual.startsWith(conf.baseUrl)) return p;
-      const porNome = fotoKalipsoPorNome(p);
+      const porNome = fotoKalipsoVariante(p, conf) || fotoKalipsoPorNome(p);
       const ca = dig(p.certificadoAprovacao || p.ca);
       const id = porNome != null ? String(porNome) : (ca && conf.caMap[ca] ? conf.caMap[ca] : null);
       if (!id) return p;

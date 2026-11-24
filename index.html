@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.0";
+const APP_VERSAO = "1.9.1";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -25021,20 +25021,68 @@ function Produtos({
   };
   const sessaoAtual = window.ponteAuth ? window.ponteAuth.getSessao() : null;
   const isMaster = !!(sessaoAtual && sessaoAtual.tipo === "master");
+  // Variações de cor/tamanho que dividem o mesmo C.A. mas têm foto própria no site da Kalipso
+  // (id da foto = id da página do produto em kalipso.com.br/produtos/detalhes/<id>).
+  const fotoKalipsoPorNome = p => {
+    const N = String(p.nome || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+    const ca = String(p.certificadoAprovacao || p.ca || "").replace(/\D/g, "");
+    const T = " " + N + " ";
+    switch (ca) {
+      case "35158": return /- PTO/.test(N) ? 87 : 88;
+      case "45873": return /VERM/.test(N) ? 141 : 91;
+      case "39670": return / CZ /.test(T) ? 10 : / BCA /.test(T) ? 7 : 12;
+      case "39669": return / CZ /.test(T) ? 16 : / PTA /.test(T) ? 19 : 27;
+      case "32728": return / AM /.test(T) ? 40 : 41;
+      case "51229": return / AM /.test(T) ? 169 : / AZ /.test(T) ? 170 : 171;
+      case "15271": return /CINZA/.test(N) ? 107 : 108;
+      case "50278": return /CINZA/.test(N) ? 109 : 110;
+      case "15272": return / BCA /.test(T) ? 112 : / CZ /.test(T) ? 113 : 114;
+      case "21420": return /27CM/.test(N) ? 115 : /35CM/.test(N) ? 116 : 117;
+      case "51240": return /27CM/.test(N) ? 172 : 173;
+      case "34491": return /BRANCA/.test(N) ? 8 : 11;
+      case "51207": return /68-002/.test(N) ? 178 : 168;
+      case "34712": return /PUNHO LONGO/.test(N) ? 156 : 81;
+      case "50695": return /AZUL/.test(N) ? 175 : /AMARELA/.test(N) ? 174 : 176;
+    }
+    if (/MONACO/.test(N)) return 177;
+    if (/CORRENTE PLASTICA/.test(N)) return 25;
+    if (/FILTRO LUZ RED|LENTE REDONDA/.test(N)) return 13;
+    if (/FILTRO LUZ RET/.test(N)) return 137;
+    if (/LENTE RETANGULAR/.test(N)) return 15;
+    if (/PEDESTAL/.test(N)) return 24;
+    if (/CONE RIGIDO LAR\/BCO 50/.test(N)) return 134;
+    if (/CONE RIGIDO LAR\/BCO 75/.test(N)) return 135;
+    if (/SAFE-BANDAGE/.test(N)) return 18;
+    if (/SUSTINETE/.test(N)) return 17;
+    if (/COLETE SEM BOLSO LARANJA/.test(N)) return 123;
+    if (/COLETE SEM BOLSO AMARELO/.test(N)) return 121;
+    if (/COLETE COM 1 BOLSO LARANJA/.test(N)) return 124;
+    if (/COLETE COM 1 BOLSO AMARELO/.test(N)) return 122;
+    if (/COLETE COM 4 BOLSOS LARANJA/.test(N)) return 142;
+    if (/COLETE COM 4 BOLSOS AMARELO/.test(N)) return 143;
+    if (/PU PTA CRISTAL/.test(N)) return 114;
+    return null;
+  };
   const atualizarFotosCA = (nomeRep, conf) => {
     const dig = v => String(v || "").replace(/\D/g, "");
     let n = 0;
     const novos = produtos.map(p => {
+      if (p.excluido || !(norm(p.representada || "").includes("kalipso"))) return p;
+      const atual = String(p.fotoUrl || "");
+      // Não mexe em foto subida à mão (Cloudinary etc.): só vazia ou já da pasta da Kalipso.
+      if (atual && !atual.startsWith(conf.baseUrl)) return p;
+      const porNome = fotoKalipsoPorNome(p);
       const ca = dig(p.certificadoAprovacao || p.ca);
-      if (ca && conf.caMap[ca] && !String(p.fotoUrl || "").startsWith(conf.baseUrl)) {
-        n++;
-        return { ...p, fotoUrl: conf.baseUrl + conf.caMap[ca] + ".webp" };
-      }
-      return p;
+      const id = porNome != null ? String(porNome) : (ca && conf.caMap[ca] ? conf.caMap[ca] : null);
+      if (!id) return p;
+      const alvo = conf.baseUrl + id + ".webp";
+      if (atual === alvo) return p;
+      n++;
+      return { ...p, fotoUrl: alvo };
     });
-    if (!n) { alert("ℹ️ Nenhum produto para atualizar (nenhum C.A. mapeado sem foto)."); return; }
+    if (!n) { alert("ℹ️ Nenhuma foto para corrigir — tudo já está atualizado."); return; }
     setProdutos(novos);
-    alert("✅ " + n + " produtos atualizados com foto " + nomeRep + "!");
+    alert("✅ " + n + " produtos com foto atualizada (" + nomeRep + ")!");
   };
   const fotosChave = Object.keys(FOTOS_CONF).sort((a,b)=>b.length-a.length).find(k => norm(filtroRepresentada).includes(norm(k)));
   const CAMPOS_PRODUTO_IMPORT = [{

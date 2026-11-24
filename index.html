@@ -25021,6 +25021,7 @@ function Produtos({
   };
   const sessaoAtual = window.ponteAuth ? window.ponteAuth.getSessao() : null;
   const isMaster = !!(sessaoAtual && sessaoAtual.tipo === "master");
+  const fotosChave = Object.keys(FOTOS_CONF).sort((a,b)=>b.length-a.length).find(k => norm(filtroRepresentada).includes(norm(k)));
   const CAMPOS_PRODUTO_IMPORT = [{
     id: "nome",
     label: "Nome do produto",
@@ -26556,8 +26557,8 @@ function Produtos({
   /*#__PURE__*/
   React.createElement("option", {
     key: r
-  }, r))), isMaster && FOTOS_CONF[filtroRepresentada] && /*#__PURE__*/React.createElement("button", {
-    onClick: () => { if(window.confirm('Atualizar fotos ' + filtroRepresentada + ' no Firestore?')) window.atualizarFotosPorCA(filtroRepresentada, FOTOS_CONF[filtroRepresentada].caMap, FOTOS_CONF[filtroRepresentada].baseUrl); },
+  }, r))), isMaster && fotosChave && /*#__PURE__*/React.createElement("button", {
+    onClick: () => { if(window.confirm('Atualizar fotos ' + filtroRepresentada + ' no Firestore?')) window.atualizarFotosPorCA(filtroRepresentada, FOTOS_CONF[fotosChave].caMap, FOTOS_CONF[fotosChave].baseUrl); },
     className: "text-xs font-bold uppercase tracking-wide px-3 py-2 rounded-md border",
     style: { borderColor: "#2d6a4f", color: "#52b788", background: "rgba(82,183,136,0.08)", whiteSpace: "nowrap" }
   }, "🖼\ufe0f Atualizar Fotos"), /*#__PURE__*/React.createElement("input", {

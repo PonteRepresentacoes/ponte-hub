@@ -25021,6 +25021,21 @@ function Produtos({
   };
   const sessaoAtual = window.ponteAuth ? window.ponteAuth.getSessao() : null;
   const isMaster = !!(sessaoAtual && sessaoAtual.tipo === "master");
+  const atualizarFotosCA = (nomeRep, conf) => {
+    const dig = v => String(v || "").replace(/\D/g, "");
+    let n = 0;
+    const novos = produtos.map(p => {
+      const ca = dig(p.certificadoAprovacao || p.ca);
+      if (ca && conf.caMap[ca] && !String(p.fotoUrl || "").startsWith(conf.baseUrl)) {
+        n++;
+        return { ...p, fotoUrl: conf.baseUrl + conf.caMap[ca] + ".webp" };
+      }
+      return p;
+    });
+    if (!n) { alert("ℹ️ Nenhum produto para atualizar (nenhum C.A. mapeado sem foto)."); return; }
+    setProdutos(novos);
+    alert("✅ " + n + " produtos atualizados com foto " + nomeRep + "!");
+  };
   const fotosChave = Object.keys(FOTOS_CONF).sort((a,b)=>b.length-a.length).find(k => norm(filtroRepresentada).includes(norm(k)));
   const CAMPOS_PRODUTO_IMPORT = [{
     id: "nome",
@@ -26558,7 +26573,7 @@ function Produtos({
   React.createElement("option", {
     key: r
   }, r))), isMaster && fotosChave && /*#__PURE__*/React.createElement("button", {
-    onClick: () => { if(window.confirm('Atualizar fotos ' + filtroRepresentada + ' no Firestore?')) window.atualizarFotosPorCA(filtroRepresentada, FOTOS_CONF[fotosChave].caMap, FOTOS_CONF[fotosChave].baseUrl); },
+    onClick: () => { if(window.confirm('Atualizar fotos ' + filtroRepresentada + ' no Firestore?')) atualizarFotosCA(filtroRepresentada, FOTOS_CONF[fotosChave]); },
     className: "text-xs font-bold uppercase tracking-wide px-3 py-2 rounded-md border",
     style: { borderColor: "#2d6a4f", color: "#52b788", background: "rgba(82,183,136,0.08)", whiteSpace: "nowrap" }
   }, "🖼\ufe0f Atualizar Fotos"), /*#__PURE__*/React.createElement("input", {

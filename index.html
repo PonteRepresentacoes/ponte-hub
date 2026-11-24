@@ -25088,12 +25088,13 @@ function Produtos({
       if (p.excluido || !(norm(p.representada || "").includes("kalipso"))) return p;
       const atual = String(p.fotoUrl || "");
       // Não mexe em foto subida à mão (Cloudinary etc.): só vazia ou já da pasta da Kalipso.
-      if (atual && !atual.startsWith(conf.baseUrl)) return p;
+      const RAW_KALIPSO = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/img/kalipso/";
+      if (atual && !atual.startsWith(conf.baseUrl) && !atual.startsWith(RAW_KALIPSO)) return p;
       const porNome = fotoKalipsoVariante(p, conf) || fotoKalipsoPorNome(p);
       const ca = dig(p.certificadoAprovacao || p.ca);
       const id = porNome != null ? String(porNome) : (ca && conf.caMap[ca] ? conf.caMap[ca] : null);
       if (!id) return p;
-      const alvo = conf.baseUrl + id + ".webp";
+      const alvo = (String(id).startsWith("i/") ? RAW_KALIPSO : conf.baseUrl) + id + ".webp";
       if (atual === alvo) return p;
       n++;
       return { ...p, fotoUrl: alvo };

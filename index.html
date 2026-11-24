@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.8.1";
+const APP_VERSAO = "1.9.0";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -19712,6 +19712,14 @@ function Orcamentos({
   // ── Gerador de PDF / Catálogo ─────────────────────────────────────────────
   const gerarPDFOrcamento = (pedidoOriginal, formAtual, ocultarPrecos, catalogo) => {
     const orc = { ...pedidoOriginal, ...formAtual };
+    const cli = (clientes || []).find(c => c.id === orc.clienteId) || (clientes || []).find(c => norm(c.nome || '') === norm(orc.clienteNome || '')) || {};
+    const cnpjD = String(cli.cnpj || '').replace(/\D/g, '');
+    const cnpjFmt = cnpjD.length === 14 ? cnpjD.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : (cli.cnpj || '');
+    const cepD = String(cli.cadastroCep || cli.cep || '').replace(/\D/g, '');
+    const cepFmt = cepD.length === 8 ? cepD.replace(/^(\d{5})(\d{3})$/, '$1-$2') : cepD;
+    const ruaNum = [cli.cadastroEndereco || cli.endereco, cli.cadastroNumero].filter(Boolean).join(', ');
+    const cidUf = [cli.cadastroCidade || cli.cidade, cli.cadastroEstado || cli.estado].filter(Boolean).join('/');
+    const enderecoCli = [ruaNum, cli.cadastroComplemento, cli.cadastroBairro || cli.bairro, cidUf, cepFmt ? 'CEP ' + cepFmt : ''].filter(Boolean).join(' — ');
     const itens = formAtual.itens || [];
     const totalVal = itens.reduce((s, it) => s + (it.quantidade || 0) * (it.precoUnitario || 0), 0);
     const fmtBrl = v => Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -19744,7 +19752,7 @@ tr:nth-child(even) td{background:#f8fafc}
 @media print{body{padding:8px}}
 </style></head><body>
 <div class="htop"><div><div class="empresa">Ponte Representações</div><div class="proto">Orçamento ${orc.protocolo || ''} · ${orc.representada || ''}</div></div><div style="text-align:right;font-size:11px;color:#64748b">Emissão: ${orc.dataEmissao || '—'}<br>Situação: ${orc.situacaoOrcamento || 'Aguardando cliente'}</div></div>
-<dl class="info"><div><dt>Cliente: </dt><dd>${orc.clienteNome || '—'}</dd></div><div><dt>Condição: </dt><dd>${orc.condicaoPagamento || '—'}</dd></div><div><dt>Vendedor: </dt><dd>${orc.vendedorNome || 'Venda direta (Ponte)'}</dd></div>${orc.ordemCompra ? `<div><dt>OC: </dt><dd>${orc.ordemCompra}</dd></div>` : ''}</dl>
+<dl class="info"><div><dt>Cliente: </dt><dd>${orc.clienteNome || '—'}${cli.razaoSocial && cli.razaoSocial !== orc.clienteNome ? ' (' + cli.razaoSocial + ')' : ''}</dd></div><div><dt>CNPJ: </dt><dd>${cnpjFmt || '—'}</dd></div>${cli.ie ? `<div><dt>IE: </dt><dd>${cli.ie}</dd></div>` : ''}<div style="grid-column:1/-1"><dt>Endereço: </dt><dd>${enderecoCli || '—'}</dd></div><div><dt>Condição: </dt><dd>${orc.condicaoPagamento || '—'}</dd></div><div><dt>Vendedor: </dt><dd>${orc.vendedorNome || 'Venda direta (Ponte)'}</dd></div>${orc.ordemCompra ? `<div><dt>OC: </dt><dd>${orc.ordemCompra}</dd></div>` : ''}</dl>
 ${bodyHTML}
 ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</div>` : ''}
 </body></html>`;

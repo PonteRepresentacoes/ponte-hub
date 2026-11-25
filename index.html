@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.10";
+const APP_VERSAO = "1.9.11";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -19780,35 +19780,60 @@ function Orcamentos({
     };
     const linhas = itens.map(it => {
       const sub = (it.quantidade || 0) * (it.precoUnitario || 0);
-      return `<tr><td style="width:56px;text-align:center">${imgTag(it, 46)}</td><td>${it.codigo || '—'}</td><td>${it.produto || ''}</td><td style="text-align:center">${it.quantidade || 0}</td>${ocultarPrecos ? '' : `<td style="text-align:right">R$ ${fmtBrl(it.precoUnitario)}</td><td style="text-align:right">R$ ${fmtBrl(sub)}</td>`}</tr>`;
+      return `<tr><td style="width:56px;text-align:center">${imgTag(it, 46)}</td><td>${it.codigo || '—'}</td><td>${it.codigo && String(it.produto || '').startsWith(String(it.codigo) + ' ') ? String(it.produto).slice(String(it.codigo).length + 1) : (it.produto || '')}</td><td style="text-align:center">${it.quantidade || 0}</td>${ocultarPrecos ? '' : `<td style="text-align:right">R$ ${fmtBrl(it.precoUnitario)}</td><td style="text-align:right">R$ ${fmtBrl(sub)}</td>`}</tr>`;
     }).join('');
-    const catalogoCards = itens.map(it => `<div class="icard"><div style="text-align:center;margin-bottom:6px">${imgTag(it, 120)}</div><div class="icod">${it.codigo || ''}</div><div class="inome">${it.produto || ''}</div><div class="iqtd">Qtd: ${it.quantidade || 0}${it.qtdCaixaMaster ? ` &nbsp;(cx.${it.qtdCaixaMaster})` : ''}</div>${ocultarPrecos ? '' : `<div class="ipreco">R$ ${fmtBrl(it.precoUnitario)}</div><div class="isub">Subtotal: R$ ${fmtBrl((it.quantidade || 0) * (it.precoUnitario || 0))}</div>`}</div>`).join('');
+    const totalUnid = itens.reduce((acc, it) => acc + (Number(it.quantidade) || 0), 0);
+    const nomeSemCodigo = it => {
+      const n = String(it.produto || '');
+      const c = String(it.codigo || '');
+      return c && n.startsWith(c + ' ') ? n.slice(c.length + 1) : n;
+    };
+    const catalogoCards = itens.map(it => {
+      const sub = (it.quantidade || 0) * (it.precoUnitario || 0);
+      return `<div class="icard"><div class="ifoto">${imgTag(it, 150) || '<div class="isem">sem foto</div>'}</div><div class="ibody">${it.codigo ? `<span class="icod">Cód. ${it.codigo}</span>` : ''}<div class="inome">${nomeSemCodigo(it)}</div><div class="iqtd"><b>${it.quantidade || 0}</b> un${it.qtdCaixaMaster ? ` · cx. master ${it.qtdCaixaMaster}` : ''}</div>${ocultarPrecos ? '' : `<div class="iprec"><span class="ipreco">R$ ${fmtBrl(it.precoUnitario)}</span><span class="isub">Subtotal R$ ${fmtBrl(sub)}</span></div>`}</div></div>`;
+    }).join('');
+    const caixaTotal = `<div class="totbox"><small>${itens.length} ${itens.length === 1 ? 'item' : 'itens'} · ${totalUnid} unidades</small>${ocultarPrecos ? '' : `<span class="totval">Total geral<b>R$ ${fmtBrl(totalVal)}</b></span>`}</div>`;
     const bodyHTML = catalogo
-      ? `<div class="catalogo">${catalogoCards}</div>${ocultarPrecos ? '' : `<div class="total">Total geral: R$ ${fmtBrl(totalVal)}</div>`}`
-      : `<table><thead><tr><th>Foto</th><th>Código</th><th>Produto</th><th>Qtd</th>${colsPreco}</tr></thead><tbody>${linhas}</tbody></table>${ocultarPrecos ? '' : `<div class="total">Total: R$ ${fmtBrl(totalVal)}</div>`}`;
+      ? `<div class="catalogo">${catalogoCards}</div>${caixaTotal}`
+      : `<table><thead><tr><th>Foto</th><th>Código</th><th>Produto</th><th>Qtd</th>${colsPreco}</tr></thead><tbody>${linhas}</tbody></table>${caixaTotal}`;
+    const campo = (rot, val, cheio) => `<div${cheio ? ' style="grid-column:1/-1"' : ''}><div class="l">${rot}</div><div class="v">${val}</div></div>`;
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Orçamento ${orc.protocolo || ''}</title><style>
-body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#1e293b;margin:0}
-.htop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;border-bottom:3px solid #1e3a5f;padding-bottom:10px}
-.empresa{font-size:17px;font-weight:900;color:#1e3a5f;letter-spacing:-0.5px}
-.proto{font-size:12px;color:#64748b;margin-top:2px}
-.info{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;margin-bottom:14px;font-size:12px}
-.info dt{font-weight:bold;color:#64748b;display:inline}.info dd{display:inline;margin:0}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1e293b;margin:0;padding:18px 22px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.hdr{background:#1e3a5f;color:#fff;border-radius:12px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.empresa{font-size:22px;font-weight:800;letter-spacing:.3px}
+.sub{font-size:12px;opacity:.85;margin-top:3px}
+.dir{text-align:right}.proto{font-size:20px;font-weight:800}.meta{font-size:11px;opacity:.85;margin-top:3px;line-height:1.5}
+.cli{display:grid;grid-template-columns:1.5fr 1fr;gap:9px 28px;background:#f1f5f9;border-radius:12px;padding:13px 18px;margin:14px 0 16px}
+.l{font-size:9px;font-weight:700;color:#64748b;letter-spacing:.8px;text-transform:uppercase}
+.v{font-size:12px;font-weight:600;color:#0f172a;margin-top:1px}
 table{width:100%;border-collapse:collapse}
-th{background:#1e3a5f;color:#fff;padding:7px 8px;text-align:left;font-size:11px}
-td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11px}
+th{background:#1e3a5f;color:#fff;padding:8px;text-align:left;font-size:11px}
+td{padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:11px;vertical-align:middle}
 tr:nth-child(even) td{background:#f8fafc}
-.total{text-align:right;font-size:14px;font-weight:bold;margin-top:10px;color:#1e3a5f}
-.catalogo{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:4px}
-.icard{border:1px solid #e2e8f0;border-radius:8px;padding:10px}
-.icod{font-size:10px;color:#94a3b8}.inome{font-size:12px;font-weight:bold;margin:3px 0;color:#1e293b}
-.iqtd{font-size:11px;color:#64748b}.ipreco{font-size:13px;font-weight:bold;color:#1e3a5f;margin-top:5px}
-.isub{font-size:10px;color:#94a3b8}.obs{margin-top:14px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:8px}
-@media print{body{padding:8px}}
+.catalogo{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.icard{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff;break-inside:avoid;page-break-inside:avoid}
+.ifoto{background:#f8fafc;height:160px;display:flex;align-items:center;justify-content:center;padding:8px}
+.ifoto img{max-width:100%;max-height:144px;width:auto!important;height:auto!important;object-fit:contain}
+.isem{color:#cbd5e1;font-size:11px}
+.ibody{padding:10px 12px 12px}
+.icod{display:inline-block;background:#e0e7ff;color:#3730a3;font-size:10px;font-weight:700;padding:1px 8px;border-radius:20px}
+.inome{font-size:12.5px;font-weight:700;margin:6px 0 4px;line-height:1.3;color:#0f172a;min-height:32px}
+.iqtd{font-size:11px;color:#475569}.iqtd b{color:#0f172a;font-size:13px}
+.iprec{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;border-top:1px dashed #e2e8f0;padding-top:7px}
+.ipreco{font-size:15px;font-weight:800;color:#1e3a5f}.isub{font-size:10px;color:#64748b}
+.totbox{margin-top:18px;background:#1e3a5f;color:#fff;border-radius:12px;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;break-inside:avoid;page-break-inside:avoid}
+.totbox small{font-size:11px;opacity:.85}.totval{font-size:13px}.totval b{font-size:21px;margin-left:10px}
+.obs{margin-top:14px;font-size:11px;color:#475569;background:#fffbeb;border-left:3px solid #f59e0b;border-radius:6px;padding:8px 12px}
+.rod{margin-top:22px;text-align:center;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:8px}
+@page{size:A4;margin:10mm}
+@media print{body{padding:0}}
 </style></head><body>
-<div class="htop"><div><div class="empresa">Ponte Representações</div><div class="proto">Orçamento ${orc.protocolo || ''} · ${orc.representada || ''}</div></div><div style="text-align:right;font-size:11px;color:#64748b">Emissão: ${orc.dataEmissao || '—'}<br>Situação: ${orc.situacaoOrcamento || 'Aguardando cliente'}</div></div>
-<dl class="info"><div><dt>Cliente: </dt><dd>${orc.clienteNome || '—'}${cli.razaoSocial && cli.razaoSocial !== orc.clienteNome ? ' (' + cli.razaoSocial + ')' : ''}</dd></div><div><dt>CNPJ: </dt><dd>${cnpjFmt || '—'}</dd></div>${cli.ie ? `<div><dt>IE: </dt><dd>${cli.ie}</dd></div>` : ''}<div style="grid-column:1/-1"><dt>Endereço: </dt><dd>${enderecoCli || '—'}</dd></div><div><dt>Condição: </dt><dd>${orc.condicaoPagamento || '—'}</dd></div><div><dt>Vendedor: </dt><dd>${orc.vendedorNome || 'Venda direta (Ponte)'}</dd></div>${orc.ordemCompra ? `<div><dt>OC: </dt><dd>${orc.ordemCompra}</dd></div>` : ''}</dl>
+<div class="hdr"><div><div class="empresa">Ponte Representações</div><div class="sub">${orc.representada || ''}</div></div><div class="dir"><div class="proto">Orçamento ${orc.protocolo || ''}</div><div class="meta">Emissão: ${orc.dataEmissao || '—'}<br>Situação: ${orc.situacaoOrcamento || 'Aguardando cliente'}</div></div></div>
+<div class="cli">${campo('Cliente', (orc.clienteNome || '—') + (cli.razaoSocial && cli.razaoSocial !== orc.clienteNome ? ' (' + cli.razaoSocial + ')' : ''))}${campo('CNPJ', cnpjFmt || '—')}${campo('Endereço', enderecoCli || '—', true)}${cli.ie ? campo('Inscrição estadual', cli.ie) : ''}${campo('Condição de pagamento', orc.condicaoPagamento || '—')}${campo('Vendedor', orc.vendedorNome || 'Venda direta (Ponte)')}${orc.ordemCompra ? campo('Ordem de compra', orc.ordemCompra) : ''}</div>
 ${bodyHTML}
 ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</div>` : ''}
+<div class="rod">Ponte Representações · Representante Carlos Filho</div>
 </body></html>`;
     const w = window.open('', '_blank');
     if (!w) { alert('Habilite pop-ups no navegador para gerar o PDF.'); return; }
@@ -20072,7 +20097,23 @@ ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</di
         color: INK
       },
       title: "Gera o PDF do orçamento sem mostrar preços"
-    }, "Sem preço"), waLink && /*#__PURE__*/React.createElement("a", {
+    }, "Sem preço"), (p.itens || []).length > 0 && /*#__PURE__*/React.createElement("button", {
+      onClick: () => gerarPDFOrcamento(p, p, false, true),
+      className: "text-[11px] font-bold uppercase px-3 py-1.5 rounded-md border",
+      style: {
+        borderColor: LINE,
+        color: INK
+      },
+      title: "Catálogo com fotos grandes e preços, pronto para enviar ao cliente"
+    }, "📋 Catálogo"), (p.itens || []).length > 0 && /*#__PURE__*/React.createElement("button", {
+      onClick: () => gerarPDFOrcamento(p, p, true, true),
+      className: "text-[11px] font-bold uppercase px-3 py-1.5 rounded-md border",
+      style: {
+        borderColor: LINE,
+        color: INK
+      },
+      title: "Catálogo com fotos grandes, sem preços"
+    }, "📋 Catálogo s/ preço"), waLink && /*#__PURE__*/React.createElement("a", {
       href: waLink,
       target: "_blank",
       rel: "noopener noreferrer",

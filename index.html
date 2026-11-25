@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.9";
+const APP_VERSAO = "1.9.10";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -19479,6 +19479,20 @@ function recalcularTotaisPedido(itens, p) {
     total
   };
 }
+// Lista de prazos da representada para o campo "Condição de pagamento" (orçamento e pedido em edição).
+// Mantém o valor atual mesmo que não esteja na lista; sem prazos cadastrados, cai pra digitação livre.
+function SelectCondicaoPagamento({ valor, onChange, condicoes, representada, className, style }) {
+  const conds = (condicoes || []).filter(c => !c.excluida && (!c.representada || norm(c.representada) === norm(representada)));
+  const atual = valor || "";
+  if (!conds.length) {
+    return React.createElement("input", { value: atual, onChange: e => onChange(e.target.value), placeholder: representada ? "Nenhum prazo cadastrado para esta representada — digite" : "Escolha a representada", className, style });
+  }
+  const rotulo = c => c.nome + (c.representada ? "" : " (todas)") + (c.prazos && c.prazos.length && !/dia|vista/i.test(c.nome) ? " — " + c.prazos.join("/") + " dias" : "");
+  return React.createElement("select", { value: atual, onChange: e => onChange(e.target.value), className, style },
+    React.createElement("option", { value: "" }, "Selecione o prazo..."),
+    atual && !conds.some(c => c.nome === atual) && React.createElement("option", { value: atual }, atual + " (atual)"),
+    conds.map(c => React.createElement("option", { key: c.id || c.nome, value: c.nome }, rotulo(c))));
+}
 function Orcamentos({
   pedidosEspelho,
   setPedidosEspelho,
@@ -20147,18 +20161,14 @@ ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</di
       style: estiloLinha
     })), /*#__PURE__*/React.createElement(Field, {
       label: "Condição de pagamento"
-    }, /*#__PURE__*/React.createElement("input", {
-      list: "condicoes-orcamento-lista",
-      value: form.condicaoPagamento,
-      onChange: setF("condicaoPagamento"),
+    }, /*#__PURE__*/React.createElement(SelectCondicaoPagamento, {
+      valor: form.condicaoPagamento,
+      onChange: v => setF("condicaoPagamento")({ target: { value: v } }),
+      condicoes: condicoesPagamentoCadastro,
+      representada: form.representada,
       className: inputCls,
       style: estiloLinha
-    }), /*#__PURE__*/React.createElement("datalist", {
-      id: "condicoes-orcamento-lista"
-    }, (condicoesPagamentoCadastro || []).map(c => /*#__PURE__*/React.createElement("option", {
-      key: c.id || c.nome,
-      value: c.nome
-    })))), /*#__PURE__*/React.createElement(Field, {
+    })), /*#__PURE__*/React.createElement(Field, {
       label: "Ordem de compra"
     }, /*#__PURE__*/React.createElement("input", {
       value: form.ordemCompra,
@@ -20920,18 +20930,14 @@ function ListaPedidosEspelho({
     style: estiloLinha
   })), /*#__PURE__*/React.createElement(Field, {
     label: "Condição de pagamento"
-  }, /*#__PURE__*/React.createElement("input", {
-    list: "condicoes-pedido-lista",
-    value: form.condicaoPagamento,
-    onChange: setF("condicaoPagamento"),
+  }, /*#__PURE__*/React.createElement(SelectCondicaoPagamento, {
+    valor: form.condicaoPagamento,
+    onChange: v => setF("condicaoPagamento")({ target: { value: v } }),
+    condicoes: condicoesPagamentoCadastro,
+    representada: form.representada,
     className: inputCls,
     style: estiloLinha
-  }), /*#__PURE__*/React.createElement("datalist", {
-    id: "condicoes-pedido-lista"
-  }, (condicoesPagamentoCadastro || []).map(c => /*#__PURE__*/React.createElement("option", {
-    key: c.id || c.nome,
-    value: c.nome
-  })))), /*#__PURE__*/React.createElement(Field, {
+  })), /*#__PURE__*/React.createElement(Field, {
     label: "Total do pedido (R$)"
   }, pedidoEhImportado(p) ? /*#__PURE__*/React.createElement("input", {
     value: form.total,

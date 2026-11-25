@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.8";
+const APP_VERSAO = "1.9.9";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -19755,14 +19755,23 @@ function Orcamentos({
     const totalVal = itens.reduce((s, it) => s + (it.quantidade || 0) * (it.precoUnitario || 0), 0);
     const fmtBrl = v => Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const colsPreco = ocultarPrecos ? '' : '<th>Preço unit.</th><th>Subtotal</th>';
+    const fotoDoItem = it => {
+      const pr = (produtos || []).find(x => it.produtoId && x.id === it.produtoId) || (produtos || []).find(x => !x.excluido && x.codigo && String(x.codigo) === String(it.codigo || '') && norm(x.representada) === norm(orc.representada));
+      const u = pr && pr.fotoUrl ? String(pr.fotoUrl) : '';
+      return /^https?:/i.test(u) ? u : '';
+    };
+    const imgTag = (it, tam) => {
+      const u = fotoDoItem(it);
+      return u ? `<img src="${u.replace(/"/g, '&quot;')}" referrerpolicy="no-referrer" style="width:${tam}px;height:${tam}px;object-fit:contain;display:block;margin:0 auto">` : '';
+    };
     const linhas = itens.map(it => {
       const sub = (it.quantidade || 0) * (it.precoUnitario || 0);
-      return `<tr><td>${it.codigo || '—'}</td><td>${it.produto || ''}</td><td style="text-align:center">${it.quantidade || 0}</td>${ocultarPrecos ? '' : `<td style="text-align:right">R$ ${fmtBrl(it.precoUnitario)}</td><td style="text-align:right">R$ ${fmtBrl(sub)}</td>`}</tr>`;
+      return `<tr><td style="width:56px;text-align:center">${imgTag(it, 46)}</td><td>${it.codigo || '—'}</td><td>${it.produto || ''}</td><td style="text-align:center">${it.quantidade || 0}</td>${ocultarPrecos ? '' : `<td style="text-align:right">R$ ${fmtBrl(it.precoUnitario)}</td><td style="text-align:right">R$ ${fmtBrl(sub)}</td>`}</tr>`;
     }).join('');
-    const catalogoCards = itens.map(it => `<div class="icard"><div class="icod">${it.codigo || ''}</div><div class="inome">${it.produto || ''}</div><div class="iqtd">Qtd: ${it.quantidade || 0}${it.qtdCaixaMaster ? ` &nbsp;(cx.${it.qtdCaixaMaster})` : ''}</div>${ocultarPrecos ? '' : `<div class="ipreco">R$ ${fmtBrl(it.precoUnitario)}</div><div class="isub">Subtotal: R$ ${fmtBrl((it.quantidade || 0) * (it.precoUnitario || 0))}</div>`}</div>`).join('');
+    const catalogoCards = itens.map(it => `<div class="icard"><div style="text-align:center;margin-bottom:6px">${imgTag(it, 120)}</div><div class="icod">${it.codigo || ''}</div><div class="inome">${it.produto || ''}</div><div class="iqtd">Qtd: ${it.quantidade || 0}${it.qtdCaixaMaster ? ` &nbsp;(cx.${it.qtdCaixaMaster})` : ''}</div>${ocultarPrecos ? '' : `<div class="ipreco">R$ ${fmtBrl(it.precoUnitario)}</div><div class="isub">Subtotal: R$ ${fmtBrl((it.quantidade || 0) * (it.precoUnitario || 0))}</div>`}</div>`).join('');
     const bodyHTML = catalogo
       ? `<div class="catalogo">${catalogoCards}</div>${ocultarPrecos ? '' : `<div class="total">Total geral: R$ ${fmtBrl(totalVal)}</div>`}`
-      : `<table><thead><tr><th>Código</th><th>Produto</th><th>Qtd</th>${colsPreco}</tr></thead><tbody>${linhas}</tbody></table>${ocultarPrecos ? '' : `<div class="total">Total: R$ ${fmtBrl(totalVal)}</div>`}`;
+      : `<table><thead><tr><th>Foto</th><th>Código</th><th>Produto</th><th>Qtd</th>${colsPreco}</tr></thead><tbody>${linhas}</tbody></table>${ocultarPrecos ? '' : `<div class="total">Total: R$ ${fmtBrl(totalVal)}</div>`}`;
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Orçamento ${orc.protocolo || ''}</title><style>
 body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#1e293b;margin:0}
 .htop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;border-bottom:3px solid #1e3a5f;padding-bottom:10px}
@@ -19791,7 +19800,14 @@ ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</di
     if (!w) { alert('Habilite pop-ups no navegador para gerar o PDF.'); return; }
     w.document.write(html);
     w.document.close();
-    setTimeout(() => w.print(), 450);
+    // Espera as fotos carregarem (até 8 s) antes de abrir a impressão/PDF.
+    const inicioEspera = Date.now();
+    const aguardarFotos = () => {
+      let prontas = true;
+      try { prontas = [...w.document.images].every(im => im.complete); } catch (e) {}
+      if (prontas || Date.now() - inicioEspera > 8000) w.print(); else setTimeout(aguardarFotos, 250);
+    };
+    setTimeout(aguardarFotos, 450);
   };
   const inputCls = "w-full border rounded-md px-3 py-2 text-sm";
   const estiloLinha = {

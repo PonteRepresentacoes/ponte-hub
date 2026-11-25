@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.12";
+const APP_VERSAO = "1.9.13";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -18082,6 +18082,8 @@ function NovoPedidoEspelho({
   const [mostrarLiquido, setMostrarLiquido] = useState(false); // Transporte/Volumes
   const [frete, setFrete] = useState("CIF");
   const [transportadora, setTransportadora] = useState("");
+  const [redespacho, setRedespacho] = useState("");
+  const [validadeProposta, setValidadeProposta] = useState("7");
   const [peso, setPeso] = useState("");
   const [volumes, setVolumes] = useState("");
   const [erro, setErro] = useState("");
@@ -18115,6 +18117,8 @@ function NovoPedidoEspelho({
       if (d.itens && d.itens.length > 0) setItens(d.itens);
       if (d.frete) setFrete(d.frete);
       if (d.transportadora) setTransportadora(d.transportadora);
+      if (d.redespacho) setRedespacho(d.redespacho);
+      if (d.validadeProposta) setValidadeProposta(d.validadeProposta);
       if (d.peso) setPeso(d.peso);
       if (d.volumes) setVolumes(d.volumes);
       if (d.descComercial != null) setDescComercial(Number(d.descComercial));
@@ -18133,7 +18137,7 @@ function NovoPedidoEspelho({
           representada, clienteId, consumidorFinal, vendedorId, status, situacao,
           dataEmissao, dataFaturamento, dataEntrega, condicaoPagamento, formaPagamento,
           ordemCompra, numeroNaIndustria, origem, rotaAtendimento, tabelaPreco, nfNumero,
-          obsCliente, obsRepresentada, itens, frete, transportadora, peso, volumes,
+          obsCliente, obsRepresentada, itens, frete, transportadora, redespacho, validadeProposta, peso, volumes,
           descComercial, descPromocional, caixaMaster
         }));
       } catch(e) {}
@@ -18142,7 +18146,7 @@ function NovoPedidoEspelho({
   }, [representada, clienteId, consumidorFinal, vendedorId, status, situacao,
       dataEmissao, dataFaturamento, dataEntrega, condicaoPagamento, formaPagamento,
       ordemCompra, numeroNaIndustria, origem, rotaAtendimento, tabelaPreco, nfNumero,
-      obsCliente, obsRepresentada, itens, frete, transportadora, peso, volumes,
+      obsCliente, obsRepresentada, itens, frete, transportadora, redespacho, validadeProposta, peso, volumes,
       descComercial, descPromocional, caixaMaster]);
   const cliente = clientes.find(c => c.id === clienteId);
   const municipioCliente = cliente ? cliente.municipio || cliente.cidade || "" : "";
@@ -18470,6 +18474,8 @@ function NovoPedidoEspelho({
       mostrarLiquido,
       frete,
       transportadora,
+      redespacho,
+      validadeProposta,
       peso,
       volumes,
       pedidoStatus: "Aguardando Faturamento",
@@ -19275,7 +19281,7 @@ function NovoPedidoEspelho({
     style: {
       borderColor: LINE
     }
-  })), /*#__PURE__*/React.createElement(Field, {
+  })), /*#__PURE__*/React.createElement(Field, { label: "Redespacho (transportadora)" }, /*#__PURE__*/React.createElement("input", { value: redespacho, onChange: e => setRedespacho(e.target.value), placeholder: "ex.: TRANS AMIGOS", className: "w-full border rounded-md px-3 py-2 text-sm", style: { borderColor: LINE } })), /*#__PURE__*/React.createElement(Field, { label: "Validade da proposta (dias)" }, /*#__PURE__*/React.createElement("input", { value: validadeProposta, onChange: e => setValidadeProposta(e.target.value), placeholder: "7", className: "w-full border rounded-md px-3 py-2 text-sm", style: { borderColor: LINE } })), /*#__PURE__*/React.createElement(Field, {
     label: "Peso (kg)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
@@ -19661,6 +19667,10 @@ function Orcamentos({
       condicaoPagamento: p.condicaoPagamento || "",
       ordemCompra: p.ordemCompra || "",
       obsCliente: p.obsCliente || obsPadraoDaRepresentada(p.representada),
+      frete: p.frete || "CIF",
+      transportadora: p.transportadora || "",
+      redespacho: p.redespacho || "",
+      validadeProposta: p.validadeProposta || "7",
       itens: (p.itens || []).map(i => ({
         ...i
       }))
@@ -19754,6 +19764,10 @@ function Orcamentos({
       condicaoPagamento: form.condicaoPagamento,
       ordemCompra: form.ordemCompra.trim(),
       obsCliente: form.obsCliente,
+      frete: form.frete,
+      transportadora: form.transportadora,
+      redespacho: form.redespacho,
+      validadeProposta: form.validadeProposta,
       itens: form.itens,
       subtotalBruto: recalcularTotaisPedido(form.itens, pedidoOriginal).subtotalBruto,
       precoLiquido: recalcularTotaisPedido(form.itens, pedidoOriginal).total,
@@ -19835,6 +19849,11 @@ tr:nth-child(even) td{background:#f8fafc}
 .ipreco{font-size:15px;font-weight:800;color:#1e3a5f}.isub{font-size:10px;color:#64748b}
 .totbox{margin-top:18px;background:#1e3a5f;color:#fff;border-radius:12px;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;break-inside:avoid;page-break-inside:avoid}
 .totbox small{font-size:11px;opacity:.85}.totval{font-size:13px}.totval b{font-size:21px;margin-left:10px}
+.cc{margin-top:16px;border:2px solid #1e3a5f;border-radius:10px;overflow:hidden;break-inside:avoid;page-break-inside:avoid}
+.cch{background:#d1d5db;color:#0f172a;text-align:center;font-weight:800;font-size:12px;padding:6px;border-bottom:2px solid #1e3a5f}
+.cch:not(:first-child){border-top:2px solid #1e3a5f}
+.ccb{padding:8px 14px}.ccb p{margin:5px 0;font-size:11.5px}
+.ccf{display:grid;grid-template-columns:1fr 1.3fr 1.3fr;gap:12px;font-size:11.5px;margin-top:8px}
 .obs{margin-top:14px;font-size:11px;color:#475569;background:#fffbeb;border-left:3px solid #f59e0b;border-radius:6px;padding:8px 12px}
 .rod{margin-top:22px;text-align:center;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:8px}
 @page{size:A4;margin:10mm}
@@ -19843,7 +19862,7 @@ tr:nth-child(even) td{background:#f8fafc}
 <div class="hdr"><div><div class="empresa">Ponte Representações</div><div class="sub">${orc.representada || ''}</div></div><div class="dir"><div class="proto">Orçamento ${orc.protocolo || ''}</div><div class="meta">Emissão: ${orc.dataEmissao || '—'}<br>Situação: ${orc.situacaoOrcamento || 'Aguardando cliente'}</div></div></div>
 <div class="cli">${campo('Cliente', (orc.clienteNome || '—') + (cli.razaoSocial && cli.razaoSocial !== orc.clienteNome ? ' (' + cli.razaoSocial + ')' : ''))}${campo('CNPJ', cnpjFmt || '—')}${campo('Endereço', enderecoCli || '—', true)}${cli.ie ? campo('Inscrição estadual', cli.ie) : ''}${campo('Condição de pagamento', orc.condicaoPagamento || '—')}${campo('Vendedor', orc.vendedorNome || 'Venda direta (Ponte)')}${orc.ordemCompra ? campo('Ordem de compra', orc.ordemCompra) : ''}</div>
 ${bodyHTML}
-${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</div>` : ''}
+${condicoesComerciaisHTML(orc) || (orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</div>` : '')}
 <div class="rod">Ponte Representações · Representante Carlos Filho</div>
 </body></html>`;
     const w = window.open('', '_blank');
@@ -20369,7 +20388,7 @@ ${orc.obsCliente ? `<div class="obs"><strong>Obs:</strong> ${orc.obsCliente}</di
       style: {
         color: INK
       }
-    }, "Subtotal bruto: ", brl(totaisEdit.subtotalBruto), " · Total: ", brl(totaisEdit.total))), /*#__PURE__*/React.createElement(Field, {
+    }, "Subtotal bruto: ", brl(totaisEdit.subtotalBruto), " · Total: ", brl(totaisEdit.total))), /*#__PURE__*/React.createElement(CamposCondicoesComerciais, { valores: form, onChange: (c, v) => setForm(f => ({ ...f, [c]: v })), inputCls: inputCls, style: estiloLinha }), /*#__PURE__*/React.createElement(Field, {
       label: "Observação"
     }, /*#__PURE__*/React.createElement("textarea", {
       value: form.obsCliente,
@@ -20519,7 +20538,11 @@ function ListaPedidosEspelho({
       nfNumero: p.nfNumero || "",
       total: p.total == null ? "" : String(p.total).replace(".", ","),
       valorFaturado: p.valorFaturado == null ? "" : String(p.valorFaturado).replace(".", ","),
-      obsCliente: p.obsCliente || ""
+      obsCliente: p.obsCliente || "",
+      frete: p.frete || "CIF",
+      transportadora: p.transportadora || "",
+      redespacho: p.redespacho || "",
+      validadeProposta: p.validadeProposta || "7"
     });
   };
   const fecharEdicao = () => {
@@ -20552,6 +20575,10 @@ function ListaPedidosEspelho({
         numeroNaIndustria: form.numeroNaIndustria.trim(),
         nfNumero: form.nfNumero.trim(),
         obsCliente: form.obsCliente,
+        frete: form.frete,
+        transportadora: form.transportadora,
+        redespacho: form.redespacho,
+        validadeProposta: form.validadeProposta,
         editadoEm: new Date().toISOString()
       };
       // Pedido importado tem um único item resumido — o total pode ser corrigido direto.
@@ -21013,7 +21040,7 @@ function ListaPedidosEspelho({
     placeholder: "igual ao total",
     className: inputCls,
     style: estiloLinha
-  }))), /*#__PURE__*/React.createElement(Field, {
+  }))), /*#__PURE__*/React.createElement(CamposCondicoesComerciais, { valores: form, onChange: (c, v) => setForm(f => ({ ...f, [c]: v })), inputCls: inputCls, style: estiloLinha }), /*#__PURE__*/React.createElement(Field, {
     label: "Observação"
   }, /*#__PURE__*/React.createElement("textarea", {
     value: form.obsCliente,
@@ -25008,6 +25035,31 @@ const OBS_PADRAO_REPRESENTADA = [
 function obsPadraoDaRepresentada(rep) {
   const r = OBS_PADRAO_REPRESENTADA.find(x => x.rep.test(String(rep || "")));
   return r ? r.texto : "";
+}
+const CONDICOES_COMERCIAIS_REPS = /kalipso/i;
+const OBS_GERAIS_PADRAO = ["O prazo de pagamento apresentado acima deverá ser aceito e efetivado após a liberação do crédito.", "Mercadoria sujeita à disponibilidade no ato do fechamento do orçamento."];
+function escHtmlCC(t) { return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function condicoesComerciaisHTML(orc) {
+  if (!CONDICOES_COMERCIAIS_REPS.test(String(orc.representada || ""))) return "";
+  const fob = String(orc.frete || "").toUpperCase() === "FOB";
+  const cif = !fob;
+  const transp = String(orc.transportadora || "").trim();
+  const red = String(orc.redespacho || "").trim();
+  const val = String(orc.validadeProposta || "").trim() || "7";
+  const mk = c => c ? "(X)" : "( )";
+  const extras = String(orc.obsCliente || "").split(/\n+/).map(x => x.trim()).filter(Boolean);
+  const obs = OBS_GERAIS_PADRAO.concat(extras).map((t, i) => `<p>${i + 1}. ${escHtmlCC(t)}</p>`).join("");
+  return `<div class="cc"><div class="cch">Condições Comerciais</div><div class="ccb"><p><b>Condição de pagamento:</b> ${escHtmlCC(orc.condicaoPagamento || "—")}</p><p><b>Validade da proposta:</b> ${escHtmlCC(val)} dias</p><div class="ccf"><div><b>Frete:</b> CIF ${mk(cif)}${cif && transp ? " Transportadora: " + escHtmlCC(transp) : ""}</div><div>FOB ${mk(fob)}${fob && transp ? " Transportadora: " + escHtmlCC(transp) : ""}</div><div>REDESPACHO ${mk(!!red)}${red ? " " + escHtmlCC(red) : ""}</div></div></div><div class="cch">Observações Gerais</div><div class="ccb">${obs}</div></div>`;
+}
+function CamposCondicoesComerciais({ valores, onChange, inputCls, style }) {
+  const h = React.createElement;
+  const lab = (t, child) => h("label", { className: "block text-[11px] font-semibold", style: { color: "#475569" } }, t, h("div", { style: { marginTop: 2 } }, child));
+  const inp = (campo, ph) => h("input", { value: valores[campo] || "", placeholder: ph || "", onChange: e => onChange(campo, e.target.value), className: inputCls, style });
+  return h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 10 } },
+    lab("Frete", h("select", { value: valores.frete || "CIF", onChange: e => onChange("frete", e.target.value), className: inputCls, style }, h("option", { value: "CIF" }, "CIF (por conta da representada)"), h("option", { value: "FOB" }, "FOB (por conta do cliente)"))),
+    lab("Transportadora", inp("transportadora")),
+    lab("Redespacho (transportadora)", inp("redespacho", "ex.: TRANS AMIGOS")),
+    lab("Validade da proposta (dias)", inp("validadeProposta", "7")));
 }
 function multiploMinimoDe(prod) {
   const m = parseFloat(String(prod && prod.qtdMinima != null ? prod.qtdMinima : "").replace(",", "."));

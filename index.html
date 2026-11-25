@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.15";
+const APP_VERSAO = "1.9.16";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -24307,7 +24307,8 @@ function lerCotacaoPdf(paginas, nomeArquivo) {
   return {
     faixas: [{ chave: "cotacao", rotulo: nomeFaixa, nome: nomeFaixa }],
     produtos: [...itens.values()].map(i => ({ codigo: i.codigo, nome: i.nome, cor: "", medida: "", qtdCaixa: "", qtdMinima: "", unidade: i.unidade || "", familia: "", certificadoAprovacao: "", referenciaFabrica: i.referenciaFabrica || "", marca: "", ipi: "", ncm: "", ean: "", categoria: "", precos: { cotacao: i.preco }, linha: null })),
-    fotos: {}
+    fotos: {},
+    deCotacao: true
   };
 }
 function ImportarFaixasFabrica({
@@ -24347,7 +24348,7 @@ function ImportarFaixasFabrica({
             setAnalise(res);
             setArquivo(file.name);
             setNomes(Object.fromEntries(res.faixas.map(f => [f.chave, f.nome])));
-            setPadrao("");
+            setPadrao(res.faixas[0].chave); // cotação: o preço dela vira o preço de venda dos produtos novos
           }
         } catch (err) {
           setMsg("Não consegui ler o PDF: " + (err && err.message ? err.message : "arquivo inválido") + ".");
@@ -24431,7 +24432,7 @@ function ImportarFaixasFabrica({
         lista[idx] = {
           ...atual,
           ...preenchidos,
-          ...(precoPadrao ? {
+          ...(precoPadrao && (!analise.deCotacao || !String(atual.vendaPreco || "").trim()) ? {
             vendaPreco: precoPadrao
           } : {}),
           tabelasPreco: [...(atual.tabelasPreco || []).filter(t => !nomesNovos.includes(norm(t.nome))), ...novasFaixas]

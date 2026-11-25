@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.13";
+const APP_VERSAO = "1.9.14";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Importação de preços da fábrica agora aceita cotação em PDF (Kalipso e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -24195,6 +24195,111 @@ function lerTabelaFaixasFabrica(linhas) {
     produtos
   };
 }
+// ---------- Cotação em PDF → tabela de preços (só os itens; o cliente da cotação é ignorado) ----------
+async function pdfParaLinhasPosicionais(arrayBuffer) {
+  const pdfjs = await carregarPdfJs();
+  const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+  const paginas = [];
+  for (let n = 1; n <= pdf.numPages; n++) {
+    const pag = await pdf.getPage(n);
+    const tc = await pag.getTextContent();
+    const vp = pag.getViewport({ scale: 1 });
+    const grupos = [];
+    tc.items.filter(it => it.str && it.str.trim()).forEach(it => {
+      const t = pdfjs.Util.transform(vp.transform, it.transform);
+      const cel = { x: t[4], xe: t[4] + Math.abs(it.width || 0), str: it.str.trim() };
+      const g = grupos.find(g => Math.abs(g.y - t[5]) <= 2.5);
+      if (g) g.cels.push(cel); else grupos.push({ y: t[5], cels: [cel] });
+    });
+    paginas.push(grupos.sort((a, b) => a.y - b.y).map(g => {
+      const cels = [];
+      g.cels.sort((a, b) => a.x - b.x).forEach(c => {
+        const ult = cels[cels.length - 1];
+        if (ult && c.x - ult.xe < 4.5) { ult.str += " " + c.str; ult.xe = Math.max(ult.xe, c.xe); }
+        else cels.push({ ...c });
+      });
+      return { y: g.y, cels, texto: cels.map(c => c.str).join(" ") };
+    }));
+  }
+  return paginas;
+}
+const COTACAO_NUM = /^(?:R\$\s*)?\d[\d.]*,\d{2,4}$/;
+function lerCotacaoPdf(paginas, nomeArquivo) {
+  const todos = paginas.flat().map(r => r.texto).join("\n");
+  const numero = (todos.match(/Or[çc]amento\s*(?:N[º°o.]*)?\s*:?\s*(\d{4,})/i) || [])[1] || "";
+  const itens = new Map();
+  const preco2 = v => Math.round(parseValorBR(String(v).replace(/R\$\s*/, "")) * 100) / 100;
+  const add = it => { if (it.codigo && it.nome && isFinite(it.preco) && it.preco > 0) itens.set(it.codigo, it); };
+  // Formato 1 (Kalipso): "1  01.01.1.2  10346  OCULOS JAGUAR CINZA  PC  108  R$ 2,54 ..." — a descrição
+  // pode quebrar em duas linhas (a 1ª fica acima da linha do código).
+  const PRECO_RS = /^R\$\s*[\d.]+,\d{2}$/;
+  paginas.forEach(rows => {
+    const itensLinha = [];
+    rows.forEach((r, i) => {
+      const c = r.cels;
+      if (c.length < 6 || !/^\d{1,3}$/.test(c[0].str) || !/^\d{2}\.\d{2}\.\d+\.\d+$/.test(c[1].str)) return;
+      const iPreco = c.findIndex((x, k) => k > 2 && PRECO_RS.test(x.str));
+      if (iPreco < 4) return;
+      let desc = c.slice(2, iPreco - 2);
+      if (desc.length && /^\d[\d.]*$/.test(desc[0].str)) desc = desc.slice(1);
+      itensLinha.push({ i, r, codigo: c[1].str, unidade: c[iPreco - 2].str, preco: preco2(c[iPreco].str), desc });
+    });
+    const usadas = new Set(itensLinha.map(x => x.i));
+    itensLinha.forEach(it => {
+      const x0 = it.desc.length ? it.desc[0].x : null;
+      const frs = rows.map((r, i) => ({ r, i })).filter(({ r, i }) => !usadas.has(i) && Math.abs(r.y - it.r.y) <= 16 && r.cels.length && !r.cels.some(c => /\d,\d{2}|R\$/.test(c.str)) && (x0 == null || Math.abs(r.cels[0].x - x0) <= 8)
+        && !itensLinha.some(o => o !== it && Math.abs(o.r.y - r.y) < Math.abs(it.r.y - r.y)));
+      const acima = frs.filter(f => f.r.y < it.r.y).map(f => f.r.texto);
+      const abaixo = frs.filter(f => f.r.y > it.r.y).map(f => f.r.texto);
+      const nome = [...acima, ...it.desc.map(d => d.str), ...abaixo].join(" ").replace(/\s+/g, " ").trim();
+      add({ codigo: it.codigo, referenciaFabrica: it.codigo, nome, unidade: it.unidade, preco: it.preco });
+    });
+  });
+  // Formato 2 (colunas Cód. | Produto | Qtde. | Valor Unit. | ..., descrição pode quebrar em linhas acima/abaixo)
+  if (!itens.size) {
+    paginas.forEach(rows => {
+      const iCab = rows.findIndex(r => r.cels.some(c => /^c[óo]d/i.test(c.str)) && r.cels.some(c => /produto|descri/i.test(c.str)));
+      const ehCodigo = c => /\d/.test(c.str) && /^[\w.\-\/]+$/.test(c.str) && !COTACAO_NUM.test(c.str);
+      const numericas = [];
+      rows.forEach((r, i) => {
+        if (i <= iCab) return;
+        const nums = r.cels.filter(c => COTACAO_NUM.test(c.str));
+        const cod = r.cels[0];
+        if (cod && ehCodigo(cod) && nums.length >= 2) numericas.push({ i, r, nums, cod });
+      });
+      if (!numericas.length) return;
+      const codX = Math.min(...numericas.map(n => n.cod.x));
+      const numX = Math.min(...numericas.map(n => n.nums[0].x));
+      const ehNum = new Set(numericas.map(n => n.i));
+      const textRows = rows.map((r, i) => ({ r, i })).filter(({ r, i }) => i > iCab && !ehNum.has(i) && r.cels.length && !r.cels.some(c => COTACAO_NUM.test(c.str)) && r.cels[0].x > codX + 10 && r.cels[0].x < numX - 10 && !/^p[áa]gina|^total|^obs|^condi/i.test(r.texto));
+      const xs = numericas.map(n => n.r.cels.find(c => c !== n.cod && !COTACAO_NUM.test(c.str) && c.x < n.nums[0].x)).filter(Boolean).map(c => c.x).concat(textRows.map(t => t.r.cels[0].x));
+      if (!xs.length) return;
+      const descX = Math.min(...xs);
+      const frags = textRows.filter(t => Math.abs(t.r.cels[0].x - descX) <= 8);
+      const porItem = new Map(numericas.map(n => [n.i, []]));
+      frags.forEach(t => {
+        let melhor = null;
+        numericas.forEach(n => { const d = Math.abs(n.r.y - t.r.y); if (d <= 16 && (!melhor || d < melhor.d)) melhor = { n, d }; });
+        if (melhor) porItem.get(melhor.n.i).push(t);
+      });
+      numericas.forEach(n => {
+        const proprio = n.r.cels.filter(c => c !== n.cod && !COTACAO_NUM.test(c.str) && c.x < n.nums[0].x).map(c => c.str);
+        const frs = porItem.get(n.i);
+        const acima = frs.filter(t => t.r.y < n.r.y).map(t => t.r.texto);
+        const abaixo = frs.filter(t => t.r.y > n.r.y).map(t => t.r.texto);
+        const nome = [...acima, ...proprio, ...abaixo].join(" ").replace(/\s+/g, " ").trim();
+        add({ codigo: n.cod.str, nome, unidade: "", preco: preco2(n.nums[1].str) });
+      });
+    });
+  }
+  if (!itens.size) return null;
+  const nomeFaixa = "Cotação " + (numero || String(nomeArquivo || "").replace(/\.pdf$/i, ""));
+  return {
+    faixas: [{ chave: "cotacao", rotulo: nomeFaixa, nome: nomeFaixa }],
+    produtos: [...itens.values()].map(i => ({ codigo: i.codigo, nome: i.nome, cor: "", medida: "", qtdCaixa: "", qtdMinima: "", unidade: i.unidade || "", familia: "", certificadoAprovacao: "", referenciaFabrica: i.referenciaFabrica || "", marca: "", ipi: "", ncm: "", ean: "", categoria: "", precos: { cotacao: i.preco }, linha: null })),
+    fotos: {}
+  };
+}
 function ImportarFaixasFabrica({
   representada,
   produtos,
@@ -24217,6 +24322,30 @@ function ImportarFaixasFabrica({
     setLendo(true);
     setMsg("");
     setAnalise(null);
+    if (/\.pdf$/i.test(file.name) || file.type === "application/pdf") {
+      file.arrayBuffer().then(async buf => {
+        try {
+          const res = lerCotacaoPdf(await pdfParaLinhasPosicionais(buf), file.name);
+          if (!res) {
+            setMsg("Não achei itens com código, descrição e preço nesse PDF. Se for uma cotação de outro formato, me mande um exemplo.");
+          } else {
+            // Liga cada item ao produto que já existe (por código, referência da fábrica ou nome).
+            res.produtos.forEach(p => {
+              const a = produtos.find(x => daRepresentada(x) && (norm(x.codigo) === norm(p.codigo) || p.referenciaFabrica && norm(x.referenciaFabrica) === norm(p.referenciaFabrica))) || produtos.find(x => daRepresentada(x) && normSemAcento(x.nome) === normSemAcento(p.nome));
+              if (a) p.codigo = a.codigo;
+            });
+            setAnalise(res);
+            setArquivo(file.name);
+            setNomes(Object.fromEntries(res.faixas.map(f => [f.chave, f.nome])));
+            setPadrao("");
+          }
+        } catch (err) {
+          setMsg("Não consegui ler o PDF: " + (err && err.message ? err.message : "arquivo inválido") + ".");
+        }
+        setLendo(false);
+      });
+      return;
+    }
     const reader = new FileReader();
     reader.onload = ev => {
       try {
@@ -24380,15 +24509,15 @@ function ImportarFaixasFabrica({
     }
   }, "1. Envie a planilha de preços da fábrica do jeito que ela veio"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-500 mb-3"
-  }, "O sistema acha sozinho o código, a descrição e cada coluna de preço (ex: B2B, Peq. Varejo, Grande Varejo, Atac/Dist) e cadastra todas as faixas de uma vez. Não precisa editar a planilha."), /*#__PURE__*/React.createElement("label", {
+  }, "O sistema acha sozinho o código, a descrição e cada coluna de preço (ex: B2B, Peq. Varejo, Grande Varejo, Atac/Dist) e cadastra todas as faixas de uma vez. Não precisa editar a planilha. Também aceita uma cotação em PDF: usa só os itens (código, descrição e preço) e ignora o cliente."), /*#__PURE__*/React.createElement("label", {
     className: "inline-flex items-center gap-2 text-white text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-md cursor-pointer",
     style: {
       background: ROYAL,
       opacity: lendo ? 0.6 : 1
     }
-  }, lendo ? "Lendo planilha…" : "📄 Escolher planilha (.xlsx)", /*#__PURE__*/React.createElement("input", {
+  }, lendo ? "Lendo planilha…" : "📄 Escolher planilha (.xlsx) ou cotação (.pdf)", /*#__PURE__*/React.createElement("input", {
     type: "file",
-    accept: ".xlsx,.xls",
+    accept: ".xlsx,.xls,.pdf",
     onChange: selecionar,
     disabled: enviandoFotos,
     className: "hidden",

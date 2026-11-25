@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.11";
+const APP_VERSAO = "1.9.12";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -18191,6 +18191,16 @@ function NovoPedidoEspelho({
       setTabelaPreco(alvo);
     }
   }, [clienteId, representada, tabelasDisponiveis.length]);
+  // Observação para o cliente: texto padrão da representada (Kalipso: pedido mínimo Roraima / frete CIF).
+  // Só preenche se estiver vazio ou ainda for o texto automático — não sobrescreve o que foi digitado.
+  const obsAutoRef = useRef("");
+  useEffect(() => {
+    const t = obsPadraoDaRepresentada(representada);
+    if (obsCliente === "" || obsCliente === obsAutoRef.current) {
+      obsAutoRef.current = t;
+      setObsCliente(t);
+    }
+  }, [representada]);
   const infoKalipso = (() => {
     if (!cliente || !/kalipso/i.test(representada || "")) return "";
     const cls = String(cliente.classificacao || "").toUpperCase();
@@ -19650,7 +19660,7 @@ function Orcamentos({
       dataEmissao: p.dataEmissao || "",
       condicaoPagamento: p.condicaoPagamento || "",
       ordemCompra: p.ordemCompra || "",
-      obsCliente: p.obsCliente || "",
+      obsCliente: p.obsCliente || obsPadraoDaRepresentada(p.representada),
       itens: (p.itens || []).map(i => ({
         ...i
       }))
@@ -19757,6 +19767,7 @@ function Orcamentos({
   // ── Gerador de PDF / Catálogo ─────────────────────────────────────────────
   const gerarPDFOrcamento = (pedidoOriginal, formAtual, ocultarPrecos, catalogo) => {
     const orc = { ...pedidoOriginal, ...formAtual };
+    if (!orc.obsCliente) orc.obsCliente = obsPadraoDaRepresentada(orc.representada);
     const cli = (clientes || []).find(c => c.id === orc.clienteId) || (clientes || []).find(c => norm(c.nome || '') === norm(orc.clienteNome || '')) || {};
     const cnpjD = String(cli.cnpj || '').replace(/\D/g, '');
     const cnpjFmt = cnpjD.length === 14 ? cnpjD.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : (cli.cnpj || '');
@@ -24991,6 +25002,13 @@ function ImportacaoFotosLote({
 // CATÁLOGO GRID — visão em cards dos produtos
 // ============================================================
 // Múltiplo mínimo de digitação do item no pedido (Qtd. mínima do cadastro do produto). 0 = sem regra.
+const OBS_PADRAO_REPRESENTADA = [
+  { rep: /kalipso/i, texto: "Pedido mínimo para Roraima: R$ 2.000,00, com despacho em São Paulo (SP) para a transportadora indicada pelo cliente. Frete CIF a partir de R$ 7.000,00." }
+];
+function obsPadraoDaRepresentada(rep) {
+  const r = OBS_PADRAO_REPRESENTADA.find(x => x.rep.test(String(rep || "")));
+  return r ? r.texto : "";
+}
 function multiploMinimoDe(prod) {
   const m = parseFloat(String(prod && prod.qtdMinima != null ? prod.qtdMinima : "").replace(",", "."));
   return m > 0 ? m : 0;

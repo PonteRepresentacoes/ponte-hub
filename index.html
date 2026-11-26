@@ -268,7 +268,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.17";
+const APP_VERSAO = "1.9.18";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2683,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -24103,7 +24103,7 @@ const CAMPOS_TABELA_PRECO_IMPORT = [{
 // em cada seção e 8 colunas de preço. O importador comum usa a 1ª linha como cabeçalho e não
 // enxergava nada. Aqui o sistema acha o cabeçalho sozinho, reconhece cada coluna de preço como
 // uma faixa e importa tudo de uma vez (em vez de repetir a importação uma vez por faixa).
-const PAPEIS_COLUNA_FABRICA = [["ean", c => c.includes("ean") || c.includes("codigo de barras") && !c.includes("dun")], ["dun", c => c.includes("dun")], ["codigo", c => /^cod(\.|igo)?\b/.test(c) && !c.includes("barra")], ["descricao", c => c.includes("descri")], ["cor", c => c === "cor"], ["caract", c => c.includes("caracteristica")], ["caixa", c => c.includes("caixa master") || c.includes("qtd") && c.includes("caixa")], ["qtdMinima", c => (c.includes("qtd") || c.includes("quantidade")) && (c.includes("min") || c.includes("m\xEDn"))], ["unidade", c => c.includes("unidade") || c === "un" || c === "un."], ["familia", c => c === "familia" || c === "fam\xEDlia" || c.startsWith("famil")], ["certificadoAprovacao", c => c === "c.a." || c === "ca" || c.includes("certificado")], ["referenciaFabrica", c => c === "estruturado" || (c.includes("refer") && !c.includes("descri"))], ["marca", c => c === "marca"], ["ipi", c => c === "ipi" || c.startsWith("ipi ")], ["ncm", c => c === "ncm"], ["ignorar", c => c.includes("imagem") || c.includes("prazo") || c.includes("peso") || c.includes("filial") || c === "tabela" || c === "grupo"]];
+const PAPEIS_COLUNA_FABRICA = [["ean", c => c.includes("ean") || c.includes("codigo de barras") && !c.includes("dun")], ["dun", c => c.includes("dun")], ["codigo", c => /^cod(\.|igo)?\b/.test(c) && !c.includes("barra") || c === "item"], ["descricao", c => c.includes("descri")], ["cor", c => c === "cor"], ["caract", c => c.includes("caracteristica")], ["caixa", c => c.includes("caixa master") || c.includes("qtd") && c.includes("caixa")], ["qtdMinima", c => (c.includes("qtd") || c.includes("quantidade")) && (c.includes("min") || c.includes("m\xEDn")) || c.includes("lote")], ["unidade", c => c.includes("unidade") || c === "un" || c === "un."], ["familia", c => c === "linha" || c === "familia" || c === "fam\xEDlia" || c.startsWith("famil")], ["certificadoAprovacao", c => c === "c.a." || c === "ca" || c.includes("certificado")], ["referenciaFabrica", c => c === "estruturado" || (c.includes("refer") && !c.includes("descri"))], ["marca", c => c === "marca"], ["ipi", c => c === "ipi" || c.startsWith("ipi ")], ["ncm", c => c === "ncm"], ["ignorar", c => c.includes("imagem") || c.includes("prazo") || c.includes("peso") || c.includes("filial") || c === "tabela" || c === "grupo"]];
 function nomeFaixaCurto(rotulo) {
   const t = String(rotulo || "").replace(/\s+/g, " ").trim();
   const valores = [...t.matchAll(/(\d{1,3}(?:\.\d{3})*),\d{2}/g)].map(m => m[1]);
@@ -24120,7 +24120,7 @@ function lerTabelaFaixasFabrica(linhas) {
   const txt = v => String(v == null ? "" : v).replace(/\s+/g, " ").trim();
   const ehCabecalho = r => {
     const c = r.map(v => normSemAcento(v));
-    return c.some(x => /^cod(\.|igo)?\b/.test(x) && !x.includes("barra")) && c.some(x => x.includes("descri"));
+    return c.some(x => /^(cod(\.|igo)?\b|item$)/.test(x) && !x.includes("barra")) && c.some(x => x.includes("descri"));
   };
   const numero = v => {
     if (typeof v === "number") return v;
@@ -24383,14 +24383,15 @@ function ImportarFaixasFabrica({
         });
         let res = null;
         let indiceAba = 0;
+        // Usa a aba com mais produtos (planilha de cotação costuma ter abas de política e proposta junto da lista).
         for (const [i, nome] of wb.SheetNames.entries()) {
-          res = lerTabelaFaixasFabrica(XLSX.utils.sheet_to_json(wb.Sheets[nome], {
+          const r = lerTabelaFaixasFabrica(XLSX.utils.sheet_to_json(wb.Sheets[nome], {
             header: 1,
             defval: ""
           }));
-          if (res) {
+          if (r && (!res || r.produtos.length > res.produtos.length)) {
+            res = r;
             indiceAba = i;
-            break;
           }
         }
         if (res) res.fotos = fotosPorProduto(res.produtos, extrairImagensPlanilha(dados, indiceAba));
@@ -24400,7 +24401,8 @@ function ImportarFaixasFabrica({
           setAnalise(res);
           setArquivo(file.name);
           setNomes(Object.fromEntries(res.faixas.map(f => [f.chave, f.nome])));
-          setPadrao(res.faixas.length > 1 ? res.faixas[0].chave : "");
+          if (res.faixas.length === 1) res.deCotacao = true;
+          setPadrao(res.faixas[0].chave);
         }
       } catch (err) {
         setMsg("Não consegui ler o arquivo. Confira se é uma planilha .xlsx válida.");

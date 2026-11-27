@@ -413,6 +413,70 @@ html[data-tema="escuro"] .text-violet-800{color:rgb(167,139,250)!important}
   })();
   window.ponteOffline = { sincronizar: function () { return OFF.sincronizar(true); }, estado: OFF.estado };
 
+  // ===== Atualizar e baixar dados (reinício dentro do sistema) =====
+  window.ponteAtualizar = async function () {
+    if (window.__ponteAtualizando) return;
+    if (navigator.onLine === false) { OFF.aviso("Sem internet — não dá para atualizar agora. O Hub continua funcionando offline.", 6000); return; }
+    window.__ponteAtualizando = true;
+    const ov = document.createElement("div");
+    ov.style.cssText = "position:fixed;inset:0;z-index:100000;background:rgba(5,8,15,.82);display:flex;align-items:center;justify-content:center;padding:16px;font:600 14px/1.4 'Plus Jakarta Sans',system-ui,sans-serif";
+    const card = document.createElement("div");
+    card.style.cssText = "width:min(92vw,360px);background:#0B1220;color:#F1F5F9;border:1px solid #2A3A5C;border-radius:16px;padding:18px 18px 14px;box-shadow:0 10px 40px rgba(0,0,0,.5)";
+    const tit = document.createElement("div"); tit.style.cssText = "font-weight:800;font-size:16px;margin-bottom:10px"; tit.textContent = "Atualizando o Hub";
+    const lista = document.createElement("div"); lista.style.cssText = "display:flex;flex-direction:column;gap:6px;font-size:13px";
+    const rodape = document.createElement("div"); rodape.style.cssText = "margin-top:10px;font-size:12px;color:#9db3cc";
+    card.appendChild(tit); card.appendChild(lista); card.appendChild(rodape); ov.appendChild(card); document.body.appendChild(ov);
+    const passos = [];
+    const novo = (t) => { const el = document.createElement("div"); el.textContent = "⏳ " + t; lista.appendChild(el); passos.push(el); return { ok: (m) => { el.textContent = "✓ " + (m || t); el.style.color = "#34D399"; }, aviso: (m) => { el.textContent = "⚠ " + m; el.style.color = "#FBBF24"; } }; };
+    const dorme = (ms) => new Promise((r) => setTimeout(r, ms));
+    let versaoNova = null, falhas = 0;
+    try {
+      // 1) manda o que estiver pendente
+      let p = novo("Enviando alterações pendentes…");
+      await dorme(2500); // dá tempo do salvamento automático terminar
+      await OFF.sincronizar(false);
+      await OFF.contar();
+      if (OFF.estado.pend) p.aviso(OFF.estado.pend + " documento(s) seguem aguardando envio (ficam salvos e sincronizam depois)."); else p.ok("Alterações enviadas");
+      // 2) baixa os dados para uso offline
+      p = novo("Baixando os dados para uso offline…");
+      const chavesDados = ["ponte-hub-data", "ponte-hub-pedidos", "ponte-hub-mix", "ponte-hub-contagens", "ponte-hub-produtos"];
+      let baixados = 0;
+      for (const k of chavesDados) {
+        try { await window.storage.get(k, false); baixados++; }
+        catch (e) { if (e && e.message === "not found") baixados++; else falhas++; }
+      }
+      if (falhas) p.aviso("Só consegui baixar " + (baixados) + " de " + chavesDados.length + " blocos de dados."); else p.ok("Dados salvos neste aparelho");
+      // 3) busca a versão mais nova do app
+      p = novo("Buscando a versão mais nova…");
+      try {
+        const r = await fetch("/index.html?cb=" + Date.now(), { cache: "no-store" });
+        if (!r.ok) throw new Error("http " + r.status);
+        const txt = await r.text();
+        const m = txt.match(/const APP_VERSAO = "([\d.]+)"/);
+        versaoNova = m ? m[1] : null;
+        if ("caches" in window) {
+          const ks = (await caches.keys()).filter((k) => k.indexOf("ponte-hub-shell") === 0);
+          for (const k of ks) { const c = await caches.open(k); await c.put("/index.html", new Response(txt, { headers: { "content-type": "text/html;charset=utf-8" } })); }
+        }
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) { await reg.update(); const sw = reg.active || reg.waiting || reg.installing; if (sw) sw.postMessage("precache"); }
+        } catch (e) {}
+        const atual = typeof APP_VERSAO !== "undefined" ? APP_VERSAO : "";
+        p.ok(versaoNova && versaoNova !== atual ? "Versão " + versaoNova + " encontrada (você está na " + atual + ")" : "Você já está na versão mais nova" + (atual ? " (" + atual + ")" : ""));
+      } catch (e) { falhas++; p.aviso("Não consegui buscar a versão nova agora."); }
+      // 4) reinicia
+      p = novo("Reiniciando…");
+      try { localStorage.removeItem("ponte-hub-deploy-etag"); } catch (e) {}
+      await dorme(900);
+      window.location.reload();
+    } catch (e) {
+      rodape.textContent = "Algo deu errado: " + (e && e.message ? e.message : e);
+      window.__ponteAtualizando = false;
+      setTimeout(() => { try { ov.remove(); } catch (x) {} }, 4000);
+    }
+  };
+
   window.storage = {
     async get(key, shared) {
       const rec = await OFF.ler(key);
@@ -493,7 +557,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.21";
+const APP_VERSAO = "1.9.22";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -1901,7 +1965,7 @@ function PonteHub({
   /*#__PURE__*/
   React.createElement("div", {
     style: {
-      position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)",
+      position: "fixed", bottom: 64, left: "50%", transform: "translateX(-50%)",
       zIndex: 9999, background: "#1d4ed8", color: "#fff",
       borderRadius: 12, padding: "12px 20px", display: "flex", alignItems: "center",
       gap: 12, boxShadow: "0 4px 24px rgba(0,0,0,0.35)", fontSize: 14, fontWeight: 500,
@@ -1910,7 +1974,7 @@ function PonteHub({
   },
   React.createElement("span", null, "🚀 Nova vers\xE3o dispon\xEDvel — recarregue para atualizar"),
   React.createElement("button", {
-    onClick: () => { try { localStorage.removeItem("ponte-hub-deploy-etag"); } catch(e) {} window.location.reload(); },
+    onClick: () => { if (window.ponteAtualizar && navigator.onLine !== false) { window.ponteAtualizar(); } else { try { localStorage.removeItem("ponte-hub-deploy-etag"); } catch(e) {} window.location.reload(); } },
     style: { background: "#fff", color: "#1d4ed8", border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 700, cursor: "pointer", fontSize: 13 }
   }, "Atualizar"),
   React.createElement("button", {
@@ -2040,7 +2104,12 @@ function LoginScreen({
     style: {
       color: "#7a9ab8"
     }
-  }, "Não sabe seu código? Peça ao seu gestor.")));
+  }, "Não sabe seu código? Peça ao seu gestor."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => window.ponteAtualizar && window.ponteAtualizar(),
+    className: "w-full text-[11px] font-semibold mt-3",
+    style: { color: "#7a9ab8", background: "none", border: 0, textDecoration: "underline", cursor: "pointer" }
+  }, "🔄 Atualizar app e baixar dados")));
 }
 function blankCadastroPublico() {
   return {
@@ -2864,7 +2933,12 @@ function Sidebar({
       borderColor: "#1a416b",
       color: "#9db3cc"
     }
-  }, tema === "escuro" ? "☀️ Tela clara" : "🌙 Tela escura"), sessao && sessao.tipo === "vendedor" &&
+  }, tema === "escuro" ? "☀️ Tela clara" : "🌙 Tela escura"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => window.ponteAtualizar && window.ponteAtualizar(),
+    className: "w-full flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-md border",
+    style: { borderColor: "#1a416b", color: "#9db3cc" },
+    title: "Envia o que estiver pendente, baixa os dados para uso offline, busca a versão mais nova e reinicia"
+  }, "🔄 Atualizar e baixar dados"), sessao && sessao.tipo === "vendedor" &&
   /*#__PURE__*/
   /*#__PURE__*/
   React.createElement("p", {
@@ -2925,7 +2999,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Tela de login: olhinho para mostrar/ocultar o código de acesso.", "App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Botão \"🔄 Atualizar e baixar dados\" no menu (e na tela de login): envia o que estiver pendente, baixa todos os dados para uso offline, busca a versão mais nova do app e reinicia sozinho.", "Tela de login: olhinho para mostrar/ocultar o código de acesso.", "App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {

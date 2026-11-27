@@ -1,7 +1,7 @@
 // Ponte Hub — Service Worker v2.0 (modo offline)
 // Guarda o app (index.html), as bibliotecas externas e as fontes para abrir sem internet.
 // Dados (Firestore) NÃO passam por aqui: o próprio Hub guarda uma cópia local (IndexedDB).
-const VERSAO = "2.0.0";
+const VERSAO = "2.1.0";
 const SHELL = "ponte-hub-shell-" + VERSAO;
 const IMGS = "ponte-hub-img-v1";
 const LIB = "ponte-hub-lib-v1";
@@ -20,18 +20,24 @@ const LIBS = [
   "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;600;700&family=Orbitron:wght@500;900&display=swap"
 ];
 
+async function precache() {
+  const shell = await caches.open(SHELL);
+  for (const u of SAME_ORIGIN) {
+    try { const r = await fetch(u, { cache: "reload" }); if (r && r.ok) await shell.put(u === "/" ? "/index.html" : u, r); } catch (err) {}
+  }
+  const lib = await caches.open(LIB);
+  for (const u of LIBS) {
+    try { if (!(await lib.match(u))) { const r = await fetch(u); if (r && r.ok) await lib.put(u, r); } } catch (err) {}
+  }
+}
+
 self.addEventListener("install", (e) => {
-  e.waitUntil((async () => {
-    const shell = await caches.open(SHELL);
-    for (const u of SAME_ORIGIN) {
-      try { const r = await fetch(u, { cache: "reload" }); if (r && r.ok) await shell.put(u === "/" ? "/index.html" : u, r); } catch (err) {}
-    }
-    const lib = await caches.open(LIB);
-    for (const u of LIBS) {
-      try { if (!(await lib.match(u))) { const r = await fetch(u); if (r && r.ok) await lib.put(u, r); } } catch (err) {}
-    }
-  })());
+  e.waitUntil(precache());
   self.skipWaiting();
+});
+
+self.addEventListener("message", (e) => {
+  if (e.data === "precache") e.waitUntil(precache());
 });
 
 self.addEventListener("activate", (e) => {

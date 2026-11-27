@@ -493,7 +493,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.20";
+const APP_VERSAO = "1.9.21";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -1949,6 +1949,7 @@ function LoginScreen({
   onLogin
 }) {
   const [codigo, setCodigo] = useState("");
+  const [verCodigo, setVerCodigo] = useState(false);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const handleSubmit = async e => {
@@ -1990,19 +1991,35 @@ function LoginScreen({
     style: {
       color: "#9db3cc"
     }
-  }, "Código de acesso"), /*#__PURE__*/React.createElement("input", {
-    type: "password",
+  }, "Código de acesso"), /*#__PURE__*/React.createElement("div", {
+    style: { position: "relative", marginBottom: 16 }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: verCodigo ? "text" : "password",
     value: codigo,
     onChange: e => setCodigo(e.target.value),
     autoFocus: true,
     required: true,
-    className: "w-full rounded-md px-3 py-2 text-sm mb-4 font-mono",
+    autoComplete: "off",
+    autoCapitalize: "off",
+    spellCheck: false,
+    className: "w-full rounded-md px-3 py-2 text-sm font-mono",
     style: {
       background: "#0B1220",
       color: "#fff",
-      border: "1px solid #1a416b"
+      border: "1px solid #1a416b",
+      paddingRight: 44,
+      marginBottom: 0
     }
-  }), erro &&
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setVerCodigo(v => !v),
+    "aria-label": verCodigo ? "Ocultar código" : "Mostrar código",
+    title: verCodigo ? "Ocultar código" : "Mostrar código",
+    style: { position: "absolute", right: 0, top: 0, bottom: 0, width: 42, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: 0, color: verCodigo ? "#60A5FA" : "#9db3cc", cursor: "pointer" },
+    dangerouslySetInnerHTML: { __html: verCodigo
+      ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+      : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' }
+  })), erro &&
   /*#__PURE__*/
   /*#__PURE__*/
   React.createElement("p", {
@@ -2908,7 +2925,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Tela de login: olhinho para mostrar/ocultar o código de acesso.", "App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {

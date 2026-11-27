@@ -557,7 +557,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.23";
+const APP_VERSAO = "1.9.24";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -1271,6 +1271,21 @@ async function gravarHub(dadosPrincipais, pedidosEspelho, mixClientes, contagens
   const ok = await window.storage.set(STORAGE_KEY, principal, false);
   return !!ok;
 }
+// ── Botão Voltar (2026-11-27): pilha de "sub-telas" abertas (formulários/editores) + contexto de aba ativa ──
+window.__phVoltarPilha = window.__phVoltarPilha || [];
+const VoltarCtx = React.createContext(true);
+function useVoltarLocal(ativo, fn) {
+  const ctxAtivo = React.useContext(VoltarCtx);
+  const ref = React.useRef(fn);
+  ref.current = fn;
+  const on = !!ativo && ctxAtivo;
+  React.useEffect(() => {
+    if (!on) return;
+    const item = { f: () => { if (ref.current) ref.current(); } };
+    window.__phVoltarPilha.push(item);
+    return () => { const i = window.__phVoltarPilha.indexOf(item); if (i >= 0) window.__phVoltarPilha.splice(i, 1); };
+  }, [on]);
+}
 function PonteHub({
   sessao,
   onLogout
@@ -1288,7 +1303,63 @@ function PonteHub({
     return React.createElement("div", {
       "data-ka": a + "|" + t,
       style: { display: active ? undefined : "none" }
-    }, el);
+    }, React.createElement(VoltarCtx.Provider, { value: active }, el));
+  };
+  // ── Histórico de navegação (botão Voltar) ──
+  const navRef = React.useRef({ pilha: [], atual: null, restaurando: false });
+  const homeDe = a => (a === "adm" ? "dashboard" : "vendas-home");
+  React.useEffect(() => {
+    const n = navRef.current;
+    const novo = { a: area, t: tab };
+    if (n.atual === null) {
+      n.atual = novo;
+      try { window.history.replaceState({ ph: 1 }, ""); } catch (e) {}
+      return;
+    }
+    if (n.atual.a === novo.a && n.atual.t === novo.t) return;
+    if (n.restaurando) { n.restaurando = false; n.atual = novo; return; }
+    n.pilha.push(n.atual);
+    n.atual = novo;
+    try { window.history.pushState({ ph: 1 }, ""); } catch (e) {}
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }, [area, tab]);
+  const restaurarAnterior = () => {
+    const n = navRef.current;
+    const prev = n.pilha.pop();
+    if (!prev) return false;
+    n.restaurando = true;
+    setArea(prev.a);
+    setTab(prev.t);
+    setMenuAberto(false);
+    try { window.scrollTo(0, 0); } catch (e) {}
+    return true;
+  };
+  React.useEffect(() => {
+    const onPop = () => {
+      const pil = window.__phVoltarPilha;
+      if (pil && pil.length) {
+        // fecha a sub-tela aberta e mantém o histórico coerente
+        try { window.history.pushState({ ph: 1 }, ""); } catch (e) {}
+        pil[pil.length - 1].f();
+        return;
+      }
+      restaurarAnterior();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const voltarUm = () => {
+    const pil = window.__phVoltarPilha;
+    if (pil && pil.length) { pil[pil.length - 1].f(); return; }
+    const n = navRef.current;
+    if (n.pilha.length) {
+      const antes = n.pilha.length;
+      let ok = false;
+      try { window.history.back(); ok = true; } catch (e) {}
+      setTimeout(() => { if (!ok || navRef.current.pilha.length === antes) restaurarAnterior(); }, 300);
+      return;
+    }
+    setTab(homeDe(area));
   };
   const changeArea = a => {
     if (restritoAVendas && a === "adm") return; // vendedor não acessa o ADM
@@ -1681,16 +1752,21 @@ function PonteHub({
     onClick: () => setMenuAberto(true),
     className: "text-white text-2xl leading-none px-2 py-1",
     "aria-label": "Abrir menu"
-  }, "☰")), area === "vendas" && tab !== "vendas-home" &&
-  /*#__PURE__*/React.createElement("div", {
+  }, "☰")), tab !== homeDe(area) &&
+  React.createElement("div", {
     className: "flex items-center gap-2 px-4 py-2 border-b",
-    style: { background: NAVY, borderColor: "#1a416b" }
+    style: { background: NAVY, borderColor: "#1a416b", position: "sticky", top: 0, zIndex: 30 }
   },
     React.createElement("button", {
-      onClick: () => setTab("vendas-home"),
-      className: "flex items-center gap-1.5 text-xs font-semibold",
-      style: { color: "#60A5FA" }
-    }, "← App de Vendas")
+      onClick: voltarUm,
+      className: "flex items-center gap-1.5 text-sm font-bold rounded-lg",
+      style: { color: "#fff", background: "rgba(255,255,255,.14)", padding: "7px 14px", minHeight: 36 }
+    }, "← Voltar"),
+    React.createElement("button", {
+      onClick: () => setTab(homeDe(area)),
+      className: "flex items-center gap-1.5 text-sm font-semibold rounded-lg",
+      style: { color: "#93C5FD", padding: "7px 12px", minHeight: 36 }
+    }, area === "vendas" ? "🏠 App de Vendas" : "🏠 Início")
   ),
   loadFailed &&
   /*#__PURE__*/
@@ -2999,7 +3075,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["App de Vendas agora abre direto na tela de Ferramentas (a Rotina de Hoje é o primeiro cartão).", "Botão \"🔄 Atualizar e baixar dados\" no menu (e na tela de login): envia o que estiver pendente, baixa todos os dados para uso offline, busca a versão mais nova do app e reinicia sozinho.", "Tela de login: olhinho para mostrar/ocultar o código de acesso.", "App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Botão \"← Voltar\" em todas as telas (barra no topo, junto com \"🏠 Início\"): volta para a tela anterior ou fecha o formulário aberto. Funciona também com o botão voltar do celular e Alt+←.", "App de Vendas agora abre direto na tela de Ferramentas (a Rotina de Hoje é o primeiro cartão).", "Botão \"🔄 Atualizar e baixar dados\" no menu (e na tela de login): envia o que estiver pendente, baixa todos os dados para uso offline, busca a versão mais nova do app e reinicia sozinho.", "Tela de login: olhinho para mostrar/ocultar o código de acesso.", "App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -11086,6 +11162,7 @@ function FilaAtendimento({
   onConvertido
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [form, setForm] = useState(blankLeadAtendimento());
   const [arrastando, setArrastando] = useState(null);
   const [mostrarEncerrados, setMostrarEncerrados] = useState(false);
@@ -11965,7 +12042,9 @@ function FunilVendas({
   const negociosEscopo = meuId ? negocios.filter(n => (n.vendedorId || "") === meuId) : filtroResponsavel === "todos" ? negocios : negocios.filter(n => (n.vendedorId || "") === filtroResponsavel);
   const nomeResponsavel = id => id ? (vendedores.find(v => v.id === id) || {}).nome || "Vendedor removido" : "Venda direta (Ponte)";
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(blankNegocio());
   const [arrastando, setArrastando] = useState(null);
   const [mostrarPerdidos, setMostrarPerdidos] = useState(false);
@@ -13089,7 +13168,9 @@ function Televendas({
   representadasCadastro
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(blankLeadTelevendas());
   const [arrastando, setArrastando] = useState(null);
   const [mostrarPerdidos, setMostrarPerdidos] = useState(false);
@@ -13547,7 +13628,9 @@ function Interacoes({
   setChamadosLRA
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(blankInteracao());
   const [filtroCliente, setFiltroCliente] = useState("Todos");
   const [filtroOrigem, setFiltroOrigem] = useState("Todos");
@@ -14049,6 +14132,7 @@ function Agenda({
   setChecklistVisitaModelo
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [form, setForm] = useState(blankCompromisso());
   const [filtro, setFiltro] = useState("proximos"); // "atrasados" | "hoje" | "proximos" | "todos"
   const [visao, setVisao] = useState("lista"); // "lista" | "semana"
@@ -19800,6 +19884,7 @@ function Orcamentos({
   setNegocios
 }) {
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(null);
   const [novoItem, setNovoItem] = useState({
     produto: "",
@@ -20753,6 +20838,7 @@ function ListaPedidosEspelho({
   const [filtroTipo, setFiltroTipo] = useState(""); // "" = todos os tipos
   const [limite, setLimite] = useState(50);
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(null);
   const [loteAberto, setLoteAberto] = useState(false);
   const [lote, setLote] = useState({
@@ -22090,7 +22176,9 @@ function Equipe({
   setVendedores
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [aba, setAba] = useState("cadastro"); // "cadastro" | "representadas" | "flex"
   const [form, setForm] = useState(blankVendedor());
   const [novaRepresentada, setNovaRepresentada] = useState("");
@@ -25802,7 +25890,9 @@ function Produtos({
 }) {
   const visivel = id => !(camposOcultosProduto || []).includes(id);
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(blankProduto());
   const [busca, setBusca] = useState("");
   const [filtroRepresentada, setFiltroRepresentada] = useState("Todos");
@@ -27648,7 +27738,9 @@ function CondicoesPagamentoCadastro({
   representadasCadastro
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(blankCondicao());
   const [novoPrazo, setNovoPrazo] = useState("");
   const [exibirExcluidas, setExibirExcluidas] = useState(false);
@@ -28661,7 +28753,9 @@ function RepresentadasCadastro({
   chaveSintegra
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(blankRepresentada());
   const [exibirExcluidas, setExibirExcluidas] = useState(false);
   const [mostrarImport, setMostrarImport] = useState(false);
@@ -29520,7 +29614,9 @@ function TransportadorasCadastro({
   setTransportadoras
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(blankTransportadora());
   const [exibirExcluidas, setExibirExcluidas] = useState(false);
   const [buscandoCnpj, setBuscandoCnpj] = useState(false);
@@ -30100,7 +30196,9 @@ function Metas({
   representadasCadastro
 }) {
   const [mostrarForm, setMostrarForm] = useState(false);
+  useVoltarLocal(mostrarForm, () => setMostrarForm(false));
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [form, setForm] = useState(blankMeta());
   const set = campo => e => setForm(f => ({
     ...f,
@@ -31337,6 +31435,7 @@ function FluxoCaixa({
   const [ordemLista, setOrdemLista] = useState("data"); // "data" | "az"
   const [verLancamentos, setVerLancamentos] = useState(true);
   const [editandoId, setEditandoId] = useState(null);
+  useVoltarLocal(!!editandoId, () => setEditandoId(null));
   const [editForm, setEditForm] = useState({});
   const descricaoFinal = categoria === "Outro" ? descricaoOutro.trim() : categoria;
   const v = parseValorBR(valor);

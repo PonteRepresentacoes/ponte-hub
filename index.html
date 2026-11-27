@@ -557,7 +557,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.26";
+const APP_VERSAO = "1.9.27";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -1347,6 +1347,10 @@ function PonteHub({
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  React.useEffect(() => {
+    window.__phIrPedidos = () => { setArea("vendas"); setTab("vendas-pedidos"); setMenuAberto(false); };
+    return () => { window.__phIrPedidos = null; };
   }, []);
   const voltarUm = () => {
     const pil = window.__phVoltarPilha;
@@ -3075,7 +3079,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Produtos: ao clicar num cartão do catálogo, a edição do item abre na hora (no topo da tela) e, ao salvar ou cancelar, você volta ao catálogo na mesma posição em que estava.", "App de Vendas: o cartão voltou a se chamar \"Central de Pedidos\" (pedidos, espelho e NF).", "Botão \"← Voltar\" em todas as telas (barra no topo, junto com \"🏠 Início\"): volta para a tela anterior ou fecha o formulário aberto. Funciona também com o botão voltar do celular e Alt+←.", "App de Vendas agora abre direto na tela de Ferramentas (a Rotina de Hoje é o primeiro cartão).", "Botão \"🔄 Atualizar e baixar dados\" no menu (e na tela de login): envia o que estiver pendente, baixa todos os dados para uso offline, busca a versão mais nova do app e reinicia sozinho.", "Tela de login: olhinho para mostrar/ocultar o código de acesso.", "App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Catálogo com \"Adicionar\" no próprio cartão (quantidade − / + e botão), como no Vesh: dentro do pedido/orçamento soma o item na hora; em Produtos monta um orçamento em andamento com a barra \"Criar orçamento\", que abre o Novo pedido já como Orçamento com os itens.", "Produtos: ao clicar num cartão do catálogo, a edição do item abre na hora (no topo da tela) e, ao salvar ou cancelar, você volta ao catálogo na mesma posição em que estava.", "App de Vendas: o cartão voltou a se chamar \"Central de Pedidos\" (pedidos, espelho e NF).", "Botão \"← Voltar\" em todas as telas (barra no topo, junto com \"🏠 Início\"): volta para a tela anterior ou fecha o formulário aberto. Funciona também com o botão voltar do celular e Alt+←.", "App de Vendas agora abre direto na tela de Ferramentas (a Rotina de Hoje é o primeiro cartão).", "Botão \"🔄 Atualizar e baixar dados\" no menu (e na tela de login): envia o que estiver pendente, baixa todos os dados para uso offline, busca a versão mais nova do app e reinicia sozinho.", "Tela de login: olhinho para mostrar/ocultar o código de acesso.", "App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -18210,6 +18214,11 @@ function CentralPedidos({
   setNegocios
 }) {
   const [sub, setSub] = useState("novo"); // "novo" | "lista" | "icms"
+  useEffect(() => {
+    const f = () => setSub("novo");
+    window.addEventListener("ph-carrinho-orc", f);
+    return () => window.removeEventListener("ph-carrinho-orc", f);
+  }, []);
   // ── Keep-alive sub-abas ──────────────────────────────────────────────────
   const visitedSubRef = React.useRef(new Set());
   React.useEffect(() => { visitedSubRef.current.add(sub); }, [sub]);
@@ -18619,6 +18628,69 @@ function NovoPedidoEspelho({
     setItemPreco("");
   };
   const removeItem = id => setItens(itens.filter(i => i.id !== id));
+  // Botão "Adicionar" direto no cartão do catálogo: soma a quantidade se o item já estiver no pedido.
+  const adicionarDoCatalogoNovo = (prod, qtd) => {
+    const preco = Number(precoNaTabela(prod, tabelaPreco)) || 0;
+    setItens(prev => {
+      const novo = prev.slice();
+      const i = novo.findIndex(x => x.produtoId === prod.id);
+      if (i >= 0) novo[i] = { ...novo[i], quantidade: (Number(novo[i].quantidade) || 0) + qtd };
+      else novo.push({
+        id: uid(),
+        produto: (prod.codigo ? `${prod.codigo} ${prod.nome}` : prod.nome).replace(/\s+/g, " ").trim(),
+        produtoId: prod.id,
+        codigo: prod.codigo || "",
+        qtdCaixaMaster: Number(prod.qtdEmbalagem) > 0 ? Number(prod.qtdEmbalagem) : 0,
+        quantidade: qtd,
+        precoUnitario: preco
+      });
+      return novo;
+    });
+  };
+  const qtdNoPedidoNovo = prod => { const it = itens.find(x => x.produtoId === prod.id); return it ? Number(it.quantidade) || 0 : 0; };
+  // Carrinho vindo do catálogo de Produtos ("Criar orçamento"): abre este formulário como Orçamento com os itens.
+  const [avisoCarrinhoOrc, setAvisoCarrinhoOrc] = useState("");
+  const carrinhoStRef = useRef({});
+  carrinhoStRef.current = { representada, tabelaPreco, produtos };
+  useEffect(() => {
+    const aplicar = () => {
+      const c = window.__phCarrinhoOrc;
+      if (!c) return;
+      window.__phCarrinhoOrc = null;
+      const st = carrinhoStRef.current;
+      const mesmaRep = st.representada && norm(st.representada) === norm(c.representada || "");
+      const tab = mesmaRep ? st.tabelaPreco : "";
+      const novos = (c.itens || []).map(ci => {
+        const prod = (st.produtos || []).find(x => x.id === ci.id);
+        if (!prod) return null;
+        return {
+          id: uid(),
+          produto: (prod.codigo ? `${prod.codigo} ${prod.nome}` : prod.nome).replace(/\s+/g, " ").trim(),
+          produtoId: prod.id,
+          codigo: prod.codigo || "",
+          qtdCaixaMaster: Number(prod.qtdEmbalagem) > 0 ? Number(prod.qtdEmbalagem) : 0,
+          quantidade: ajustarAoMultiplo(ci.qtd, multiploMinimoDe(prod)),
+          precoUnitario: Number(precoNaTabela(prod, tab)) || 0
+        };
+      }).filter(Boolean);
+      if (!mesmaRep) { setRepresentada(c.representada || ""); setTabelaPreco(""); }
+      setStatus("Orçamento");
+      setAba("cabecalho");
+      setItens(prev => {
+        const base = mesmaRep ? prev.slice() : [];
+        novos.forEach(n => {
+          const i = base.findIndex(x => x.produtoId === n.produtoId);
+          if (i >= 0) base[i] = { ...base[i], quantidade: (Number(base[i].quantidade) || 0) + n.quantidade };
+          else base.push(n);
+        });
+        return base;
+      });
+      setAvisoCarrinhoOrc(novos.length + (novos.length === 1 ? " item do catálogo foi adicionado" : " itens do catálogo foram adicionados") + " a este orçamento. Escolha o cliente (os preços acompanham a tabela dele) e confira a aba Itens.");
+    };
+    aplicar();
+    window.addEventListener("ph-carrinho-orc", aplicar);
+    return () => window.removeEventListener("ph-carrinho-orc", aplicar);
+  }, []);
   const [importandoCotacao, setImportandoCotacao] = useState(false);
   const [msgCotacao, setMsgCotacao] = useState("");
   const [itensNaoIdentificados, setItensNaoIdentificados] = useState([]);
@@ -18886,7 +18958,11 @@ function NovoPedidoEspelho({
   }, children);
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
-  }, rascunhoRestaurado && /*#__PURE__*/React.createElement("div", {
+  }, avisoCarrinhoOrc && React.createElement("div", {
+    className: "flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm font-medium",
+    style: { backgroundColor: "#ecfdf5", border: "1px solid #a7f3d0", color: "#065f46" }
+  }, React.createElement("span", null, "🧾 " + avisoCarrinhoOrc),
+  React.createElement("button", { onClick: () => setAvisoCarrinhoOrc(""), className: "text-xs font-bold underline whitespace-nowrap", style: { color: "#065f46" } }, "OK")), rascunhoRestaurado && /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm font-medium",
     style: { backgroundColor: "#fefce8", border: "1px solid #fde68a", color: "#92400e" }
   }, /*#__PURE__*/React.createElement("span", null, "📋 Rascunho restaurado — continue de onde parou."),
@@ -19322,6 +19398,8 @@ function NovoPedidoEspelho({
     marcas: ["Todos"].concat([...new Set(produtosDaRepresentada.map(function(p) { return p.marca; }).filter(Boolean))]),
     filtroMarca: filtroMarcaNovoPedido,
     setFiltroMarca: setFiltroMarcaNovoPedido,
+    onAdicionar: adicionarDoCatalogoNovo,
+    qtdNoCarrinho: qtdNoPedidoNovo,
     onEditar: function(p) {
       setItemProduto(rotuloCatalogo(p).replace(/\s+/g, " ").trim());
       setItemProdutoId(p.id);
@@ -20110,6 +20188,26 @@ function Orcamentos({
       preco: ""
     });
   };
+  // Botão "Adicionar" direto no cartão do catálogo: soma a quantidade se o item já estiver no orçamento.
+  const adicionarDoCatalogo = (prod, qtd) => {
+    const preco = Number(precoNaTabela(prod, tabelaDoPedido)) || 0;
+    setForm(f => {
+      const itens = (f.itens || []).slice();
+      const i = itens.findIndex(x => x.produtoId === prod.id);
+      if (i >= 0) itens[i] = { ...itens[i], quantidade: (Number(itens[i].quantidade) || 0) + qtd };
+      else itens.push({
+        id: uid(),
+        produto: (prod.codigo ? `${prod.codigo} ${prod.nome}` : prod.nome).replace(/\s+/g, " ").trim(),
+        produtoId: prod.id,
+        codigo: prod.codigo || "",
+        qtdCaixaMaster: Number(prod.qtdEmbalagem) > 0 ? Number(prod.qtdEmbalagem) : 0,
+        quantidade: qtd,
+        precoUnitario: preco
+      });
+      return { ...f, itens };
+    });
+  };
+  const qtdNoOrcamento = prod => { const it = ((form && form.itens) || []).find(x => x.produtoId === prod.id); return it ? Number(it.quantidade) || 0 : 0; };
   const setF = campo => e => setForm(f => ({
     ...f,
     [campo]: e.target.value
@@ -20739,6 +20837,8 @@ ${condicoesComerciaisHTML(orc) || (orc.obsCliente ? `<div class="obs"><strong>Ob
       marcas: ["Todos"].concat([...new Set(produtosDaRep.map(function(p) { return p.marca; }).filter(Boolean))]),
       filtroMarca: filtroMarcaPedido,
       setFiltroMarca: setFiltroMarcaPedido,
+      onAdicionar: adicionarDoCatalogo,
+      qtdNoCarrinho: qtdNoOrcamento,
       onEditar: function(p) {
         setNovoItem({
           produto: rotuloProdutoCatalogo(p).replace(/\s+/g, " ").trim(),
@@ -25642,7 +25742,38 @@ function linhaDoProduto(p) {
   }
   return cat || "Outros";
 }
-function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar, precoDoProduto }) {
+// Controle de quantidade + "Adicionar" dentro do cartão do catálogo (igual ao catálogo do Vesh).
+function CatalogoAdd({ p, onAdicionar, jaTem }) {
+  const mm = multiploMinimoDe(p);
+  const passo = mm || 1;
+  const [q, setQ] = React.useState(String(passo));
+  const [ok, setOk] = React.useState(false);
+  const num = () => { const n = parseFloat(String(q).replace(",", ".")); return n > 0 ? n : passo; };
+  const btn = { border: "1px solid " + LINE, background: "transparent", color: INK, width: 32, height: 34, borderRadius: 8, fontWeight: 800, fontSize: 17, cursor: "pointer", lineHeight: 1, flexShrink: 0 };
+  const tem = jaTem ? Number(jaTem(p)) || 0 : 0;
+  return React.createElement("div", { onClick: function(e) { e.stopPropagation(); }, style: { marginTop: 10 } },
+    tem > 0 && React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: "#059669", marginBottom: 5 } }, "✓ " + tem + " no orçamento"),
+    React.createElement("div", { style: { display: "flex", gap: 5, alignItems: "center" } },
+      React.createElement("button", { type: "button", style: btn, "aria-label": "Diminuir", onClick: function() { setQ(String(Math.max(passo, num() - passo))); } }, "−"),
+      React.createElement("input", {
+        value: q, inputMode: "decimal", "aria-label": "Quantidade",
+        onChange: function(e) { setQ(e.target.value); },
+        onBlur: function() { setQ(String(ajustarAoMultiplo(num(), mm))); },
+        style: { width: 46, height: 34, textAlign: "center", fontWeight: 700, fontSize: 13, color: INK, background: "transparent", border: "1px solid " + LINE, borderRadius: 8, minWidth: 0 }
+      }),
+      React.createElement("button", { type: "button", style: btn, "aria-label": "Aumentar", onClick: function() { setQ(String(num() + passo)); } }, "+"),
+      React.createElement("button", {
+        type: "button",
+        onClick: function() {
+          const r = onAdicionar(p, ajustarAoMultiplo(num(), mm));
+          if (r !== false) { setOk(true); setTimeout(function() { setOk(false); }, 1400); }
+        },
+        style: { flex: 1, height: 34, borderRadius: 8, border: "none", background: ok ? "#059669" : ROYAL, color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer", minWidth: 0, whiteSpace: "nowrap" }
+      }, ok ? "✓ Adicionado" : "+ Adicionar")
+    )
+  );
+}
+function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar, precoDoProduto, onAdicionar, qtdNoCarrinho }) {
   const filtradosPorMarca = filtroMarca === "Todos" ? filtrados : filtrados.filter(p => p.marca === filtroMarca);
   const [linhaSel, setLinhaSel] = useState("Todas");
   // Agrupa por linha (só quando há mais de uma linha na lista).
@@ -25780,7 +25911,8 @@ function CatalogoGrid({ filtrados, marcas, filtroMarca, setFiltroMarca, onEditar
                     color: semEstoque ? "#ef4444" : estoqueOk ? "#059669" : "#d97706"
                   }
                 }, semEstoque ? "Sem estoque" : "Estq: " + p.estoqueAtual)
-              )
+              ),
+              onAdicionar && React.createElement(CatalogoAdd, { p: p, onAdicionar: onAdicionar, jaTem: qtdNoCarrinho })
             )
           );
         })
@@ -25924,6 +26056,36 @@ function Produtos({
   const [mostrarImportTabelaPreco, setMostrarImportTabelaPreco] = useState(false);
   const [mostrarVisaoTabelas, setMostrarVisaoTabelas] = useState(false);
   const [vistaGrid, setVistaGrid] = useState(false);
+  // Carrinho do catálogo → "Criar orçamento" (abre o Novo pedido como Orçamento com os itens).
+  const CARRINHO_KEY = "pontehub_carrinho_catalogo";
+  const [carrinho, setCarrinho] = useState(() => { try { const c = JSON.parse(localStorage.getItem(CARRINHO_KEY) || "[]"); return Array.isArray(c) ? c : []; } catch (e) { return []; } });
+  const [avisoCarrinho, setAvisoCarrinho] = useState("");
+  React.useEffect(() => { try { localStorage.setItem(CARRINHO_KEY, JSON.stringify(carrinho)); } catch (e) {} }, [carrinho]);
+  const prodDoCarrinho = id => (produtos || []).find(x => x.id === id);
+  const carrinhoItens = carrinho.map(c => ({ ...c, prod: prodDoCarrinho(c.id) })).filter(c => c.prod);
+  const repDoCarrinho = carrinhoItens.length ? (carrinhoItens[0].prod.representada || "") : null;
+  const totalCarrinho = carrinhoItens.reduce((a, c) => a + (Number(c.prod.vendaPreco) || 0) * (Number(c.qtd) || 0), 0);
+  const addCarrinho = (prod, qtd) => {
+    if (repDoCarrinho !== null && norm(repDoCarrinho) !== norm(prod.representada || "")) {
+      setAvisoCarrinho("O orçamento em andamento é da " + (repDoCarrinho || "sem representada") + ". Crie ou esvazie ele antes de adicionar itens de outra representada.");
+      return false;
+    }
+    setAvisoCarrinho("");
+    setCarrinho(c => {
+      const i = c.findIndex(x => x.id === prod.id);
+      if (i >= 0) { const n = c.slice(); n[i] = { ...n[i], qtd: (Number(n[i].qtd) || 0) + qtd }; return n; }
+      return [...c, { id: prod.id, qtd }];
+    });
+  };
+  const qtdNoCarrinhoDe = prod => { const c = carrinho.find(x => x.id === prod.id); return c ? Number(c.qtd) || 0 : 0; };
+  const criarOrcamentoDoCarrinho = () => {
+    if (!carrinhoItens.length) return;
+    window.__phCarrinhoOrc = { representada: repDoCarrinho || "", itens: carrinhoItens.map(c => ({ id: c.id, qtd: c.qtd })) };
+    setCarrinho([]);
+    setAvisoCarrinho("");
+    if (window.__phIrPedidos) window.__phIrPedidos();
+    setTimeout(() => { try { window.dispatchEvent(new Event("ph-carrinho-orc")); } catch (e) {} }, 60);
+  };
   const [filtroMarca, setFiltroMarca] = useState("Todos");
   const [mostrarBuscaImg, setMostrarBuscaImg] = useState(false);
   // Configuração de fotos automáticas por representada (somente master)
@@ -26790,7 +26952,18 @@ function Produtos({
       borderColor: LINE,
       color: INK
     }
-  }, "Cancelar"))), mostrarForm &&
+  }, "Cancelar"))), vistaGrid && (carrinhoItens.length > 0 || avisoCarrinho) && React.createElement("div", {
+    style: { position: "fixed", left: 12, right: 12, bottom: 58, zIndex: 40, display: "flex", justifyContent: "center", pointerEvents: "none" }
+  }, React.createElement("div", {
+    style: { pointerEvents: "auto", maxWidth: 640, width: "100%", background: "#0b1b34", border: "1px solid #2F6FEF", borderRadius: 14, padding: "10px 12px", boxShadow: "0 8px 30px rgba(0,0,0,.45)", color: "#fff" }
+  },
+    avisoCarrinho && React.createElement("div", { style: { fontSize: 12, color: "#fbbf24", marginBottom: carrinhoItens.length ? 8 : 0 } }, avisoCarrinho),
+    carrinhoItens.length > 0 && React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" } },
+      React.createElement("div", { style: { flex: 1, minWidth: 150 } },
+        React.createElement("div", { style: { fontSize: 13, fontWeight: 800 } }, "🧾 Orçamento: " + carrinhoItens.length + (carrinhoItens.length === 1 ? " item" : " itens") + " · " + brl(totalCarrinho)),
+        React.createElement("div", { style: { fontSize: 11, color: "#9db3cc" } }, (repDoCarrinho || "sem representada") + " · preço de tabela padrão (ajusta ao escolher o cliente)")),
+      React.createElement("button", { onClick: () => { setCarrinho([]); setAvisoCarrinho(""); }, style: { background: "rgba(255,255,255,.1)", color: "#cbd5e1", border: "none", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" } }, "Esvaziar"),
+      React.createElement("button", { onClick: criarOrcamentoDoCarrinho, style: { background: "#2F6FEF", color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 800, cursor: "pointer" } }, "Criar orçamento →")))), mostrarForm &&
   /*#__PURE__*/
   /*#__PURE__*/
   React.createElement(Card, {
@@ -27619,7 +27792,9 @@ function Produtos({
       marcas: marcasGrid,
       filtroMarca: filtroMarca,
       setFiltroMarca: setFiltroMarca,
-      onEditar: editar
+      onEditar: editar,
+      onAdicionar: addCarrinho,
+      qtdNoCarrinho: qtdNoCarrinhoDe
     })
   ) :
   /*#__PURE__*/React.createElement(Card, null, filtrados.length === 0 ?

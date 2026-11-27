@@ -557,7 +557,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.27";
+const APP_VERSAO = "1.9.28";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -1400,6 +1400,7 @@ function PonteHub({
     produto: []
   });
   const [checklistVisitaModelo, setChecklistVisitaModelo] = useState([]);
+  const [modelosOrcamento, setModelosOrcamento] = useState([]); // modelos prontos de orçamento (marca × segmento)
   const [devolucoesNFD, setDevolucoesNFD] = useState([]);
   const [leadsTelevendas, setLeadsTelevendas] = useState([]);
   const [taxaImposto, setTaxaImposto] = useState(15.5);
@@ -1571,6 +1572,7 @@ function PonteHub({
             produto: []
           });
           setChecklistVisitaModelo(data.checklistVisitaModelo || []);
+          setModelosOrcamento(data.modelosOrcamento || []);
           setDevolucoesNFD(data.devolucoesNFD || []);
           setLeadsTelevendas(data.leadsTelevendas || []);
           setTaxaImposto(typeof data.taxaImposto === "number" ? data.taxaImposto : 15.5);
@@ -1622,6 +1624,7 @@ function PonteHub({
           compromissos,
           camposOcultos,
           checklistVisitaModelo,
+          modelosOrcamento,
           devolucoesNFD,
           leadsTelevendas,
           taxaImposto,
@@ -1643,7 +1646,7 @@ function PonteHub({
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, mixClientes, contagens, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, produtos, condicoesPagamentoCadastro, representadasCadastro, transportadorasCadastro, contasPagar, contasReceber, negociosFunil, filaAtendimento, metas, interacoes, compromissos, camposOcultos, checklistVisitaModelo, devolucoesNFD, leadsTelevendas, taxaImposto, clientesAmostra, metaNorte, chaveSintegra, loaded, loadFailed]);
+  }, [vendedores, clientes, lancamentos, fluxoCaixa, oportunidades, produtosGiro, mixClientes, contagens, analisesPreditivas, chamadosLRA, pedidosEspelho, tabelaICMS, produtos, condicoesPagamentoCadastro, representadasCadastro, transportadorasCadastro, contasPagar, contasReceber, negociosFunil, filaAtendimento, metas, interacoes, compromissos, camposOcultos, checklistVisitaModelo, modelosOrcamento, devolucoesNFD, leadsTelevendas, taxaImposto, clientesAmostra, metaNorte, chaveSintegra, loaded, loadFailed]);
   const forcarSync = async () => {
     if (!loaded || loadFailed) return;
     setSaveState("saving");
@@ -1671,6 +1674,7 @@ function PonteHub({
         compromissos,
         camposOcultos,
         checklistVisitaModelo,
+        modelosOrcamento,
         devolucoesNFD,
         leadsTelevendas,
         taxaImposto,
@@ -2024,7 +2028,9 @@ function PonteHub({
     representadasCadastro: representadasCadastro,
     condicoesPagamentoCadastro: condicoesPagamentoCadastro,
     negocios: negociosFunil,
-    setNegocios: setNegociosFunil
+    setNegocios: setNegociosFunil,
+    modelosOrcamento: modelosOrcamento,
+    setModelosOrcamento: setModelosOrcamento
   })), KA("vendas", "vendas-prospeccao", React.createElement(ProspeccaoVendas, {
     sessao: sessao,
     clientes: clientes,
@@ -3079,7 +3085,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Catálogo com \"Adicionar\" no próprio cartão (quantidade − / + e botão), como no Vesh: dentro do pedido/orçamento soma o item na hora; em Produtos monta um orçamento em andamento com a barra \"Criar orçamento\", que abre o Novo pedido já como Orçamento com os itens.", "Produtos: ao clicar num cartão do catálogo, a edição do item abre na hora (no topo da tela) e, ao salvar ou cancelar, você volta ao catálogo na mesma posição em que estava.", "App de Vendas: o cartão voltou a se chamar \"Central de Pedidos\" (pedidos, espelho e NF).", "Botão \"← Voltar\" em todas as telas (barra no topo, junto com \"🏠 Início\"): volta para a tela anterior ou fecha o formulário aberto. Funciona também com o botão voltar do celular e Alt+←.", "App de Vendas agora abre direto na tela de Ferramentas (a Rotina de Hoje é o primeiro cartão).", "Botão \"🔄 Atualizar e baixar dados\" no menu (e na tela de login): envia o que estiver pendente, baixa todos os dados para uso offline, busca a versão mais nova do app e reinicia sozinho.", "Tela de login: olhinho para mostrar/ocultar o código de acesso.", "App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Modelos prontos de orçamento no Novo pedido: escolha a marca e aparecem os modelos por segmento (Material de construção, Material elétrico, Home center, Restaurante, Supermercado, Bazar…). Crie com \"Criar modelos sugeridos\" (itens mais vendidos pelo histórico), pelo catálogo ou salvando os itens do pedido; um toque em \"Aplicar ao pedido\" preenche os itens.", "Catálogo com \"Adicionar\" no próprio cartão (quantidade − / + e botão), como no Vesh: dentro do pedido/orçamento soma o item na hora; em Produtos monta um orçamento em andamento com a barra \"Criar orçamento\", que abre o Novo pedido já como Orçamento com os itens.", "Produtos: ao clicar num cartão do catálogo, a edição do item abre na hora (no topo da tela) e, ao salvar ou cancelar, você volta ao catálogo na mesma posição em que estava.", "App de Vendas: o cartão voltou a se chamar \"Central de Pedidos\" (pedidos, espelho e NF).", "Botão \"← Voltar\" em todas as telas (barra no topo, junto com \"🏠 Início\"): volta para a tela anterior ou fecha o formulário aberto. Funciona também com o botão voltar do celular e Alt+←.", "App de Vendas agora abre direto na tela de Ferramentas (a Rotina de Hoje é o primeiro cartão).", "Botão \"🔄 Atualizar e baixar dados\" no menu (e na tela de login): envia o que estiver pendente, baixa todos os dados para uso offline, busca a versão mais nova do app e reinicia sozinho.", "Tela de login: olhinho para mostrar/ocultar o código de acesso.", "App de Vendas redesenhado: Rotina de Hoje com contadores no topo, cartões enxutos e botões de ligar e WhatsApp direto no cliente; Ferramentas em grade de 2 colunas, agrupadas por uso.", "Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
@@ -18211,7 +18217,9 @@ function CentralPedidos({
   representadasCadastro,
   condicoesPagamentoCadastro,
   negocios = [],
-  setNegocios
+  setNegocios,
+  modelosOrcamento = [],
+  setModelosOrcamento = () => {}
 }) {
   const [sub, setSub] = useState("novo"); // "novo" | "lista" | "icms"
   useEffect(() => {
@@ -18297,7 +18305,9 @@ function CentralPedidos({
     onSalvo: () => setSub("orcamentos"),
     onIrICMS: () => setSub("icms"),
     negocios: negocios,
-    setNegocios: setNegocios
+    setNegocios: setNegocios,
+    modelosOrcamento: modelosOrcamento,
+    setModelosOrcamento: setModelosOrcamento
   })), ks("lista", React.createElement(ListaPedidosEspelho, {
     somenteLeitura: somenteLeitura,
     pedidosEspelho: pedidosEspelho,
@@ -18394,6 +18404,167 @@ function TabelaICMS({
   }, "Remover")))))));
 }
 const FORMAS_PAGAMENTO = ["Boleto", "Pix", "Transferência", "Cartão", "Depósito"];
+// ── Modelos prontos de orçamento (por marca e segmento) ──────────────────────────────
+function segmentosSugeridosDaMarca(rep) {
+  const r = norm(rep);
+  if (/brinox/.test(r)) return ["Restaurante", "Supermercado", "Bazar", "Presenteiro", "Home center"];
+  if (/taschibra/.test(r)) return ["Material elétrico", "Material de construção", "Home center", "Supermercado", "Bazar"];
+  if (/kalipso/.test(r)) return ["Material de construção", "Home center", "Material elétrico", "Serralheria e indústria", "Agropecuária"];
+  if (/prat/.test(r)) return ["Material de construção", "Ferragem", "Home center", "Serralheria e metalúrgica", "Material elétrico"];
+  if (/coza/.test(r)) return ["Supermercado", "Bazar", "Home center", "Presenteiro", "Restaurante"];
+  return ["Material de construção", "Material elétrico", "Home center", "Bazar", "Supermercado"];
+}
+// Itens mais vendidos da marca (por faturamento) nos pedidos já fechados; filtra pelo segmento dos clientes quando há dados.
+function maisVendidosDaMarca(rep, produtosDaRep, pedidos, clientes, segmento) {
+  const segN = norm(segmento);
+  const porId = new Map((clientes || []).map(c => [c.id, c]));
+  const doSegmento = p => {
+    const c = porId.get(p.clienteId) || (clientes || []).find(x => norm(x.nome) === norm(p.clienteNome));
+    const s = c && norm(c.segmento);
+    return !!s && (s.includes(segN) || segN.includes(s));
+  };
+  const vendasMarca = (pedidos || []).filter(p => pedidoEhVenda(p) && norm(p.representada) === norm(rep));
+  const agregar = lista => {
+    const m = new Map();
+    lista.forEach(ped => (ped.itens || []).forEach(it => {
+      const prod = it.produtoId && produtosDaRep.find(x => x.id === it.produtoId) || acharProdutoNoCatalogo(produtosDaRep, it.produto);
+      if (!prod) return;
+      const e = m.get(prod.id) || { prod, fat: 0, qtd: 0, peds: new Set() };
+      e.fat += (Number(it.quantidade) || 0) * (Number(it.precoUnitario) || 0);
+      e.qtd += Number(it.quantidade) || 0;
+      e.peds.add(ped.id);
+      m.set(prod.id, e);
+    }));
+    return Array.from(m.values()).sort((a, b) => b.fat - a.fat);
+  };
+  let base = "segmento", lista = segN ? vendasMarca.filter(doSegmento) : [];
+  let r = agregar(lista);
+  if (r.length < 5) { base = "marca"; lista = vendasMarca; r = agregar(lista); }
+  return {
+    base, pedidos: lista.length,
+    itens: r.slice(0, 12).map(e => ({ produtoId: e.prod.id, qtd: ajustarAoMultiplo(Math.round(e.qtd / Math.max(1, e.peds.size)) || 1, multiploMinimoDe(e.prod)) }))
+  };
+}
+function ModelosProntos({ representada, produtos, pedidosEspelho, clientes, modelos, setModelos, itensAtuais, tabelaPreco, onAplicar }) {
+  const produtosDaRep = (produtos || []).filter(p => !p.excluido && norm(p.representada) === norm(representada));
+  const meus = (modelos || []).filter(m => norm(m.representada) === norm(representada));
+  const [aberto, setAberto] = React.useState(true);
+  const [ed, setEd] = React.useState(null);
+  const [catAberto, setCatAberto] = React.useState(false);
+  const [filtroMarca, setFiltroMarca] = React.useState("Todos");
+  const [msg, setMsg] = React.useState("");
+  const [excluirId, setExcluirId] = React.useState(null);
+  useVoltarLocal(!!ed, () => { setEd(null); setCatAberto(false); });
+  const sug = segmentosSugeridosDaMarca(representada);
+  const prodDe = id => produtosDaRep.find(p => p.id === id);
+  const totalDe = m => (m.itens || []).reduce((a, i) => { const p = prodDe(i.produtoId); return a + (p ? (Number(precoNaTabela(p, tabelaPreco)) || 0) * (Number(i.qtd) || 0) : 0); }, 0);
+  const novoId = () => "mod-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const nomePadrao = seg => (representada + " · " + seg).trim();
+  const abrirEditor = (m, itensIniciais, segIni) => {
+    setCatAberto(false); setMsg("");
+    setEd(m ? { ...m, itens: (m.itens || []).map(i => ({ ...i })) } : { id: novoId(), representada, segmento: segIni || "", nome: "", itens: itensIniciais || [] });
+  };
+  const salvar = () => {
+    if (!ed || !ed.segmento.trim()) { setMsg("Escolha ou digite o segmento do modelo."); return; }
+    const itens = ed.itens.filter(i => prodDe(i.produtoId) && Number(i.qtd) > 0);
+    if (!itens.length) { setMsg("Adicione pelo menos um item ao modelo."); return; }
+    const m = { ...ed, segmento: ed.segmento.trim(), nome: (ed.nome || "").trim() || nomePadrao(ed.segmento.trim()), itens, atualizadoEm: new Date().toISOString() };
+    setModelos(prev => prev.some(x => x.id === m.id) ? prev.map(x => x.id === m.id ? m : x) : [...prev, m]);
+    setEd(null); setCatAberto(false); setMsg("Modelo salvo.");
+  };
+  const sugerirNoEditor = () => {
+    if (!ed) return;
+    const r = maisVendidosDaMarca(representada, produtosDaRep, pedidosEspelho, clientes, ed.segmento);
+    if (!r.itens.length) { setMsg("Ainda não há vendas dessa marca no histórico para sugerir. Monte pelo catálogo."); return; }
+    setEd(e => {
+      const itens = e.itens.slice();
+      r.itens.forEach(n => { if (!itens.some(i => i.produtoId === n.produtoId)) itens.push(n); });
+      return { ...e, itens };
+    });
+    setMsg(r.base === "segmento" ? "Sugestão baseada em " + r.pedidos + " pedido(s) de clientes do segmento." : "Sugestão baseada nas vendas da marca (" + r.pedidos + " pedido(s)); os clientes ainda não têm segmento preenchido o bastante.");
+  };
+  const criarSugeridos = () => {
+    const existentes = new Set(meus.map(m => norm(m.segmento)));
+    const novos = [];
+    sug.forEach(seg => {
+      if (existentes.has(norm(seg))) return;
+      const r = maisVendidosDaMarca(representada, produtosDaRep, pedidosEspelho, clientes, seg);
+      if (r.itens.length && r.base === "segmento") novos.push({ id: novoId(), representada, segmento: seg, nome: nomePadrao(seg), itens: r.itens, atualizadoEm: new Date().toISOString(), sugerido: true });
+    });
+    if (!novos.length && !existentes.has(norm("Mais vendidos"))) {
+      const r = maisVendidosDaMarca(representada, produtosDaRep, pedidosEspelho, clientes, "");
+      if (r.itens.length) {
+        setModelos(prev => [...prev, { id: novoId(), representada, segmento: "Mais vendidos", nome: nomePadrao("Mais vendidos"), itens: r.itens, atualizadoEm: new Date().toISOString(), sugerido: true }]);
+        setMsg("Os clientes ainda não têm segmento preenchido em pedidos suficientes para separar por segmento. Criei o modelo \"Mais vendidos\" (" + r.pedidos + " pedido(s)); para cada segmento use \"+ Novo modelo\" (escolha o segmento e toque em \"Sugerir mais vendidos\" ou monte pelo catálogo).");
+        return;
+      }
+    }
+    if (!novos.length) { setMsg("Não deu para sugerir: sem histórico de vendas dessa marca (ou os modelos já existem). Use \"+ Novo modelo\" e monte pelo catálogo."); return; }
+    setModelos(prev => [...prev, ...novos]);
+    setMsg(novos.length + " modelo(s) por segmento criado(s) com os itens mais vendidos. Abra e ajuste o que quiser.");
+  };
+  const setQtdEd = (pid, v) => setEd(e => ({ ...e, itens: e.itens.map(i => i.produtoId === pid ? { ...i, qtd: v } : i) }));
+  const delItemEd = pid => setEd(e => ({ ...e, itens: e.itens.filter(i => i.produtoId !== pid) }));
+  const addCatalogoEd = (p, qtd) => setEd(e => {
+    const itens = e.itens.slice(); const i = itens.findIndex(x => x.produtoId === p.id);
+    if (i >= 0) itens[i] = { ...itens[i], qtd: (Number(itens[i].qtd) || 0) + qtd }; else itens.push({ produtoId: p.id, qtd });
+    return { ...e, itens };
+  });
+  const qtdEd = p => { const i = ed && ed.itens.find(x => x.produtoId === p.id); return i ? Number(i.qtd) || 0 : 0; };
+  const btn = (bg, fg) => ({ background: bg, color: fg, border: "none", borderRadius: 8, padding: "7px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" });
+  const h = React.createElement;
+  const caixa = { border: "1px solid var(--line, " + LINE + ")", borderRadius: 12, background: "var(--card, transparent)", padding: 12 };
+  return h("div", { style: { ...caixa, borderColor: ROYAL } },
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }, onClick: () => setAberto(a => !a) },
+      h("div", { style: { flex: 1, fontWeight: 800, fontSize: 14, color: INK } }, "⚡ Modelos prontos · " + representada + " (" + meus.length + ")"),
+      h("span", { style: { fontSize: 12, color: "var(--mudo, #7a95b0)" } }, aberto ? "ocultar ▲" : "mostrar ▼")),
+    aberto && h("div", { style: { marginTop: 10 } },
+      !ed && h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 } },
+        h("button", { type: "button", onClick: () => abrirEditor(null), style: btn(ROYAL, "#fff") }, "+ Novo modelo"),
+        h("button", { type: "button", onClick: criarSugeridos, style: btn("rgba(47,111,239,.14)", ROYAL) }, "✨ Criar modelos sugeridos (mais vendidos)"),
+        itensAtuais.length > 0 && h("button", { type: "button", onClick: () => abrirEditor(null, itensAtuais.filter(i => i.produtoId).map(i => ({ produtoId: i.produtoId, qtd: Number(i.quantidade) || 1 }))), style: btn("rgba(148,163,184,.18)", INK) }, "💾 Salvar itens deste pedido como modelo")),
+      msg && h("div", { style: { fontSize: 12, color: "#059669", marginBottom: 8 } }, msg),
+      !ed && meus.length === 0 && h("div", { style: { fontSize: 12.5, color: "var(--mudo, #7a95b0)" } }, "Nenhum modelo para esta marca ainda. Use \"Criar modelos sugeridos\" para gerar um por segmento com os itens mais vendidos, ou \"+ Novo modelo\"."),
+      !ed && meus.length > 0 && h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 } },
+        meus.map(m => {
+          const ok = (m.itens || []).filter(i => prodDe(i.produtoId));
+          return h("div", { key: m.id, style: { ...caixa, display: "flex", flexDirection: "column", gap: 6 } },
+            h("div", { style: { fontWeight: 800, fontSize: 13.5, color: INK } }, m.segmento),
+            h("div", { style: { fontSize: 11.5, color: "var(--mudo, #7a95b0)" } }, ok.length + (ok.length === 1 ? " item" : " itens") + " · " + brl(totalDe(m)) + (tabelaPreco ? " (" + tabelaPreco + ")" : "")),
+            h("div", { style: { fontSize: 11.5, color: "var(--mudo2, #9db3cc)", lineHeight: 1.35 } }, ok.slice(0, 3).map(i => { const p = prodDe(i.produtoId); return p.nome; }).join(" · ") + (ok.length > 3 ? " …" : "")),
+            h("div", { style: { display: "flex", gap: 6, marginTop: "auto", flexWrap: "wrap" } },
+              h("button", { type: "button", onClick: () => { onAplicar(m); setMsg(""); }, style: { ...btn(ROYAL, "#fff"), flex: 1 } }, "Aplicar ao pedido"),
+              h("button", { type: "button", onClick: () => abrirEditor(m), style: btn("rgba(148,163,184,.18)", INK) }, "Editar"),
+              excluirId === m.id
+                ? h("button", { type: "button", onClick: () => { setModelos(prev => prev.filter(x => x.id !== m.id)); setExcluirId(null); }, style: btn("#dc2626", "#fff") }, "Confirmar?")
+                : h("button", { type: "button", onClick: () => setExcluirId(m.id), style: btn("rgba(239,68,68,.12)", "#ef4444"), "aria-label": "Excluir modelo" }, "🗑")));
+        })),
+      ed && h("div", { style: { display: "grid", gap: 10 } },
+        h("div", { style: { fontWeight: 800, fontSize: 13, color: INK } }, meus.some(x => x.id === ed.id) ? "Editar modelo" : "Novo modelo"),
+        h("div", null,
+          h("div", { style: { fontSize: 11, fontWeight: 700, color: "var(--mudo, #7a95b0)", marginBottom: 4 } }, "SEGMENTO"),
+          h("input", { list: "ph-seg-sug", value: ed.segmento, onChange: e => { const v = e.target.value; setEd(x => ({ ...x, segmento: v })); }, placeholder: "Ex.: " + sug[0], style: { width: "100%", height: 36, padding: "0 10px", borderRadius: 8, border: "1px solid var(--line, " + LINE + ")", background: "transparent", color: INK, fontSize: 14 } }),
+          h("datalist", { id: "ph-seg-sug" }, sug.map(s => h("option", { key: s, value: s }))),
+          h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 } }, sug.map(s => h("button", { key: s, type: "button", onClick: () => setEd(x => ({ ...x, segmento: s })), style: { ...btn(norm(ed.segmento) === norm(s) ? ROYAL : "rgba(148,163,184,.18)", norm(ed.segmento) === norm(s) ? "#fff" : INK), padding: "4px 10px", fontWeight: 600 } }, s)))),
+        h("div", null,
+          h("div", { style: { fontSize: 11, fontWeight: 700, color: "var(--mudo, #7a95b0)", marginBottom: 4 } }, "NOME (opcional)"),
+          h("input", { value: ed.nome || "", onChange: e => { const v = e.target.value; setEd(x => ({ ...x, nome: v })); }, placeholder: ed.segmento ? nomePadrao(ed.segmento) : representada, style: { width: "100%", height: 36, padding: "0 10px", borderRadius: 8, border: "1px solid var(--line, " + LINE + ")", background: "transparent", color: INK, fontSize: 14 } })),
+        h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
+          h("button", { type: "button", onClick: sugerirNoEditor, style: btn("rgba(47,111,239,.14)", ROYAL) }, "✨ Sugerir mais vendidos"),
+          h("button", { type: "button", onClick: () => setCatAberto(a => !a), style: btn("rgba(148,163,184,.18)", INK) }, catAberto ? "☰ Fechar catálogo" : "⊞ Adicionar pelo catálogo")),
+        catAberto && h("div", { style: { maxHeight: 440, overflowY: "auto", padding: "6px 0" } },
+          h(CatalogoGrid, { filtrados: produtosDaRep, precoDoProduto: p => precoNaTabela(p, tabelaPreco), marcas: ["Todos"].concat(Array.from(new Set(produtosDaRep.map(p => p.marca).filter(Boolean)))), filtroMarca, setFiltroMarca, onEditar: () => {}, onAdicionar: addCatalogoEd, qtdNoCarrinho: qtdEd })),
+        h("div", { style: { display: "grid", gap: 6 } },
+          ed.itens.length === 0 && h("div", { style: { fontSize: 12.5, color: "var(--mudo, #7a95b0)" } }, "Nenhum item ainda. Use \"Sugerir mais vendidos\" ou o catálogo."),
+          ed.itens.map(i => { const p = prodDe(i.produtoId); if (!p) return null; return h("div", { key: i.produtoId, style: { display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid var(--line, " + LINE + ")", paddingBottom: 6 } },
+            h("div", { style: { flex: 1, minWidth: 0, fontSize: 12.5, color: INK, lineHeight: 1.3 } }, (p.codigo ? p.codigo + " · " : "") + p.nome),
+            h("input", { value: i.qtd, inputMode: "decimal", onChange: e => setQtdEd(i.produtoId, e.target.value), onBlur: () => setQtdEd(i.produtoId, ajustarAoMultiplo(parseFloat(String(i.qtd).replace(",", ".")) || 1, multiploMinimoDe(p))), style: { width: 58, height: 32, textAlign: "center", borderRadius: 8, border: "1px solid var(--line, " + LINE + ")", background: "transparent", color: INK, fontWeight: 700 } }),
+            h("button", { type: "button", onClick: () => delItemEd(i.produtoId), style: btn("rgba(239,68,68,.12)", "#ef4444"), "aria-label": "Remover item" }, "✕")); })),
+        h("div", { style: { display: "flex", gap: 8 } },
+          h("button", { type: "button", onClick: salvar, style: btn(ROYAL, "#fff") }, "Salvar modelo"),
+          h("button", { type: "button", onClick: () => { setEd(null); setCatAberto(false); setMsg(""); }, style: btn("rgba(148,163,184,.18)", INK) }, "Cancelar"))))
+  );
+}
 function NovoPedidoEspelho({
   clientes,
   vendedores,
@@ -18406,7 +18577,9 @@ function NovoPedidoEspelho({
   onSalvo,
   onIrICMS,
   negocios = [],
-  setNegocios
+  setNegocios,
+  modelosOrcamento = [],
+  setModelosOrcamento = () => {}
 }) {
   const [aba, setAba] = useState("cabecalho"); // "cabecalho" | "itens" | "transporte"
   // Cabeçalho
@@ -18648,6 +18821,34 @@ function NovoPedidoEspelho({
     });
   };
   const qtdNoPedidoNovo = prod => { const it = itens.find(x => x.produtoId === prod.id); return it ? Number(it.quantidade) || 0 : 0; };
+  // Aplica um modelo pronto (marca × segmento): soma os itens; preços seguem a tabela atual.
+  const aplicarModeloPronto = m => {
+    const novos = (m.itens || []).map(mi => {
+      const prod = produtosDaRepresentada.find(x => x.id === mi.produtoId);
+      if (!prod) return null;
+      return {
+        id: uid(),
+        produto: (prod.codigo ? `${prod.codigo} ${prod.nome}` : prod.nome).replace(/\s+/g, " ").trim(),
+        produtoId: prod.id,
+        codigo: prod.codigo || "",
+        qtdCaixaMaster: Number(prod.qtdEmbalagem) > 0 ? Number(prod.qtdEmbalagem) : 0,
+        quantidade: ajustarAoMultiplo(Number(mi.qtd) || 1, multiploMinimoDe(prod)),
+        precoUnitario: Number(precoNaTabela(prod, tabelaPreco)) || 0
+      };
+    }).filter(Boolean);
+    if (!novos.length) { setAvisoCarrinhoOrc("Os produtos deste modelo não estão mais no catálogo. Edite o modelo."); return; }
+    if (itens.length === 0 && status === "Pedido") setStatus("Orçamento");
+    setItens(prev => {
+      const base = prev.slice();
+      novos.forEach(n => {
+        const i = base.findIndex(x => x.produtoId === n.produtoId);
+        if (i >= 0) base[i] = { ...base[i], quantidade: (Number(base[i].quantidade) || 0) + n.quantidade };
+        else base.push(n);
+      });
+      return base;
+    });
+    setAvisoCarrinhoOrc("Modelo \"" + (m.nome || m.segmento) + "\" aplicado: " + novos.length + (novos.length === 1 ? " item" : " itens") + ". Escolha o cliente (os preços acompanham a tabela dele) e confira a aba Itens.");
+  };
   // Carrinho vindo do catálogo de Produtos ("Criar orçamento"): abre este formulário como Orçamento com os itens.
   const [avisoCarrinhoOrc, setAvisoCarrinhoOrc] = useState("");
   const carrinhoStRef = useRef({});
@@ -18958,7 +19159,11 @@ function NovoPedidoEspelho({
   }, children);
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
-  }, avisoCarrinhoOrc && React.createElement("div", {
+  }, representada && React.createElement(ModelosProntos, {
+    representada: representada, produtos: produtos, pedidosEspelho: pedidosEspelho, clientes: clientes,
+    modelos: modelosOrcamento, setModelos: setModelosOrcamento, itensAtuais: itens, tabelaPreco: tabelaPreco,
+    onAplicar: aplicarModeloPronto
+  }), avisoCarrinhoOrc && React.createElement("div", {
     className: "flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm font-medium",
     style: { backgroundColor: "#ecfdf5", border: "1px solid #a7f3d0", color: "#065f46" }
   }, React.createElement("span", null, "🧾 " + avisoCarrinhoOrc),

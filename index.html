@@ -201,8 +201,9 @@ html[data-tema="escuro"] .text-violet-800{color:rgb(167,139,250)!important}
         return sessao;
       }
       try {
-        const snap = await db.collection("storage").doc(PONTE_HUB_STORAGE_DOC).get();
-        const data = snap.exists ? JSON.parse(snap.data().value) : {};
+        let data = {};
+        try { const r0 = await window.storage.get(PONTE_HUB_STORAGE_DOC, false); data = JSON.parse(r0.value); }
+        catch (e0) { if (!(e0 && e0.message === "not found")) throw e0; }
         const vendedores = data.vendedores || [];
         const v = vendedores.find(v => (v.codigoAcesso || "").toUpperCase() === codigoLimpo.toUpperCase() && codigoLimpo !== "");
         if (v) {
@@ -228,28 +229,252 @@ html[data-tema="escuro"] .text-violet-800{color:rgb(167,139,250)!important}
     },
   };
 
+  // ===== Modo offline (v1.9.19) =====
+  // Cada documento lido/gravado fica espelhado no IndexedDB deste aparelho. Sem internet o Hub lê
+  // do espelho e as gravações entram numa fila que sincroniza sozinha quando a rede volta.
+  const OFF = (function () {
+    const DB_NAME = "ponte-hub-offline", KV = "kv", PEND = "pend";
+    const mem = new Map(), memPend = new Set();
+    let idbP = null;
+    function abrir() {
+      if (idbP) return idbP;
+      idbP = new Promise(function (res) {
+        try {
+          const rq = indexedDB.open(DB_NAME, 1);
+          rq.onupgradeneeded = function () {
+            const d = rq.result;
+            if (!d.objectStoreNames.contains(KV)) d.createObjectStore(KV, { keyPath: "key" });
+            if (!d.objectStoreNames.contains(PEND)) d.createObjectStore(PEND, { keyPath: "key" });
+          };
+          rq.onsuccess = function () { res(rq.result); };
+          rq.onerror = function () { res(null); };
+          rq.onblocked = function () { res(null); };
+        } catch (e) { res(null); }
+      });
+      return idbP;
+    }
+    async function ler(key) {
+      const d = await abrir();
+      if (!d) return mem.get(key) || null;
+      return new Promise(function (res) {
+        try {
+          const rq = d.transaction(KV).objectStore(KV).get(key);
+          rq.onsuccess = function () { res(rq.result || null); };
+          rq.onerror = function () { res(mem.get(key) || null); };
+        } catch (e) { res(mem.get(key) || null); }
+      });
+    }
+    async function gravar(rec) {
+      mem.set(rec.key, rec);
+      if (rec.pending) memPend.add(rec.key); else memPend.delete(rec.key);
+      const d = await abrir();
+      if (!d) return;
+      return new Promise(function (res) {
+        try {
+          const tx = d.transaction([KV, PEND], "readwrite");
+          tx.objectStore(KV).put(rec);
+          if (rec.pending) tx.objectStore(PEND).put({ key: rec.key }); else tx.objectStore(PEND).delete(rec.key);
+          tx.oncomplete = function () { mem.delete(rec.key); res(); };
+          tx.onerror = function () { res(); };
+          tx.onabort = function () { res(); };
+        } catch (e) { res(); }
+      });
+    }
+    async function apagar(key) {
+      mem.delete(key); memPend.delete(key);
+      const d = await abrir();
+      if (!d) return;
+      return new Promise(function (res) {
+        try {
+          const tx = d.transaction([KV, PEND], "readwrite");
+          tx.objectStore(KV).delete(key); tx.objectStore(PEND).delete(key);
+          tx.oncomplete = function () { res(); }; tx.onerror = function () { res(); }; tx.onabort = function () { res(); };
+        } catch (e) { res(); }
+      });
+    }
+    async function chaves(store) {
+      const d = await abrir();
+      if (!d) return store === PEND ? Array.from(memPend) : Array.from(mem.keys());
+      return new Promise(function (res) {
+        try {
+          const rq = d.transaction(store).objectStore(store).getAllKeys();
+          rq.onsuccess = function () { res(rq.result || []); };
+          rq.onerror = function () { res([]); };
+        } catch (e) { res([]); }
+      });
+    }
+    const comTimeout = function (p, ms) {
+      return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error("timeout")); }, ms); })]);
+    };
+    const estado = { pend: 0, sincronizando: false, aviso: "", copiaLocal: false, ok: false };
+    let pill = null, btn = null, txt = null, avisoTimer = null;
+    function montarUI() {
+      if (pill || typeof document === "undefined" || !document.body) return;
+      pill = document.createElement("div");
+      pill.id = "ph-offline-pill";
+      pill.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:99999;display:none;align-items:center;gap:8px;max-width:min(92vw,420px);padding:8px 12px;border-radius:12px;background:#0B1220;color:#F1F5F9;border:1px solid #2A3A5C;box-shadow:0 6px 20px rgba(0,0,0,.35);font:600 12px/1.3 'Plus Jakarta Sans',system-ui,sans-serif";
+      const dot = document.createElement("span");
+      dot.style.cssText = "width:9px;height:9px;border-radius:50%;flex:none;background:#F59E0B";
+      dot.id = "ph-offline-dot";
+      txt = document.createElement("span");
+      btn = document.createElement("button");
+      btn.textContent = "Sincronizar";
+      btn.style.cssText = "flex:none;border:0;border-radius:8px;padding:4px 8px;background:#2F6FEF;color:#fff;font:700 11px system-ui,sans-serif;cursor:pointer";
+      btn.onclick = function () { sincronizar(true); };
+      pill.appendChild(dot); pill.appendChild(txt); pill.appendChild(btn);
+      document.body.appendChild(pill);
+    }
+    function pintar() {
+      montarUI();
+      if (!pill) return;
+      const off = typeof navigator !== "undefined" && navigator.onLine === false;
+      let t = "", cor = "#F59E0B", mostrarBtn = false;
+      if (off) {
+        t = "Sem internet — o Hub está funcionando offline" + (estado.pend ? " · " + estado.pend + " documento(s) aguardando envio" : "") + ".";
+      } else if (estado.sincronizando) {
+        t = "Sincronizando alterações…"; cor = "#38BDF8";
+      } else if (estado.pend) {
+        t = estado.pend + " documento(s) ainda não enviados ao servidor."; mostrarBtn = true;
+      } else if (estado.copiaLocal) {
+        t = "Sem conexão com o servidor — usando os dados salvos neste aparelho.";
+      } else if (estado.aviso) {
+        t = estado.aviso; cor = "#34D399";
+      }
+      pill.style.display = t ? "flex" : "none";
+      txt.textContent = t;
+      btn.style.display = mostrarBtn ? "inline-block" : "none";
+      const dot = document.getElementById("ph-offline-dot");
+      if (dot) dot.style.background = cor;
+    }
+    function aviso(msg, ms) {
+      estado.aviso = msg; pintar();
+      clearTimeout(avisoTimer);
+      avisoTimer = setTimeout(function () { estado.aviso = ""; pintar(); }, ms || 6000);
+    }
+    async function contar() {
+      estado.pend = (await chaves(PEND)).length;
+      pintar();
+    }
+    async function servidorGet(key) {
+      const snap = await comTimeout(db.collection("storage").doc(key).get(), 20000);
+      return snap.exists ? snap.data().value : null;
+    }
+    async function servidorSet(key, value) {
+      await comTimeout(db.collection("storage").doc(key).set({ value: value }), 30000);
+    }
+    const filas = {};
+    function empurrar(key) {
+      filas[key] = (filas[key] || Promise.resolve()).then(function () { return empurrarUm(key); }).catch(function () {});
+      return filas[key];
+    }
+    async function empurrarUm(key) {
+      const rec = await ler(key);
+      if (!rec || !rec.pending) return;
+      const v0 = rec.v;
+      try {
+        if (rec.needsCheck) {
+          const sv = await servidorGet(key);
+          if (sv !== null && sv !== rec.base && sv !== rec.value) {
+            await servidorSet(key + "-bkp-sync-" + Date.now(), sv);
+            aviso("Outro aparelho tinha alterado dados enquanto você estava offline — guardei uma cópia de segurança do que estava no servidor.", 12000);
+          }
+        }
+        await servidorSet(key, rec.value);
+        estado.copiaLocal = false;
+        const atual = await ler(key);
+        if (atual && atual.v === v0) await gravar({ key: key, value: atual.value, pending: false, ts: Date.now() });
+      } catch (e) {
+        const atual = await ler(key);
+        if (atual && atual.pending && atual.v === v0 && !atual.needsCheck) await gravar(Object.assign({}, atual, { needsCheck: true }));
+        throw e;
+      } finally {
+        await contar();
+      }
+    }
+    async function sincronizar(manual) {
+      if (estado.sincronizando) return;
+      if (navigator.onLine === false) { if (manual) aviso("Ainda sem internet.", 3000); return; }
+      const ks = await chaves(PEND);
+      if (!ks.length) { await contar(); return; }
+      estado.sincronizando = true; pintar();
+      let falhou = false;
+      for (const k of ks) { try { await empurrar(k); } catch (e) { falhou = true; } }
+      estado.sincronizando = false;
+      await contar();
+      if (!falhou && !estado.pend) aviso("Tudo sincronizado ✓", 4000);
+      else if (falhou) pintar();
+    }
+    window.addEventListener("online", function () { pintar(); setTimeout(function () { sincronizar(false); }, 1500); });
+    window.addEventListener("offline", pintar);
+    setInterval(function () { if (estado.pend && navigator.onLine !== false) sincronizar(false); }, 30000);
+    setTimeout(function () { contar().then(function () { if (estado.pend) sincronizar(false); }); }, 3000);
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+    return { ler: ler, gravar: gravar, apagar: apagar, chaves: chaves, contar: contar, empurrar: empurrar, sincronizar: sincronizar, estado: estado, pintar: pintar, servidorGet: servidorGet, KV: KV };
+  })();
+  window.ponteOffline = { sincronizar: function () { return OFF.sincronizar(true); }, estado: OFF.estado };
+
   window.storage = {
     async get(key, shared) {
-      const snap = await db.collection("storage").doc(key).get();
-      if (!snap.exists) throw new Error("not found");
-      return { key, value: snap.data().value, shared: !!shared };
+      const rec = await OFF.ler(key);
+      if (navigator.onLine !== false) {
+        try {
+          const v = await OFF.servidorGet(key);
+          OFF.estado.copiaLocal = false;
+          if (v === null) {
+            if (rec && rec.pending) return { key, value: rec.value, shared: !!shared };
+            if (rec) await OFF.apagar(key);
+            throw new Error("not found");
+          }
+          if (rec && rec.pending) { OFF.sincronizar(false); return { key, value: rec.value, shared: !!shared }; }
+          await OFF.gravar({ key, value: v, pending: false, ts: Date.now() });
+          return { key, value: v, shared: !!shared };
+        } catch (e) {
+          if (e && e.message === "not found") throw e;
+          console.warn("Ponte Hub — servidor inacessível, usando cópia local de", key, e);
+        }
+      }
+      if (rec) { OFF.estado.copiaLocal = true; OFF.pintar(); return { key, value: rec.value, shared: !!shared }; }
+      OFF.pintar();
+      throw new Error("Sem internet e sem dados salvos neste aparelho. Abra o Hub uma vez com internet para habilitar o modo offline.");
     },
     async set(key, value, shared) {
-      await db.collection("storage").doc(key).set({ value });
+      const rec = await OFF.ler(key);
+      if (rec && !rec.pending && rec.value === value) return { key, value, shared: !!shared };
+      const offline = navigator.onLine === false;
+      const novo = {
+        key, value, pending: true,
+        base: rec ? (rec.pending ? rec.base : rec.value) : null,
+        v: ((rec && rec.v) || 0) + 1,
+        needsCheck: !!((rec && rec.pending && rec.needsCheck) || offline),
+        ts: Date.now(),
+      };
+      await OFF.gravar(novo);
+      await OFF.contar();
+      if (!offline) { try { await OFF.empurrar(key); } catch (e) {} }
       return { key, value, shared: !!shared };
     },
     async delete(key, shared) {
+      if (navigator.onLine === false) throw new Error("Sem internet — não é possível apagar agora.");
       await db.collection("storage").doc(key).delete();
+      await OFF.apagar(key);
       return { key, deleted: true, shared: !!shared };
     },
     async list(prefix, shared) {
-      const snap = await db.collection("storage").get();
-      const keys = snap.docs.map((d) => d.id).filter((k) => k.startsWith(prefix || ""));
+      let keys;
+      if (navigator.onLine !== false) {
+        try {
+          const snap = await db.collection("storage").get();
+          keys = snap.docs.map((d) => d.id);
+        } catch (e) { keys = null; }
+      }
+      if (!keys) keys = await OFF.chaves(OFF.KV);
+      keys = keys.filter((k) => k.startsWith(prefix || ""));
       return { keys, prefix, shared: !!shared };
     },
   };
 
   window.uploadFoto = async function(file) {
+    if (navigator.onLine === false) throw new Error("Sem internet: o envio de fotos precisa de conexão.");
     const nomeUnico = Date.now() + "-" + Math.random().toString(36).slice(2) + "-" + file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
     const ref = storageRef.ref().child("produtos/" + nomeUnico);
     await ref.put(file);
@@ -268,7 +493,7 @@ const {
 } = React;
 
 // ---------- Brand tokens ----------
-const APP_VERSAO = "1.9.18";
+const APP_VERSAO = "1.9.19";
 const NOVIDADES_KEY = `ponte-hub-novidades-visto-v${APP_VERSAO}`;
 const APP_CHECK_URL = "https://raw.githubusercontent.com/PonteRepresentacoes/ponte-hub/main/index.html";
 const NAVY = "#0B1220";
@@ -2683,7 +2908,7 @@ function Sidebar({
 function PopupNovidades({
   onFechar
 }) {
-  const novidadesLista = ["Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
+  const novidadesLista = ["Modo offline: o Hub abre e funciona sem internet (consulta, orçamentos, pedidos). As alterações ficam salvas no aparelho e sincronizam sozinhas quando a rede volta; um aviso no canto mostra o estado. Abra o Hub uma vez com internet em cada aparelho para habilitar.", "Importação de planilha de preços reconhece listas com colunas \"Item\", \"Preço\", \"Lote Mult.\" e \"Linha\" (Prat-K); quando a planilha tem uma só coluna de preço, ela vira o preço de venda dos produtos novos.", "Kalipso: o frete só fica CIF a partir de R$ 7.000,00; abaixo disso o pedido/orçamento fica FOB automaticamente (você ainda pode trocar na mão no novo pedido). Vale também ao editar o orçamento.", "Importação por cotação em PDF: o preço da cotação agora vira o preço de venda dos produtos novos (e dos existentes que estavam sem preço); produto que já tem preço de venda só ganha a nova tabela.", "Importação de preços da fábrica agora aceita cotação em PDF (Kalipso, Taschibra e Goedert/Nobre): lê só os itens (código, descrição e preço), ignora o cliente e já liga ao produto existente pelo código, referência ou nome.", "Kalipso: orçamento (PDF) com quadro \"Condições Comerciais\" (pagamento, validade, frete CIF/FOB, transportadora e redespacho) e \"Observações Gerais\". Novos campos Redespacho e Validade da proposta no pedido, no orçamento e na edição.", "Kalipso: o campo \"Observação para o cliente\" já vem preenchido com o pedido mínimo para Roraima (R$ 2.000,00, despacho em SP para a transportadora do cliente) e o frete CIF a partir de R$ 7.000,00; também sai no PDF do orçamento.", "Catálogo do orçamento redesenhado (cabeçalho, cartões grandes com foto, total em destaque) e botões \"Catálogo\" e \"Catálogo s/ preço\" direto no cartão do orçamento, sem abrir a edição.", "Orçamento e pedido: \"Condição de pagamento\" agora é uma lista com os prazos da representada (Kalipso: 16 prazos), em vez de campo de digitação.", "PDF do orçamento (e catálogo do orçamento) agora traz a foto de cada produto.", "Orçamentos: botão \"Gerar orçamento\" (PDF com preços) e \"Sem preço\" direto no cartão do orçamento, sem precisar abrir a edição.", "Catálogo agrupado por linha (Kalipso: Jaguar, Leopardo, Kronos, Tatex, Nitrili-Ka…): títulos por linha e filtro \"Linha\" no catálogo do pedido e em Produtos.", "Catálogo do pedido: filtra pelo que for digitado no campo Produto (código, nome, marca, referência, código de barras ou C.A.), Enter abre o catálogo, cada item mostra quantidade mínima e caixa master e o preço da tabela escolhida. Quantidade no pedido agora segue o múltiplo mínimo do item.", "Busca de imagens do produto: a foto escolhida fica guardada no Cloudinary (não depende mais do site de origem).", "Pedido Kalipso: a tabela de preço é escolhida pela classificação do cliente (Premium −7%, Standard −5%, Basic/novo com faixas de comissão 7% a 3%) e mostra a comissão.", "Cadastro de produto: busca de imagens na web, campo de endereço da imagem, abrir busca do Google e enviar do aparelho.", "Óculos Kalipso agora com foto da cor da lente (amarela, cinza, incolor, verde, AF, espelhada).", "Fotos Kalipso corrigidas por cor e tamanho (luvas, óculos Ibiza/Cancun, coletes, cones, etc.) usando as fotos do site da Kalipso.", "PDF do orçamento agora traz CNPJ, inscrição estadual e endereço completo do cliente.", "Botão \"Atualizar Fotos\" na seção Produtos — aparece ao filtrar uma representada com fotos mapeadas (somente master).", "Aviso automático de nova versão — banner aparece quando há atualização disponível no servidor.", "Importação de tabelas aprimorada — captura Un, Qtd. mínima, C.A., Família e Referência (Estruturado) da Kalipso.", "Bug corrigido — coluna Embalagem agora mostra a unidade real (PC, PR…) em vez de \"Caixa master\".", "Tabela de produtos — colunas Qtd. Mínima, Caixa Master e Referência adicionadas à visualização padrão.", "Reordenação e exclusão de clientes — arraste para reorganizar a lista, estilo Canva."];
   return /*#__PURE__*/ /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 flex items-end justify-center px-4 pb-6 pointer-events-none", style: { zIndex: 9999 }
   }, /*#__PURE__*/React.createElement("div", {
